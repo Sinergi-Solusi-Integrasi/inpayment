@@ -2,9 +2,11 @@ package com.s2i.inpayment.ui.screen.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -22,6 +24,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.TransactionItem
+import com.s2i.inpayment.ui.theme.gradientBrush
+import com.s2i.inpayment.ui.theme.triGradientBrush
 import com.s2i.inpayment.ui.viewmodel.HomeViewModel
 
 // In HomeScreen.kt
@@ -31,18 +35,16 @@ fun HomeScreen(viewModel: HomeViewModel, modifier: Modifier = Modifier) {
     val transactions = viewModel.transactionList
     val balance = viewModel.balance
 
-    Scaffold(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-    ) { paddingValues ->
-
+    ) {
         // Section for the top part with the balance card
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(paddingValues)
-                .background(Color(0xFF11526B)) // The color from your example
+                .background(brush = gradientBrush()) // The color from your example
                 .padding(16.dp)
         ) {
             // Header with Logo, Notification, and Profile
@@ -78,12 +80,15 @@ fun HomeScreen(viewModel: HomeViewModel, modifier: Modifier = Modifier) {
 
                     // Profile picture on the right
                     Image(
-                        painter = painterResource(id = R.drawable.logo), // Replace with the correct profile image
+                        painter = painterResource(id = R.drawable.ic_people), // Replace with the correct profile image
                         contentDescription = "Profile",
                         modifier = Modifier
-                            .size(48.dp)
-                            .background(Color.Gray, shape = MaterialTheme.shapes.medium)
-                            .clip(MaterialTheme.shapes.medium)
+                            .size(32.dp) // Ukuran avatar diubah menjadi 32.dp
+                            .clip(CircleShape) // Bentuk lingkaran
+                            .background(Color.Gray, shape = CircleShape) // Background lingkaran
+                            .clickable {
+                                // Aksi ketika di klik
+                            }
                     )
                 }
 
@@ -95,64 +100,71 @@ fun HomeScreen(viewModel: HomeViewModel, modifier: Modifier = Modifier) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp) // Adjusting height to match the design
+                    .height(180.dp) // Adjust height as needed
                     .padding(8.dp), // Padding around the card
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF008080)) // Custom card color
             ) {
-                Column(
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.Center
+                        .background(MaterialTheme.colorScheme.primary) // Apply the gradient brush here
                 ) {
-                    Text(
-                        text = "Saldo",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.White
-                    )
-                    Spacer(modifier = Modifier.height(5.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = "Rp 150.000", // Update the balance value
-                            style = MaterialTheme.typography.displaySmall,
+                            text = "Saldo",
+                            style = MaterialTheme.typography.titleMedium,
                             color = Color.White
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        IconButton(onClick = { /* Handle visibility toggle */ }) {
-                            Icon(Icons.Default.Visibility, contentDescription = "Toggle Visibility", tint = Color.White)
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        // Top-Up Button
+                        Spacer(modifier = Modifier.height(5.dp))
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_topup), // Replace with top-up icon
-                                contentDescription = "Top Up",
-                                tint = Color.White
+                            Text(
+                                text = "Rp.", // Update balance value
+                                style = MaterialTheme.typography.displaySmall,
+                                color = Color.White
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Top Up", color = Color.White)
+                            Text(
+                                text = "150.000", // Update balance value
+                                style = MaterialTheme.typography.displaySmall,
+                                color = Color.White
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            IconButton(onClick = { /* Handle visibility toggle */ }) {
+                                Icon(Icons.Default.Visibility, contentDescription = "Toggle Visibility", tint = Color.White)
+                            }
                         }
-
-                        // History Button
+                        Spacer(modifier = Modifier.height(16.dp))
                         Row(
-                            verticalAlignment = Alignment.CenterVertically
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_riwayat), // Replace with history icon
-                                contentDescription = "Riwayat",
-                                tint = Color.White
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Riwayat", color = Color.White)
+                            // Top-Up Button
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_topup), // Replace with top-up icon
+                                    contentDescription = "Top Up",
+                                    tint = Color.White
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Top Up", color = Color.White)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                //riwayat
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_riwayat), // Replace with history icon
+                                    contentDescription = "Riwayat",
+                                    modifier = Modifier
+                                        .size(16.dp),
+                                    tint = Color.White
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Riwayat", color = Color.White)
+                            }
                         }
                     }
                 }

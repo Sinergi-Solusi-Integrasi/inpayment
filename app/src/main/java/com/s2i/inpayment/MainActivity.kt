@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.s2i.inpayment.ui.screen.home.HomeScreen
 import com.s2i.inpayment.ui.theme.InPaymentTheme
@@ -19,6 +20,7 @@ import com.s2i.inpayment.ui.viewmodel.HomeViewModel
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             InPaymentTheme {
                 // Initialize HomeViewModel using the viewModel() function
