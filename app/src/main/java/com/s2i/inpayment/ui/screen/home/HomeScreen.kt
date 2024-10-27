@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -21,9 +22,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.TransactionItem
+import com.s2i.inpayment.ui.screen.splash.SplashScreen
+import com.s2i.inpayment.ui.theme.DarkTeal40
 import com.s2i.inpayment.ui.theme.gradientBrush
 import com.s2i.inpayment.ui.theme.triGradientBrush
 import com.s2i.inpayment.ui.viewmodel.HomeViewModel
@@ -106,7 +110,7 @@ fun HomeScreen(viewModel: HomeViewModel, modifier: Modifier = Modifier) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.primary) // Apply the gradient brush here
+                        .background(DarkTeal40) // Apply the gradient brush here
                 ) {
                     Column(
                         modifier = Modifier
@@ -156,7 +160,7 @@ fun HomeScreen(viewModel: HomeViewModel, modifier: Modifier = Modifier) {
                                 Spacer(modifier = Modifier.width(8.dp))
                                 //riwayat
                                 Icon(
-                                    painter = painterResource(id = R.drawable.ic_riwayat), // Replace with history icon
+                                    Icons.Default.Receipt, // Replace with history icon
                                     contentDescription = "Riwayat",
                                     modifier = Modifier
                                         .size(16.dp),
@@ -274,6 +278,12 @@ fun HomeScreen(viewModel: HomeViewModel, modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewHomeScreen(){
+    HomeScreen(HomeViewModel())
 }
 
 
