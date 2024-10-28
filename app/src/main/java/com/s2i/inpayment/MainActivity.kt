@@ -11,27 +11,50 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.s2i.inpayment.ui.screen.home.HomeScreen
+import com.s2i.inpayment.ui.screen.onboard.OnboardScreen
+import com.s2i.inpayment.ui.screen.splash.SplashScreen
 import com.s2i.inpayment.ui.theme.InPaymentTheme
 import com.s2i.inpayment.ui.viewmodel.HomeViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        installSplashScreen()
         setContent {
             InPaymentTheme {
+                val navController = rememberNavController()
                 // Initialize HomeViewModel using the viewModel() function
                 val homeViewModel: HomeViewModel = viewModel()
 
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    HomeScreen(
-                        viewModel = homeViewModel,
-                        modifier = Modifier.padding(innerPadding)
+                // Navigation Setup
+                NavHost(
+                    navController = navController,
+                    startDestination = "splash_screen"
+                ) {
+                    composable("splash_screen") {
+                        SplashScreen(navController = navController)
+                    }
+                    composable("onboard_screen") {
+                        OnboardScreen()
+                    }
+                    composable("home_screen") {
+                        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                            HomeScreen(
+                                viewModel = homeViewModel,
+                                modifier = Modifier.padding(innerPadding)
 
-                    )
+                            )
+                        }
+                    }
                 }
             }
         }

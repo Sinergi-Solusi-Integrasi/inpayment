@@ -52,6 +52,9 @@ dependencies {
     //swiperefresh
     implementation(libs.androidx.swiperefreshlayout)
 
+    //splash screen
+    implementation(libs.androidx.core.splashscreen)
+
 
     // Optional if you're using Jetpack Compose
     implementation("io.insert-koin:koin-androidx-compose")

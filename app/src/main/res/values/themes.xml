@@ -5,4 +5,9 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
+
+    <style name="Theme.SplashScreen" parent="Theme.InPayment">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="postSplashScreenTheme">@style/Theme.InPayment</item>
+    </style>
 </resources>

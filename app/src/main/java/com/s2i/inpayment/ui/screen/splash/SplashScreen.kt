@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,11 +22,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.theme.DarkTeal21
+import kotlinx.coroutines.delay
 
 @Composable
-fun SplashScreen(){
+fun SplashScreen(navController: NavController){
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -117,10 +120,12 @@ fun SplashScreen(){
             )
         }
     }
-}
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewSplashScreen(){
-    SplashScreen()
+    // Automatically navigate to OnboardScreen after a delay
+    LaunchedEffect(Unit) {
+        delay(3000) // 3 seconds delay
+        navController.navigate("onboard_screen") {
+            popUpTo("splash_screen") { inclusive = true }
+        }
+    }
 }
