@@ -17,6 +17,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.s2i.inpayment.ui.components.navigation.AppNavigation
 import com.s2i.inpayment.ui.screen.home.HomeScreen
 import com.s2i.inpayment.ui.screen.onboard.OnboardScreen
 import com.s2i.inpayment.ui.screen.splash.SplashScreen
@@ -36,26 +37,9 @@ class MainActivity : ComponentActivity() {
                 val homeViewModel: HomeViewModel = viewModel()
 
                 // Navigation Setup
-                NavHost(
-                    navController = navController,
-                    startDestination = "splash_screen"
-                ) {
-                    composable("splash_screen") {
-                        SplashScreen(navController = navController)
-                    }
-                    composable("onboard_screen") {
-                        OnboardScreen()
-                    }
-                    composable("home_screen") {
-                        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                            HomeScreen(
-                                viewModel = homeViewModel,
-                                modifier = Modifier.padding(innerPadding)
 
-                            )
-                        }
-                    }
-                }
+                // Call your navigation setup here
+                AppNavigation(navController = navController)
             }
         }
     }

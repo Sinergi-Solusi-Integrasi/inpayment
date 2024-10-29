@@ -24,12 +24,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.s2i.inpayment.ui.components.onboardingPages
 import com.s2i.inpayment.ui.theme.DarkTeal21
 import kotlinx.coroutines.delay
 
 @Composable
-fun OnboardScreen() {
+fun OnboardScreen(navController: NavController) {
     var currentPage by remember { mutableIntStateOf(0) }
 
     val pages = onboardingPages
@@ -59,7 +60,7 @@ fun OnboardScreen() {
                 .align(Alignment.TopEnd)
                 .padding(top = 48.dp, end = 16.dp) // Moved down
                 .clickable {
-
+                    navController.navigate("login")
                 }
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -151,10 +152,4 @@ fun RectIndicator(isSelected: Boolean) {
                 shape = RoundedCornerShape(3.dp)
             )
     )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewOnboardScreen() {
-    OnboardScreen()
 }
