@@ -19,19 +19,13 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
-        debug {
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
+
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -54,6 +48,13 @@ dependencies {
     // Coroutines (optional) for shared logic
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.converter.gson)
+
+    implementation("androidx.compose.runtime:runtime")
+//    implementation("androidx.compose.runtime:runtime-livedata:1.7.4")
+    // Optional - Integration with LiveData
+    implementation("androidx.compose.runtime:runtime-livedata")
+    implementation(libs.androidx.activity.compose)
+    implementation(platform(libs.androidx.compose.bom))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

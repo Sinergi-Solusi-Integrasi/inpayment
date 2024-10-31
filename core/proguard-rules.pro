@@ -19,3 +19,5 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+# Keep models used in the core module
+-keep class com.s2i.core.model.transaction.Transaction { *; }

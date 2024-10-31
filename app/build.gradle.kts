@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.googleDevtoolsKsp)
+    id("kotlin-parcelize")
 }
 
 android {
@@ -20,13 +22,23 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+        debug {
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
     }
+//    composeOptions {
+//        kotlinCompilerExtensionVersion = "1.5.15"
+//    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -60,9 +72,11 @@ dependencies {
     // Optional if you're using Jetpack Compose
     implementation("io.insert-koin:koin-androidx-compose")
     implementation("io.insert-koin:koin-compose")
-    implementation("io.insert-koin:koin-compose-viewmodel")
     implementation("io.insert-koin:koin-compose-viewmodel-navigation")
     implementation("io.insert-koin:koin-androidx-compose-navigation")
+
+    implementation("androidx.compose.runtime:runtime:1.7.4")
+    implementation("androidx.compose.runtime:runtime-livedata:1.7.4")
 
     // Retrofit for networking
     implementation(libs.retrofit)
@@ -74,8 +88,8 @@ dependencies {
     //module
     implementation(project(":domain"))
     implementation(project(":data"))
-    implementation(project(":common"))
     implementation(project(":core"))
+    implementation(project(":common"))
 
     //material design
     // Choose one of the following:
@@ -108,11 +122,25 @@ dependencies {
     // Optional - Integration with RxJava
     implementation(libs.rxjava)
     implementation(libs.rxbinding)
+    implementation(libs.androidx.security.crypto.ktx)
+
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)  // KSP for Room annotation processing
+    implementation(libs.androidx.room.paging)
+    implementation(libs.androidx.room.ktx)
+
+    //retrofit
+    implementation(libs.logging.interceptor)
+    implementation(libs.androidx.security.crypto.ktx)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)  // Gson Converter for Retrofit
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.logging.interceptor)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     // Android Studio Preview support

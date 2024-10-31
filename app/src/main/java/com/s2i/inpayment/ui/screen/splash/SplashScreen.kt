@@ -28,7 +28,7 @@ import com.s2i.inpayment.ui.theme.DarkTeal21
 import kotlinx.coroutines.delay
 
 @Composable
-fun SplashScreen(navController: NavController){
+fun SplashScreen(navController: NavController, isLoggedIn: Boolean){
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -124,8 +124,14 @@ fun SplashScreen(navController: NavController){
     // Automatically navigate to OnboardScreen after a delay
     LaunchedEffect(Unit) {
         delay(3000) // 3 seconds delay
-        navController.navigate("onboard_screen") {
-            popUpTo("splash_screen") { inclusive = true }
+        if(isLoggedIn) {
+            navController.navigate("home_screen") {
+                popUpTo("splash_screen") { inclusive = true }
+            }
+        } else {
+            navController.navigate("onboard_screen") {
+                popUpTo("splash_screen") { inclusive = true }
+            }
         }
     }
 }

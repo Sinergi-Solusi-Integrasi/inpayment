@@ -1,6 +1,5 @@
 package com.s2i.inpayment.ui.screen.auth
 
-import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,12 +13,14 @@ import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -29,22 +30,28 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.s2i.inpayment.R
-import com.s2i.inpayment.ui.screen.home.HomeScreen
-import com.s2i.inpayment.ui.viewmodel.HomeViewModel
+import com.s2i.inpayment.ui.viewmodel.AuthViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun LoginScreen() {
-    var email by remember { mutableStateOf("") }
+fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koinViewModel()) {
+    var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val loginState by authViewModel.loginState.observeAsState()
+    val loadingState by authViewModel.loadingState.observeAsState(false)
     var passwordVisible by remember { mutableStateOf(false) }
-    var isValidEmail by remember { mutableStateOf(true) }
+    var isValidUsername by remember { mutableStateOf(true) }
     var isValidPassword by remember { mutableStateOf(true) }
 
-    val isFormValid = email.isNotEmpty() && password.isNotEmpty() && isValidEmail && isValidPassword
+    // define username regex
+    val usernamePatterns = "^\\S{4,20}$".toRegex()
+
+    val isFormValid =
+        username.isNotEmpty() && password.isNotEmpty() && isValidUsername && isValidPassword
 
     Column(
         modifier = Modifier
@@ -53,6 +60,13 @@ fun LoginScreen() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(32.dp))
+
+        //logic loading
+        if (loadingState) {
+            CircularProgressIndicator()
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
         Image(
             painter = painterResource(id = R.drawable.logo),
             contentDescription = null,
@@ -63,20 +77,20 @@ fun LoginScreen() {
 
         // Email field
         OutlinedTextField(
-            value = email,
+            value = username,
             onValueChange = {
-                email = it
-                isValidEmail = Patterns.EMAIL_ADDRESS.matcher(it).matches()
+                username = it
+                isValidUsername = usernamePatterns.matches(it)
             },
-            label = { Text("Email") },
-            isError = !isValidEmail,
+            label = { Text("Username") },
+            isError = !isValidUsername,
             modifier = Modifier.fillMaxWidth(),
-            trailingIcon = if (!isValidEmail && email.isNotEmpty()) {
+            trailingIcon = if (!isValidUsername && username.isNotEmpty()) {
                 { Icon(Icons.Default.Error, contentDescription = null, tint = Color.Red) }
             } else null
         )
-        if (!isValidEmail && email.isNotEmpty()) {
-            Text("Please enter a valid email", color = Color.Red, fontSize = 12.sp)
+        if (!isValidUsername && username.isNotEmpty()) {
+            Text("Username minimu 4 characters", color = Color.Red, fontSize = 12.sp)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -109,18 +123,51 @@ fun LoginScreen() {
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = { /* Handle login */ },
-            enabled = isFormValid,
+            onClick = {
+                authViewModel.login(
+                    username,
+                    password
+                )
+            },
+            enabled = !loadingState && isFormValid,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Login")
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                navController.navigate("register_screen") {
+                    popUpTo("login_screen") {
+                        inclusive = true
+                    }
+                }
+            },
+            enabled = !loadingState,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("oops, belum punya akun? daftar sekarang")
+        }
+
+        // Handle login state to show error/success
+        loginState?.let {
+            it.fold(
+                onSuccess = {
+
+                },
+                onFailure = { error ->
+                    Text(text = error.message ?: "Unknown error")
+                }
+            )
+        }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewLoginScreen(){
-    LoginScreen()
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewLoginScreen(){
+//    LoginScreen()
+//}
 

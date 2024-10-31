@@ -17,6 +17,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.s2i.inpayment.ui.MyApp
 import com.s2i.inpayment.ui.components.navigation.AppNavigation
 import com.s2i.inpayment.ui.screen.home.HomeScreen
 import com.s2i.inpayment.ui.screen.onboard.OnboardScreen
@@ -32,14 +33,15 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         setContent {
             InPaymentTheme {
-                val navController = rememberNavController()
+//                val navController = rememberNavController()
                 // Initialize HomeViewModel using the viewModel() function
-                val homeViewModel: HomeViewModel = viewModel()
+//                val homeViewModel: HomeViewModel = viewModel()
 
                 // Navigation Setup
 
                 // Call your navigation setup here
-                AppNavigation(navController = navController)
+//                AppNavigation(navController = navController)
+                MyApp()
             }
         }
     }

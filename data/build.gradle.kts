@@ -13,6 +13,7 @@ android {
         minSdk = 24
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "BASE_URL", "\"https://inpayment.app-intracs.co.id/\"")
         consumerProguardFiles("consumer-rules.pro")
     }
 
@@ -24,7 +25,6 @@ android {
                 "proguard-rules.pro"
             )
         }
-
         debug {
             isMinifyEnabled = true
             proguardFiles(
@@ -32,6 +32,7 @@ android {
                 "proguard-rules.pro"
             )
         }
+
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -54,13 +55,22 @@ dependencies {
 
     // Room for database
     implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.security.crypto.ktx)
     ksp(libs.androidx.room.compiler)  // KSP for Room annotation processing
     implementation(libs.androidx.room.paging)
     implementation(libs.androidx.room.ktx)
 
+    implementation("androidx.compose.runtime:runtime")
+//    implementation("androidx.compose.runtime:runtime-livedata:1.7.4")
+    // Optional - Integration with LiveData
+    implementation("androidx.compose.runtime:runtime-livedata")
+    implementation(libs.androidx.activity.compose)
+    implementation(platform(libs.androidx.compose.bom))
+
     // Retrofit for network requests
     implementation(libs.retrofit)
     implementation(libs.retrofit)
+    implementation(libs.logging.interceptor)
     implementation(libs.converter.gson)  // Gson Converter for Retrofit
 
     implementation(libs.kotlin.stdlib)
@@ -78,8 +88,10 @@ dependencies {
     //module domain
     implementation(project(":domain"))
 
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
+    implementation(libs.secure.preferences.lib)
     implementation(libs.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

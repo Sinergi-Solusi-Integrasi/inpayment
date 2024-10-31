@@ -19,3 +19,9 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep Koin modules and injection-related classes
+-keep class org.koin.** { *; }
+
+# Add keep rules for any specific model or logic in the common module
+-keep class com.s2i.common.** { *; }

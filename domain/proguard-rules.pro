@@ -19,3 +19,8 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep domain-specific models and repository interfaces
+-keep class com.s2i.domain.repository.auth.AuthRepository { *; }
+-keep class com.s2i.domain.usecase.auth.LoginUseCase { *; }
+-keep class com.s2i.domain.usecase.auth.RegisterUseCase { *; }

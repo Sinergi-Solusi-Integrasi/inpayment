@@ -60,7 +60,11 @@ fun OnboardScreen(navController: NavController) {
                 .align(Alignment.TopEnd)
                 .padding(top = 48.dp, end = 16.dp) // Moved down
                 .clickable {
-                    navController.navigate("login")
+                    navController.navigate("login_screen"){
+                        popUpTo("onboard_screen") {
+                            inclusive = true
+                        }
+                    }
                 }
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -121,7 +125,16 @@ fun OnboardScreen(navController: NavController) {
                 // Next button
                 Button(
                     onClick = {
-                        if (currentPage < pages.size - 1) currentPage++ else currentPage = 0
+                        if (currentPage < pages.size - 1){
+                            currentPage++
+//                            currentPage = 0
+                        } else {
+                            navController.navigate("login_screen"){
+                                popUpTo("onboard_screen") {
+                                    inclusive = true
+                                }
+                            }
+                        }
                     },
                     shape = CircleShape, // Ensures the button is circular
                     modifier = Modifier

@@ -1,9 +1,11 @@
-package com.s2i.domain.model.auth
+package com.s2i.data.model.auth
 
 import com.google.gson.annotations.SerializedName
 
-data class AuthModel (
+data class AuthData(
     @SerializedName("name")
+    val name: String,
+    @SerializedName("username")
     val username: String,
     @SerializedName("password")
     val password: String,
@@ -12,9 +14,7 @@ data class AuthModel (
     @SerializedName("refresh_token")
     val refreshToken: String,
     @SerializedName("access_token_expired_at")
-    val expiredAccess: String,
+    val accessTokenExpiredAt: String,
     @SerializedName("refresh_token_expired_at")
-    val expiredRefresh: String
-
-
+    val refreshTokenExpiredAt: String
 )
