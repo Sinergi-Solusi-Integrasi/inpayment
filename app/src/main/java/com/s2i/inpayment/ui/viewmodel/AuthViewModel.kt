@@ -18,6 +18,9 @@ class AuthViewModel(
     private val _loginState = MutableLiveData<Result<AuthModel>?>(null)
     val loginState: MutableLiveData<Result<AuthModel>?> = _loginState
 
+    private val _errorMessage = MutableLiveData<String?>(null)
+    val errorMessage: LiveData<String?> = _errorMessage
+
     private val _loadingState = MutableLiveData(false)
     val loadingState: LiveData<Boolean> = _loadingState
 
@@ -40,6 +43,7 @@ class AuthViewModel(
                 },
                 onFailure = { throwable ->
                     _loginState.value = Result.failure(throwable)
+                    _errorMessage.value = throwable.message ?: "Unknown error"
                 }
             )
         }
@@ -48,6 +52,10 @@ class AuthViewModel(
     // Function to check if the user is logged in
     fun isLoggedIn(): Boolean {
         return sessionManager.isLogin
+    }
+
+    fun clearErrorMessage() {
+        _errorMessage.value = null
     }
 
     fun logout() {

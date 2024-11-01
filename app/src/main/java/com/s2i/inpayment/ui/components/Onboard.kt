@@ -10,13 +10,13 @@ sealed class Onboard(
 ) {
     data object FirstPages : Onboard(
         image = R.drawable.vector_car,
-        title = "Easy Payment",
-        desc =  "dawdwa"
+        title = "Selamat Datang",
+        desc =  "di inpayment"
     )
 
     data object SecondPages : Onboard(
         image = R.drawable.vector_car,
-        title = "Easy Payments",
-        desc =  "dawdaw"
+        title = "Fast in, Fast Go",
+        desc =  "rasakan sensasi cepatnya"
     )
 }

@@ -34,8 +34,8 @@ class AuthRepositoryImpl(
 
                     if (response.isSuccessful) {
                         val responseBody = response.body()
-                        if (responseBody != null && responseBody.data.isNotEmpty()) {
-                            val authData = responseBody.data[0]
+                        if (responseBody != null && responseBody.data != null) {
+                            val authData = responseBody.data
                             Log.d("AuthRepository", "Login successful: ${authData.username}")
                             sessionManager.createLoginSession(
                                 accessToken = authData.accessToken,

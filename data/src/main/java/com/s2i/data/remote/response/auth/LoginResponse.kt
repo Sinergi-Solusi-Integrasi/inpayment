@@ -5,5 +5,5 @@ import com.s2i.data.model.auth.AuthData
 data class LoginResponse(
     val code: Int,
     val message: String,
-    val data: List<AuthData>
+    val data: AuthData
 )

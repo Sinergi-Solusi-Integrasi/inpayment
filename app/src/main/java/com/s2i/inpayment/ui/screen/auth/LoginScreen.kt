@@ -14,15 +14,18 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,9 +37,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.s2i.inpayment.R
+import com.s2i.inpayment.ui.components.ReusableBottomSheet
 import com.s2i.inpayment.ui.viewmodel.AuthViewModel
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koinViewModel()) {
     var username by remember { mutableStateOf("") }
@@ -46,6 +52,10 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
     var passwordVisible by remember { mutableStateOf(false) }
     var isValidUsername by remember { mutableStateOf(true) }
     var isValidPassword by remember { mutableStateOf(true) }
+
+    //for resubale bottomsheet
+    val coroutineScope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState()
 
     // define username regex
     val usernamePatterns = "^\\S{4,20}$".toRegex()
@@ -155,10 +165,22 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
         loginState?.let {
             it.fold(
                 onSuccess = {
-
+                    navController.navigate("home_screen") {
+                        popUpTo("login_screen") {
+                            inclusive = true
+                        }
+                    }
                 },
                 onFailure = { error ->
-                    Text(text = error.message ?: "Unknown error")
+                    coroutineScope.launch { sheetState.show() } // Menampilkan bottom sheet secara langsung
+                    ReusableBottomSheet(
+                        imageRes = R.drawable.ic_errors, // Gambar untuk error, sesuaikan resource Anda
+                        message = "ooops ada yang salah nih (${error.message ?: "Unknown error"})" ,
+                        sheetState = sheetState,
+                        onDismiss = {
+                            coroutineScope.launch { sheetState.hide() }
+                        }
+                    )
                 }
             )
         }

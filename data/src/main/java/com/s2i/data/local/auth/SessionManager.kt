@@ -48,7 +48,7 @@ class SessionManager(context: Context) {
             .putString(KEY_ACCESS_TOKEN_EXPIRY, accessTokenExpiry)
             .putString(KEY_REFRESH_TOKEN_EXPIRY, refreshTokenExpiry)
             .putString(KEY_USERNAME, username)
-            .commit()
+            .apply()
     }
 
     // Logout user by clearing the session data
