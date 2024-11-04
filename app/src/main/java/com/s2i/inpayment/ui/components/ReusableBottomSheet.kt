@@ -1,5 +1,6 @@
 package com.s2i.inpayment.ui.components
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
@@ -39,8 +41,10 @@ fun ReusableBottomSheet(
     onDismiss: () -> Unit // Callback to dismiss the bottom sheet atau aksi menutup bottomsheet
 ) {
     ModalBottomSheet(
-//        onDismissRequest = { onDismiss() },
-        onDismissRequest = onDismiss,
+        onDismissRequest = {
+            Log.d("ReusableBottomSheet", "onDismissRequest called")
+            onDismiss()
+        },
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surface,
     ) {
@@ -75,17 +79,18 @@ fun ReusableBottomSheet(
                 Spacer(modifier = Modifier.height(16.dp))
             }
             // Close icon positioned at the top-right corner
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = "Close",
+            IconButton(
+                onClick = {
+                    Log.d("ReusableBottomSheet", "Close button clicked")
+                    onDismiss()
+                },
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .size(32.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
                     .padding(8.dp)
-                    .clickable { onDismiss() }
-            )
+            ) {
+                Icon(imageVector = Icons.Default.Close, contentDescription = "Close")
+            }
         }
     }
 }

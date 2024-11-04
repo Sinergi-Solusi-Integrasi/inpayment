@@ -14,8 +14,14 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,6 +30,8 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.s2i.data.local.auth.SessionManager
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.TransactionItem
 import com.s2i.inpayment.ui.screen.splash.SplashScreen
@@ -35,10 +43,21 @@ import com.s2i.inpayment.ui.viewmodel.HomeViewModel
 // In HomeScreen.kt
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel, modifier: Modifier = Modifier) {
+fun HomeScreen(
+    viewModel: HomeViewModel,
+    navController: NavController,
+    modifier: Modifier = Modifier,
+    username: String
+) {
     val transactions = viewModel.transactionList
     val balance = viewModel.balance
+    //toogle visible balance
+    var isBalanceValid by remember { mutableStateOf(true) }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(Unit) {
+        snackbarHostState.showSnackbar("Welcome, $username!")
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -92,6 +111,9 @@ fun HomeScreen(viewModel: HomeViewModel, modifier: Modifier = Modifier) {
                             .background(Color.Gray, shape = CircleShape) // Background lingkaran
                             .clickable {
                                 // Aksi ketika di klik
+                                navController.navigate("profile_screen") {
+                                    popUpTo("home_screen") { inclusive = false }
+                                }
                             }
                     )
                 }
@@ -132,13 +154,17 @@ fun HomeScreen(viewModel: HomeViewModel, modifier: Modifier = Modifier) {
                                 color = Color.White
                             )
                             Text(
-                                text = "150.000", // Update balance value
+                                text = if (isBalanceValid) "150.000" else "****", // Update balance value
                                 style = MaterialTheme.typography.displaySmall,
                                 color = Color.White
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            IconButton(onClick = { /* Handle visibility toggle */ }) {
-                                Icon(Icons.Default.Visibility, contentDescription = "Toggle Visibility", tint = Color.White)
+                            IconButton(onClick = { isBalanceValid = !isBalanceValid }) {
+                                Icon(
+                                    imageVector = if(isBalanceValid) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                    contentDescription = if (isBalanceValid) "Hide Balance" else "Show Balance",
+                                    tint = Color.White
+                                )
                             }
                         }
                         Spacer(modifier = Modifier.height(16.dp))
@@ -280,11 +306,11 @@ fun HomeScreen(viewModel: HomeViewModel, modifier: Modifier = Modifier) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewHomeScreen(){
-    HomeScreen(HomeViewModel())
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewHomeScreen(){
+//    HomeScreen(HomeViewModel(), sessionManager = sessionsManager)
+//}
 
 
 

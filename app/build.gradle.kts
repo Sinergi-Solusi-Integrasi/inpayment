@@ -29,7 +29,7 @@ android {
             )
         }
         debug {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -125,6 +125,7 @@ dependencies {
     implementation(libs.androidx.security.crypto.ktx)
 
     implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.ui.text.android)
     ksp(libs.androidx.room.compiler)  // KSP for Room annotation processing
     implementation(libs.androidx.room.paging)
     implementation(libs.androidx.room.ktx)

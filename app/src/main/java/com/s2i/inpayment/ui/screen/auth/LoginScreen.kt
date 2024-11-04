@@ -1,5 +1,6 @@
 package com.s2i.inpayment.ui.screen.auth
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -21,12 +22,14 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,16 +55,37 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
     var passwordVisible by remember { mutableStateOf(false) }
     var isValidUsername by remember { mutableStateOf(true) }
     var isValidPassword by remember { mutableStateOf(true) }
-
-    //for resubale bottomsheet
+    var showErrorSheet by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
 
-    // define username regex
     val usernamePatterns = "^\\S{4,20}$".toRegex()
+    val isFormValid = username.isNotEmpty() && password.isNotEmpty() && isValidUsername && isValidPassword
+    Log.d("LoginScreen", "Rendering LoginScreen")
 
-    val isFormValid =
-        username.isNotEmpty() && password.isNotEmpty() && isValidUsername && isValidPassword
+    // Menggunakan snapshotFlow untuk mengelola showErrorSheet
+    LaunchedEffect(loginState) {
+        snapshotFlow { loginState }
+            .collect { state ->
+                state?.let {
+                    it.onSuccess {
+                        Log.d("LoginScreen", "Login successful, navigating to home_screen")
+                        navController.navigate("home_screen") {
+                            popUpTo("login_screen") { inclusive = true }
+                        }
+                    }.onFailure { error ->
+                        if (!showErrorSheet) {
+                            errorMessage = error.message ?: "Unknown error"
+                            showErrorSheet = true
+                            Log.d("LoginScreen", "Activating error sheet with message: $errorMessage")
+                        } else {
+                            Log.d("LoginScreen", "Error sheet already active, ignoring duplicate error")
+                        }
+                    }
+                }
+            }
+    }
 
     Column(
         modifier = Modifier
@@ -71,7 +95,6 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
     ) {
         Spacer(modifier = Modifier.height(32.dp))
 
-        //logic loading
         if (loadingState) {
             CircularProgressIndicator()
             Spacer(modifier = Modifier.height(16.dp))
@@ -85,7 +108,6 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Email field
         OutlinedTextField(
             value = username,
             onValueChange = {
@@ -100,12 +122,11 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
             } else null
         )
         if (!isValidUsername && username.isNotEmpty()) {
-            Text("Username minimu 4 characters", color = Color.Red, fontSize = 12.sp)
+            Text("Username minimal 4 karakter", color = Color.Red, fontSize = 12.sp)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Password field
         OutlinedTextField(
             value = password,
             onValueChange = {
@@ -116,10 +137,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
             isError = !isValidPassword,
             modifier = Modifier.fillMaxWidth(),
             trailingIcon = {
-                val image = if (passwordVisible)
-                    Icons.Default.Visibility
-                else Icons.Default.VisibilityOff
-
+                val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(imageVector = image, contentDescription = null)
                 }
@@ -127,17 +145,14 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation()
         )
         if (!isValidPassword && password.isNotEmpty()) {
-            Text("Password must be at least 8 characters", color = Color.Red, fontSize = 12.sp)
+            Text("Password minimal 8 karakter", color = Color.Red, fontSize = 12.sp)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
             onClick = {
-                authViewModel.login(
-                    username,
-                    password
-                )
+                authViewModel.login(username, password)
             },
             enabled = !loadingState && isFormValid,
             modifier = Modifier.fillMaxWidth()
@@ -150,40 +165,30 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
         Button(
             onClick = {
                 navController.navigate("register_screen") {
-                    popUpTo("login_screen") {
-                        inclusive = true
-                    }
+                    popUpTo("login_screen") { inclusive = false }
                 }
             },
             enabled = !loadingState,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("oops, belum punya akun? daftar sekarang")
+            Text("Oops, belum punya akun? Daftar sekarang")
         }
+    }
 
-        // Handle login state to show error/success
-        loginState?.let {
-            it.fold(
-                onSuccess = {
-                    navController.navigate("home_screen") {
-                        popUpTo("login_screen") {
-                            inclusive = true
-                        }
-                    }
-                },
-                onFailure = { error ->
-                    coroutineScope.launch { sheetState.show() } // Menampilkan bottom sheet secara langsung
-                    ReusableBottomSheet(
-                        imageRes = R.drawable.ic_errors, // Gambar untuk error, sesuaikan resource Anda
-                        message = "ooops ada yang salah nih (${error.message ?: "Unknown error"})" ,
-                        sheetState = sheetState,
-                        onDismiss = {
-                            coroutineScope.launch { sheetState.hide() }
-                        }
-                    )
+    if (showErrorSheet) {
+        Log.d("ReusableBottomSheet", "Displaying bottom sheet with message: $errorMessage")
+        ReusableBottomSheet(
+            imageRes = R.drawable.ic_errors,
+            message = errorMessage,
+            sheetState = sheetState,
+            onDismiss = {
+                Log.d("ReusableBottomSheet", "Bottom sheet dismissed")
+                coroutineScope.launch {
+                    sheetState.hide()
+                    showErrorSheet = false
                 }
-            )
-        }
+            }
+        )
     }
 }
 
@@ -192,4 +197,3 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
 //fun PreviewLoginScreen(){
 //    LoginScreen()
 //}
-

@@ -20,6 +20,11 @@ val networkModule = module {
         val sessionManager: SessionManager = get()
         Interceptor { chain ->
             val token = sessionManager.accessToken
+            if(token.isNullOrEmpty()){
+                Log.e("AuthInterceptor", "Error: Token is null or empty $token")
+            } else {
+                Log.d("AuthInterceptor", "Token retrieved successfully: $token")
+            }
             val original = chain.request()
             val request = if (!token.isNullOrEmpty()) {
                 original.newBuilder()
@@ -51,7 +56,7 @@ val networkModule = module {
         Retrofit.Builder()
             .baseUrl(BuildConfig.BASE_URL)
             .client(get())
-            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
+            .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 
