@@ -27,7 +27,6 @@ interface ApiServices {
     // Get Balance
     @GET("accounts/balance")
     suspend fun balance(
-        @Header("Authorization") token: String
     ): BalanceResponse
 
 }

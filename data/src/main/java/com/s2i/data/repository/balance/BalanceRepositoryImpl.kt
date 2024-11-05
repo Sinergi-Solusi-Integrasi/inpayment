@@ -8,8 +8,8 @@ import com.s2i.domain.repository.balance.BalanceRepository
 class BalanceRepositoryImpl(
     private val apiServices: ApiServices,
 ) : BalanceRepository {
-    override suspend fun getBalance(token: String): BalanceModel{
-        val response = apiServices.balance(token)
+    override suspend fun getBalance(): BalanceModel{
+        val response = apiServices.balance()
         return BalanceModel(
             accountNumber = response.data.accountNumber,
             balance = response.data.balance,

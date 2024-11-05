@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +32,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.s2i.common.utils.convert.RupiahFormatter
 import com.s2i.data.local.auth.SessionManager
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.TransactionItem
@@ -38,7 +40,9 @@ import com.s2i.inpayment.ui.screen.splash.SplashScreen
 import com.s2i.inpayment.ui.theme.DarkTeal40
 import com.s2i.inpayment.ui.theme.gradientBrush
 import com.s2i.inpayment.ui.theme.triGradientBrush
+import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import com.s2i.inpayment.ui.viewmodel.HomeViewModel
+import org.koin.androidx.compose.koinViewModel
 
 // In HomeScreen.kt
 
@@ -47,17 +51,20 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     navController: NavController,
     modifier: Modifier = Modifier,
+    balanceViewModel: BalanceViewModel = koinViewModel(),
     username: String
 ) {
     val transactions = viewModel.transactionList
     val balance = viewModel.balance
     //toogle visible balance
+    val balanceState by balanceViewModel.balance.collectAsState()
     var isBalanceValid by remember { mutableStateOf(true) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(Unit) {
-        snackbarHostState.showSnackbar("Welcome, $username!")
+        balanceViewModel.fetchBalance() // Trigger fetching the balance when screen is launched
     }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -149,12 +156,7 @@ fun HomeScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Rp.", // Update balance value
-                                style = MaterialTheme.typography.displaySmall,
-                                color = Color.White
-                            )
-                            Text(
-                                text = if (isBalanceValid) "150.000" else "****", // Update balance value
+                                text = if (isBalanceValid) balanceState?.let { RupiahFormatter.formatToRupiah(it.balance) } ?: "Loading..." else "****", // Update balance value
                                 style = MaterialTheme.typography.displaySmall,
                                 color = Color.White
                             )

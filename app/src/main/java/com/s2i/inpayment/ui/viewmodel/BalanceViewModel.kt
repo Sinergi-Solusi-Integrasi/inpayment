@@ -1,12 +1,41 @@
 package com.s2i.inpayment.ui.viewmodel
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.s2i.data.local.auth.SessionManager
+import com.s2i.domain.entity.model.balance.BalanceModel
 import com.s2i.domain.usecase.auth.LoginUseCase
 import com.s2i.domain.usecase.auth.RegisterUseCase
-import com.s2i.domain.usecase.balance.BalanceUseCase
+import com.s2i.domain.usecase.balance.GetBalanceUseCase
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class BalanceViewModel(
-    private val balanceUseCase: BalanceUseCase,
+    private val balanceUseCase: GetBalanceUseCase,
     private val sessionManager: SessionManager
-) {
+): ViewModel() {
+
+    private val _balance = MutableStateFlow<BalanceModel?>(null)
+    val balance: StateFlow<BalanceModel?> = _balance
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error
+
+    private val _loading = MutableStateFlow(false)
+    val loading: StateFlow<Boolean> = _loading
+
+    fun fetchBalance() {
+        viewModelScope.launch {
+            _loading.value = true
+//            val token = sessionManager.accessToken ?: return@launch
+            try {
+                _balance.value = balanceUseCase()
+            } catch (e: Exception) {
+                _error.value = e.message
+            } finally {
+                _loading.value = false
+            }
+        }
+    }
 }

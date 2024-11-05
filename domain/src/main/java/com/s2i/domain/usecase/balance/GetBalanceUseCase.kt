@@ -6,7 +6,7 @@ import com.s2i.domain.repository.balance.BalanceRepository
 class GetBalanceUseCase(
     private val balanceRepository: BalanceRepository
 ){
-    suspend operator fun invoke(token: String): BalanceModel{
-        return balanceRepository.getBalance(token)
+    suspend operator fun invoke(): BalanceModel{
+        return balanceRepository.getBalance()
     }
 }
