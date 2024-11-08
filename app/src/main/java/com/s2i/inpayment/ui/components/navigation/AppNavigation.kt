@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -19,13 +21,18 @@ import com.s2i.inpayment.ui.screen.profile.ProfileScreen
 import com.s2i.inpayment.ui.screen.splash.SplashScreen
 import com.s2i.inpayment.ui.viewmodel.AuthViewModel
 import com.s2i.inpayment.ui.viewmodel.HomeViewModel
+import com.s2i.inpayment.ui.viewmodel.TokenViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun AppNavigation(navController: NavHostController, authViewModel: AuthViewModel = koinViewModel(), context: Context) {
+fun AppNavigation(navController: NavHostController, authViewModel: AuthViewModel = koinViewModel(), tokenViewModel: TokenViewModel = koinViewModel(), context: Context) {
     val homeViewModel: HomeViewModel = koinViewModel()
     val sessionManager = SessionManager(context)
     val username = sessionManager.getFromPreference(SessionManager.KEY_USERNAME) ?: "User"
+
+    // Mengamati status token untuk menentukan apakah harus logout atau update token
+    val tokenState by tokenViewModel.tokenState.collectAsState()
+
     NavHost(navController = navController, startDestination = "splash_screen") {
         composable("splash_screen") {
             SplashScreen(
@@ -55,5 +62,18 @@ fun AppNavigation(navController: NavHostController, authViewModel: AuthViewModel
                 )
             }
         }
+    }
+
+    // Observasi tokenState untuk logout atau refresh token otomatis
+    when (tokenState){
+        is TokenViewModel.TokenState.Valid -> {
+
+        }
+        is TokenViewModel.TokenState.Expired -> {
+            navController.navigate("login_screen") {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+
     }
 }

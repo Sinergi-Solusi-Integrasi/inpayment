@@ -126,6 +126,9 @@ dependencies {
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.ui.text.android)
+    implementation(libs.androidx.ui.graphics.android)
+    implementation(libs.androidx.runtime.android)
+    implementation(libs.androidx.runtime.android)
     ksp(libs.androidx.room.compiler)  // KSP for Room annotation processing
     implementation(libs.androidx.room.paging)
     implementation(libs.androidx.room.ktx)

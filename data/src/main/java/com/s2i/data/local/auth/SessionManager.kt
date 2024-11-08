@@ -5,9 +5,12 @@ import android.content.SharedPreferences
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
+import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.securepreferences.SecurePreferences
+import java.text.SimpleDateFormat
+import java.util.*
 
 class SessionManager(context: Context) {
     private var pref: SharedPreferences = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -35,6 +38,7 @@ class SessionManager(context: Context) {
     }
 
     private var editor: SharedPreferences.Editor = pref.edit()
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.getDefault())
 
     // Create session with access token, refresh token and username
     fun createLoginSession(
@@ -49,6 +53,37 @@ class SessionManager(context: Context) {
             .putString(KEY_REFRESH_TOKEN_EXPIRY, refreshTokenExpiry)
             .putString(KEY_USERNAME, username)
             .commit()
+    }
+
+    // Check if the access token is expired
+    // Check if the access token is expired
+    fun isAccessTokenExpired(): Boolean {
+        val expiry = accessTokenExpiry
+        return expiry != null && isExpired(expiry)
+    }
+
+    // Check if the refresh token is expired
+    fun isRefreshTokenExpired(): Boolean {
+        val expiry = refreshTokenExpiry
+        return expiry != null && isExpired(expiry)
+    }
+
+    private fun isExpired(expiryDate: String): Boolean {
+        return try {
+            val expiry = dateFormat.parse(expiryDate)
+            expiry != null && Date().after(expiry)
+        } catch (e: Exception) {
+            Log.e("SessionManager", "Error parsing date: $expiryDate", e)
+            true // Assume expired if parsing fails
+        }
+    }
+
+    // Update the access token in the session
+    fun updateAccessToken(newAccessToken: String, newExpiry: String) {
+        editor.putString(KEY_ACCESS_TOKEN, newAccessToken)
+            .putString(KEY_ACCESS_TOKEN_EXPIRY, newExpiry)
+            .apply()
+        Log.d("SessionManager", "Updated AccessToken and Expiry.")
     }
 
     // Logout user by clearing the session data
@@ -75,11 +110,20 @@ class SessionManager(context: Context) {
         get() = pref.getString(KEY_REFRESH_TOKEN, null)
 
     // Expiry times for both tokens
+
     val accessTokenExpiry: String?
-        get() = pref.getString(KEY_ACCESS_TOKEN_EXPIRY, null)
+        get() {
+            val expiry = pref.getString(KEY_ACCESS_TOKEN_EXPIRY, null)
+            Log.d("SessionManager", "Retrieved accessTokenExpiry: $expiry")
+            return expiry
+        }
 
     val refreshTokenExpiry: String?
-        get() = pref.getString(KEY_REFRESH_TOKEN_EXPIRY, null)
+        get() {
+            val expiry = pref.getString(KEY_REFRESH_TOKEN_EXPIRY, null)
+            Log.d("SessionManager", "Retrieved refreshTokenExpiry: $expiry")
+            return expiry
+        }
 
     companion object {
         const val KEY_LOGIN = "isLogin"
