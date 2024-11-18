@@ -38,7 +38,8 @@ fun ReusableBottomSheet(
     imageRes: Int, // resource gambar id
     message: String, //pesan yang di terima dari api atau dari kita
     sheetState: SheetState, // state untuk bottom sheet
-    onDismiss: () -> Unit // Callback to dismiss the bottom sheet atau aksi menutup bottomsheet
+    onDismiss: () -> Unit, // Callback to dismiss the bottom sheet atau aksi menutup bottomsheet
+    content: (@Composable () -> Unit)? = null
 ) {
     ModalBottomSheet(
         onDismissRequest = {
@@ -77,6 +78,8 @@ fun ReusableBottomSheet(
                         .padding(horizontal = 16.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
+                // Add the content here
+                content?.invoke()
             }
             // Close icon positioned at the top-right corner
             IconButton(

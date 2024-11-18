@@ -13,33 +13,41 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class SessionManager(context: Context) {
-    private var pref: SharedPreferences = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-        val spec = KeyGenParameterSpec.Builder(
-            MasterKey.DEFAULT_MASTER_KEY_ALIAS,
-            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-        )
-            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-            .setKeySize(MasterKey.DEFAULT_AES_GCM_MASTER_KEY_SIZE)
-            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-            .build()
-        val masterKey = MasterKey.Builder(context)
-            .setKeyGenParameterSpec(spec)
-            .build()
-        EncryptedSharedPreferences
-            .create(
-                context,
-                "Session",
-                masterKey,
-                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-            )
-    } else {
-        SecurePreferences(context, "loveyous2iintracs", "session")
-    }
-
+    private var pref: SharedPreferences = createPreferences(context)
     private var editor: SharedPreferences.Editor = pref.edit()
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.getDefault())
 
+    private fun createPreferences(context: Context): SharedPreferences {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            try {
+                val spec = KeyGenParameterSpec.Builder(
+                    MasterKey.DEFAULT_MASTER_KEY_ALIAS,
+                    KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+                )
+                    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                    .setKeySize(MasterKey.DEFAULT_AES_GCM_MASTER_KEY_SIZE)
+                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                    .build()
+                val masterKey = MasterKey.Builder(context)
+                    .setKeyGenParameterSpec(spec)
+                    .build()
+                EncryptedSharedPreferences.create(
+                    context,
+                    "Session",
+                    masterKey,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                )
+            } catch (e: Exception) {
+                Log.e("SessionManager", "Failed to initialize EncryptedSharedPreferences, falling back to regular SharedPreferences", e)
+                context.getSharedPreferences("Session", Context.MODE_PRIVATE).also {
+                    it.edit().clear().apply() // Clear corrupted or unusable preferences
+                }
+            }
+        } else {
+            SecurePreferences(context, "loveyous2iintracs", "session")
+        }
+    }
     // Create session with access token, refresh token and username
     fun createLoginSession(
         accessToken: String, refreshToken: String,
@@ -88,8 +96,15 @@ class SessionManager(context: Context) {
 
     // Logout user by clearing the session data
     fun logout() {
-        editor.clear()
-        editor.commit()
+        editor.remove(KEY_LOGIN)
+            .remove(KEY_ACCESS_TOKEN)
+            .remove(KEY_REFRESH_TOKEN)
+            .remove(KEY_ACCESS_TOKEN_EXPIRY)
+            .remove(KEY_REFRESH_TOKEN_EXPIRY)
+            .putBoolean(KEY_LOGIN, false)
+            .commit()
+
+        Log.d("SessionManager", "User logged out successfully. Session data cleared.")
     }
 
     // Check if user is logged in

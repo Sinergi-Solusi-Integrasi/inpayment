@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.s2i.data"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 24
@@ -56,6 +56,7 @@ dependencies {
     // Room for database
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.security.crypto.ktx)
+    implementation(project(":common"))
     ksp(libs.androidx.room.compiler)  // KSP for Room annotation processing
     implementation(libs.androidx.room.paging)
     implementation(libs.androidx.room.ktx)

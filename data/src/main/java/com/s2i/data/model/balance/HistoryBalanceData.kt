@@ -1,6 +1,7 @@
 package com.s2i.data.model.balance
 
 import com.google.gson.annotations.SerializedName
+import com.s2i.domain.entity.model.balance.TopUpModel
 
 data class HistoryBalanceData(
     @SerializedName("transaction_id")
@@ -19,7 +20,7 @@ data class HistoryBalanceData(
     val cashFlow: String,
     @SerializedName("transaction_type")
     val trxType: String,
-    @SerializedName("payment_method")
+    @SerializedName("payment_methods")
     val paymentMethod: String,
     @SerializedName("beginning_balance")
     val startingBalance: Int,
@@ -34,5 +35,7 @@ data class HistoryBalanceData(
     @SerializedName("created_at")
     val createdAt: String,
     @SerializedName("updated_at")
-    val updatedAt: String
+    val updatedAt: String,
+    @SerializedName("top_up")
+    val topUp: TopUpData? = null
 )

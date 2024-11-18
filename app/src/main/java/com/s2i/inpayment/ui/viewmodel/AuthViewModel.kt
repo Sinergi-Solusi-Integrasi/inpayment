@@ -8,6 +8,8 @@ import com.s2i.data.local.auth.SessionManager
 import com.s2i.domain.entity.model.auth.AuthModel
 import com.s2i.domain.usecase.auth.LoginUseCase
 import com.s2i.domain.usecase.auth.RegisterUseCase
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class AuthViewModel(
@@ -23,6 +25,9 @@ class AuthViewModel(
 
     private val _loadingState = MutableLiveData(false)
     val loadingState: LiveData<Boolean> = _loadingState
+
+    private val _tokenState = MutableStateFlow<TokenViewModel.TokenState>(TokenViewModel.TokenState.Valid)
+    val tokenState: StateFlow<TokenViewModel.TokenState> = _tokenState
 
     fun login(username: String, password: String){
         _loadingState.value = true // Start loading
@@ -60,5 +65,7 @@ class AuthViewModel(
 
     fun logout() {
         sessionManager.logout()
+        _tokenState.value = TokenViewModel.TokenState.Expired
     }
+
 }

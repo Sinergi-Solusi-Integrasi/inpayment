@@ -3,16 +3,17 @@ package com.s2i.data.repository.balance
 import com.s2i.data.remote.client.ApiServices
 import com.s2i.domain.entity.model.balance.HistoryBalanceModel
 import com.s2i.domain.entity.model.balance.InOutBalanceModel
+import com.s2i.domain.entity.model.balance.TopUpModel
 import com.s2i.domain.repository.balance.InOutBalanceRepository
 
 class InOutBalanceRepositoryImpl(
-    private val apiServices: ApiServices
+    private val apiServices: ApiServices,
 ) : InOutBalanceRepository {
     override suspend fun getInOutBalance(): InOutBalanceModel {
         val response = apiServices.transactions()
 
         // Maping history data
-        val historyModels = response.data.history.takeLast(3).map{ historyData ->
+        val historyModels = response.data.take(3).map{ historyData ->
             HistoryBalanceModel(
                 transactionId = historyData.transactionId,
                 userId = historyData.userId,
@@ -29,14 +30,21 @@ class InOutBalanceRepositoryImpl(
                 status = historyData.status,
                 trxDate = historyData.trxDate,
                 createdAt = historyData.createdAt,
-                updatedAt = historyData.updatedAt
-
+                updatedAt = historyData.updatedAt,
+                topUp = historyData?.topUp?.let {
+                    TopUpModel(
+                        trxId = it.trxId ,
+                        issuerPan = it.issuerPan,
+                        issuerName = it.issuerName,
+                        customerPan = it.customerPan,
+                        customerName = it.customerName,
+                        externTrxId = it.externTrxId
+                    )
+                } ?: TopUpModel("", "", "", "", "", "")
             )
         }
         return InOutBalanceModel(
-            accountNumber = response.data.accountNumber,
-            historyCount = response.data.historyCount,
-            history = historyModels
+            data = historyModels
         )
     }
 

@@ -1,5 +1,6 @@
 package com.s2i.data.repository.auth
 
+import android.graphics.Bitmap
 import com.s2i.data.remote.client.ApiServices
 import com.s2i.data.remote.response.auth.LoginResponse
 import com.s2i.domain.entity.model.auth.AuthModel
@@ -9,7 +10,12 @@ import retrofit2.Callback
 import retrofit2.Response
 
 import android.util.Log
+import com.s2i.common.utils.convert.bitmapToBase64
+import com.s2i.common.utils.convert.bitmapToBase64WithFormat
+import com.s2i.data.BuildConfig
 import com.s2i.data.local.auth.SessionManager
+import com.s2i.data.model.users.BlobImageData
+import com.s2i.data.remote.request.auth.RegisterRequest
 import com.s2i.domain.entity.model.users.UsersModel
 
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -39,7 +45,9 @@ class AuthRepositoryImpl(
                             Log.d("AuthRepository", "Login successful: ${authData.username}")
 
                             // Log tokens for debugging
-                            Log.d("AuthRepository", "Saving tokens: AccessToken=${authData.accessToken}, RefreshToken=${authData.refreshToken}")
+                            if (BuildConfig.DEBUG) {
+                                Log.d("AuthRepository", "Saving tokens: AccessToken=${authData.accessToken}, RefreshToken=${authData.refreshToken}")
+                            }
                             sessionManager.createLoginSession(
                                 accessToken = authData.accessToken,
                                 refreshToken = authData.refreshToken,
@@ -93,43 +101,47 @@ class AuthRepositoryImpl(
         email: String,
         address: String,
         identityNumber: String,
-        mobileNumber: String
+        mobileNumber: String,
+        identityBitmap: Bitmap,
+        imageFormat: Bitmap.CompressFormat
     ): Result<UsersModel> {
         Log.d("AuthRepository", "Attempting to register with $username")
 
-        val registerData = mapOf(
-            "name" to name,
-            "username" to username,
-            "password" to password,
-            "email_address" to email,
-            "mobile_number" to mobileNumber,
-            "identity_number" to identityNumber,
-            "address" to address
+        //convert image to base64 dan mime
+        val (base64Data, ext, mimeType) = bitmapToBase64WithFormat(identityBitmap, imageFormat)
+        val registerRequest = RegisterRequest(
+            name = name,
+            username =  username,
+            password =  password,
+            email = email,
+            mobileNumber =  mobileNumber,
+            identityNumber = identityNumber,
+            address = address,
+            identityImage = BlobImageData(
+                ext = ext,
+                mimeType = mimeType,
+                data = base64Data
+            )
         )
 
         return try {
-            val response = apiServices.register(registerData).execute()
-            if (response.isSuccessful) {
-                response.body()?.let {
-                    val userData = it.data[0]
-                    Result.success(
-                        UsersModel(
-                            name = userData.name,
-                            username = userData.username,
-                            password = password,
-                            email = email,
-                            mobileNumber = mobileNumber,
-                            identityNumber = identityNumber,
-                            address = address
-                        )
-                    )
-                } ?: Result.failure(Exception("Register failed: No data available"))
+            val response = apiServices.register(registerRequest)
+            val userData = response.data ?: return Result.failure(Exception("Invalid response data"))
+            if (response.code != 0) {
+                val errorMessage = response.message ?: "Unknown error occurred"
+                Log.e("AuthRepository", "Registration failed: $errorMessage")
+                Result.failure(Exception("Registration failed: $errorMessage"))
             } else {
-                // Handle HTTP error codes for registration
-                val errorMessage = "Error: ${response.code()}"
-                Result.failure(Exception(errorMessage))
+                Log.d("AuthRepository", "Registration successful for user: ${userData.username}, ${userData.name}")
+                Result.success(
+                    UsersModel(
+                        name = userData.name,
+                        username = userData.username
+                    )
+                )
             }
         } catch (e: Exception) {
+            Log.e("AuthRepository", "Registration error: ${e.message}", e)
             Result.failure(Exception("Registration error: ${e.message}"))
         }
     }

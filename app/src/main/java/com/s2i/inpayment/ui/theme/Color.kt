@@ -8,7 +8,8 @@ import androidx.compose.ui.graphics.Color
 //val Pink80 = Color(0xFFEFB8C8)
 
 val DarkTeal40 = Color(0xFF11526B)
-val White40 = Color(0xFFFFFFFF)
+val GreenTeal40 = Color(0xFF007419)
+val White40 = Color(0xFFE5E2E2)
 val DarkTeal21 = Color(0xFF0B4256)
 val BrightYellow40 = Color(0xFFFFCC05)
 val BrightCerulean21 = Color(0xFF21A0D1)

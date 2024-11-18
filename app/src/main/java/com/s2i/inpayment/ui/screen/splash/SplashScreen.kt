@@ -126,11 +126,13 @@ fun SplashScreen(navController: NavController, isLoggedIn: Boolean){
         delay(3000) // 3 seconds delay
         if(isLoggedIn) {
             navController.navigate("home_screen") {
-                popUpTo("splash_screen") { inclusive = true }
+                popUpTo(0) { inclusive = true } // This clears everything before `home_screen`
+                launchSingleTop = true
             }
         } else {
             navController.navigate("onboard_screen") {
-                popUpTo("splash_screen") { inclusive = true }
+                popUpTo(0) { inclusive = true } // This clears everything before `onboard_screen`
+                launchSingleTop = true
             }
         }
     }

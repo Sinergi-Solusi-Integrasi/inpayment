@@ -72,7 +72,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
                     it.onSuccess {
                         Log.d("LoginScreen", "Login successful, navigating to home_screen")
                         navController.navigate("home_screen") {
-                            popUpTo("login_screen") { inclusive = true }
+                            popUpTo(0) { inclusive = true }
                         }
                     }.onFailure { error ->
                         if (!showErrorSheet) {

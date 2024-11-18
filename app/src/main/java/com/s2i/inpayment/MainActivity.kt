@@ -29,10 +29,10 @@ import com.s2i.inpayment.ui.viewmodel.HomeViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         NetworkUtils.initializeNetworkCallback(this)
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        installSplashScreen()
         setContent {
             InPaymentTheme {
                 // Tambahkan NetworkContent untuk menampilkan status jaringan secara global

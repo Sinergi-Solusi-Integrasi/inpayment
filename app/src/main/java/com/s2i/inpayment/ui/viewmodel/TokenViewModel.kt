@@ -2,6 +2,7 @@ package com.s2i.inpayment.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.s2i.data.local.auth.SessionManager
 import com.s2i.domain.entity.model.auth.TokenModel
 import com.s2i.domain.usecase.auth.TokenUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,24 +10,27 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class TokenViewModel(
-    private val tokenUseCase: TokenUseCase
+    private val tokenUseCase: TokenUseCase,
+    private val sessionManager: SessionManager
 ) : ViewModel()  {
 
-    // StateFlow untuk mengamati status token
+    // StateFlow for observing token status
     private val _tokenState = MutableStateFlow<TokenState>(TokenState.Valid)
     val tokenState: StateFlow<TokenState> = _tokenState
 
     init {
-        // Mengecek token setiap kali ViewModel dibuat
-        checkAndRefreshToken()
+        // Check token only if the user is logged in
+        if (sessionManager.isLogin) {
+            checkAndRefreshToken()
+        }
     }
 
-    private fun checkAndRefreshToken(){
+    private fun checkAndRefreshToken() {
         viewModelScope.launch {
             val result = tokenUseCase.refreshAccessTokenIfNeeded()
-            if (result.isSuccess){
+            if (result.isSuccess) {
                 _tokenState.value = TokenState.Valid
-            }else{
+            } else {
                 _tokenState.value = TokenState.Expired
             }
         }

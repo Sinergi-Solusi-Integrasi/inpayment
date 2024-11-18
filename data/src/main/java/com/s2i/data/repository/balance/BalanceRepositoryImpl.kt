@@ -11,6 +11,9 @@ class BalanceRepositoryImpl(
     override suspend fun getBalance(): BalanceModel{
         val response = apiServices.balance()
         return BalanceModel(
+            vehicleUserId= response.data.vehicleUserId,
+            plateNumber = response.data.plateNumber,
+            rfid = response.data.rfid,
             accountNumber = response.data.accountNumber,
             balance = response.data.balance,
             updatedAt = response.data.updatedAt

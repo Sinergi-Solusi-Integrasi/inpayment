@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace = "com.s2i.inpayment"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.s2i.inpayment"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -62,12 +62,33 @@ dependencies {
     implementation("io.insert-koin:koin-androidx-compose")
     implementation("io.insert-koin:koin-core-viewmodel")
 
+    //accompanist
+    implementation("com.google.accompanist:accompanist-permissions:0.36.0")
+
+    // CameraX core library using the camera2 implementation
+    val camerax_version = "1.5.0-alpha03"
+    // The following line is optional, as the core library is included indirectly by camera-camera2
+    implementation("androidx.camera:camera-core:${camerax_version}")
+    implementation("androidx.camera:camera-camera2:${camerax_version}")
+    // If you want to additionally use the CameraX Lifecycle library
+    implementation("androidx.camera:camera-lifecycle:${camerax_version}")
+    // If you want to additionally use the CameraX VideoCapture library
+    implementation("androidx.camera:camera-video:${camerax_version}")
+    // If you want to additionally use the CameraX View class
+    implementation("androidx.camera:camera-view:${camerax_version}")
+    // If you want to additionally add CameraX ML Kit Vision Integration
+    implementation("androidx.camera:camera-mlkit-vision:${camerax_version}")
+    // If you want to additionally use the CameraX Extensions library
+    implementation("androidx.camera:camera-extensions:${camerax_version}")
+
+    /*Text Recognition */
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
+
     //swiperefresh
     implementation(libs.androidx.swiperefreshlayout)
 
     //splash screen
     implementation(libs.androidx.core.splashscreen)
-
 
     // Optional if you're using Jetpack Compose
     implementation("io.insert-koin:koin-androidx-compose")

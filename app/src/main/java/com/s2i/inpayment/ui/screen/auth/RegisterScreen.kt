@@ -10,6 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -19,11 +20,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -50,54 +53,78 @@ fun RegisterScreen(navController: NavController) {
     val isFormValid = email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty() &&
             username.isNotEmpty() && isValidEmail && isValidPassword && isPasswordsMatch
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(text = "Register", fontSize = 18.sp) },
-                navigationIcon = {
-                    IconButton(
-                        onClick = { navController.navigateUp() }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            )
-        },
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp)
-            .clickable(onClick = { focusManager.clearFocus() }) // Dismiss keyboard when clicking outside
-    ) { innerPadding ->
+            .padding(16.dp)
+    ) {
         Column(
             modifier = Modifier
-                .padding(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Logo
-            Image(
-                painter = painterResource(id = R.drawable.logo),
-                contentDescription = null,
-                modifier = Modifier.size(150.dp)
-            )
-
             Spacer(modifier = Modifier.height(32.dp))
+
+            // Top Bar
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = { navController.navigateUp() }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+                Text(
+                    text = "Create Account",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Card for Upload Icon
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Card(
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(MaterialTheme.shapes.medium),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    onClick = {
+                        navController.navigate("kyc_intro_screen") {
+                        launchSingleTop = true
+                    } }
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.Image,
+                            contentDescription = "Upload Icon",
+                            modifier = Modifier.size(48.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             // KTP/SIM/PASSPORT field
             OutlinedTextField(
                 value = identityNumber,
                 onValueChange = { identityNumber = it },
-                label = { Text("Masukkan Nomor Kartu Identitas") },
+                label = { Text("KTP/SIM/PASSPORT Number") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
             )
@@ -108,7 +135,7 @@ fun RegisterScreen(navController: NavController) {
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Nama Lengkap") },
+                label = { Text("Full Name") },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -131,7 +158,7 @@ fun RegisterScreen(navController: NavController) {
                     email = it
                     isValidEmail = Patterns.EMAIL_ADDRESS.matcher(it).matches()
                 },
-                label = { Text("Email") },
+                label = { Text("Email Address") },
                 isError = !isValidEmail,
                 modifier = Modifier.fillMaxWidth(),
                 trailingIcon = if (!isValidEmail && email.isNotEmpty()) {
@@ -148,7 +175,7 @@ fun RegisterScreen(navController: NavController) {
             OutlinedTextField(
                 value = phoneNumber,
                 onValueChange = { phoneNumber = it },
-                label = { Text("No Telpon") },
+                label = { Text("Phone Number") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
             )
@@ -163,7 +190,7 @@ fun RegisterScreen(navController: NavController) {
                     isValidPassword = it.length >= 8
                     isPasswordsMatch = password == confirmPassword
                 },
-                label = { Text("Password") },
+                label = { Text("Create Password") },
                 isError = !isValidPassword,
                 modifier = Modifier.fillMaxWidth(),
                 trailingIcon = {
@@ -190,7 +217,7 @@ fun RegisterScreen(navController: NavController) {
                     confirmPassword = it
                     isPasswordsMatch = it == password
                 },
-                label = { Text("Confirm Password") },
+                label = { Text("Repeat Password") },
                 isError = !isPasswordsMatch,
                 modifier = Modifier.fillMaxWidth(),
                 trailingIcon = {
@@ -219,4 +246,12 @@ fun RegisterScreen(navController: NavController) {
             }
         }
     }
+}
+
+
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewRegisterScreen(){
+    RegisterScreen(navController = NavController(context = LocalContext.current))
 }

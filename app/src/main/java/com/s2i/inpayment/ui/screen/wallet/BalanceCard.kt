@@ -1,6 +1,7 @@
 package com.s2i.inpayment.ui.screen.wallet
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.s2i.common.utils.convert.RupiahFormatter
 import com.s2i.domain.entity.model.balance.BalanceModel
 import com.s2i.inpayment.R
@@ -34,6 +36,7 @@ import com.s2i.inpayment.ui.theme.DarkTeal40
 
 @Composable
 fun BalanceCard(
+    navController: NavController,
     balanceState: BalanceModel?,
     isBalanceVisible: Boolean,
     onToggleVisibility: () -> Unit
@@ -99,7 +102,13 @@ fun BalanceCard(
                             Icons.Default.Receipt, // Replace with history icon
                             contentDescription = "Riwayat",
                             modifier = Modifier
-                                .size(16.dp),
+                                .clickable {
+                                    navController.navigate("history_screen") {
+                                        launchSingleTop = true
+                                    }
+                                }
+                                .size(16.dp)
+                            ,
                             tint = Color.White
                         )
                         Spacer(modifier = Modifier.width(4.dp))

@@ -1,6 +1,7 @@
 package com.s2i.inpayment.ui.screen.profile
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -24,34 +26,52 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.s2i.data.local.auth.SessionManager
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.theme.DarkTeal21
 import com.s2i.inpayment.ui.theme.DarkTeal40
+import com.s2i.inpayment.ui.viewmodel.AuthViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(
+    navController: NavController,
+    authViewModel: AuthViewModel = koinViewModel()
+) {
+    val scope = rememberCoroutineScope()
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Profile") },
                 navigationIcon = {
-                    IconButton(onClick = { /* Handle back navigation */ }) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
+                    IconButton(onClick = {
+                        /* Handle back navigation */
+                        navController.navigateUp()
+                    }
+                    ) {
+                        Icon(imageVector = Icons.Filled.Close, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -65,10 +85,13 @@ fun ProfileScreen() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            ProfileCard()
+            ProfileCard( navController,
+                authViewModel,
+                scope)
             Spacer(modifier = Modifier.height(16.dp))
             ProfileMenu()
             Spacer(modifier = Modifier.height(16.dp))
@@ -78,7 +101,11 @@ fun ProfileScreen() {
 }
 
 @Composable
-fun ProfileCard() {
+fun ProfileCard(
+    navController: NavController,
+    authViewModel: AuthViewModel = koinViewModel(),
+    scope: CoroutineScope
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -115,7 +142,17 @@ fun ProfileCard() {
                     )
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = { /* Handle logout */ }) {
+                IconButton(onClick = { /* Handle logout */
+                    scope.launch {
+                        // clear the session
+                        authViewModel.logout()
+                        // navigate to login screen
+                        navController.navigate("login_screen") {
+                            launchSingleTop = true
+                        }
+                    }
+                }
+                ) {
                     Icon(
                         imageVector = Icons.Default.ExitToApp,
                         contentDescription = "Logout",
@@ -204,8 +241,8 @@ fun ProfileMenuItem(icon: Int, title: String) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewProfileScreen() {
-    ProfileScreen()
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewProfileScreen() {
+//    ProfileScreen(navController = NavController(LocalContext.current), authViewModel = AuthViewModel(LocalContext.current))
+//}
