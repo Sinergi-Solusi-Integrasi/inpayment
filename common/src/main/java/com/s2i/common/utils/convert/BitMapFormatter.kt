@@ -1,6 +1,9 @@
 package com.s2i.common.utils.convert
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.media.ExifInterface
 import android.util.Base64
 import android.util.Log
 import java.io.ByteArrayOutputStream
@@ -43,4 +46,28 @@ fun bitmapToBase64WithFormat(bitmap: Bitmap, format: Bitmap.CompressFormat): Tri
     val base64Data = bitmapToBase64(bitmap, format)
     Log.d("BitmapConversion", "Bitmap converted: ext=$ext, mimeType=$mimeType")
     return Triple(base64Data, ext, mimeType)
+}
+
+fun correctImageOrientation(filePath: String, bitmap: Bitmap): Bitmap {
+    val exif = ExifInterface(filePath)
+    val orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+
+    val matrix = Matrix()
+    when (orientation) {
+        ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+        ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+        ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+    }
+
+    return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+}
+
+// Helper function to decode base64 string to Bitmap
+fun decodeBase64ToBitmap(base64: String): Bitmap? {
+    return try {
+        val decodedBytes = Base64.decode(base64, Base64.DEFAULT)
+        BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+    } catch (e: Exception) {
+        null
+    }
 }

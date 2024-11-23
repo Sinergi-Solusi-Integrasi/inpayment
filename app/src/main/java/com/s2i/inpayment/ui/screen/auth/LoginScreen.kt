@@ -164,7 +164,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
 
         Button(
             onClick = {
-                navController.navigate("register_screen") {
+                navController.navigate("kyc_intro_screen") {
                     popUpTo("login_screen") { inclusive = false }
                 }
             },

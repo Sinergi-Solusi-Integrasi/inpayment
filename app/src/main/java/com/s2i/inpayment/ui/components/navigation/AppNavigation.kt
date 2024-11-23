@@ -1,3 +1,4 @@
+
 package com.s2i.inpayment.ui.components.navigation
 
 import android.content.Context
@@ -11,8 +12,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.s2i.data.local.auth.SessionManager
 import com.s2i.inpayment.ui.components.camera.KycCameraScreen
 import com.s2i.inpayment.ui.screen.home.HomeScreen
@@ -57,8 +60,25 @@ fun AppNavigation(
         composable("login_screen") {
             LoginScreen(navController = navController, authViewModel = authViewModel)
         }
-        composable("register_screen") {
-            RegisterScreen(navController = navController)
+        composable(
+            "register_screen/{detectedText}/{extractedName}?filePath={filePath}",
+            arguments = listOf(
+                navArgument("detectedText") { type = NavType.StringType },
+                navArgument("extractedName") { type = NavType.StringType },
+                navArgument("filePath") { type = NavType.StringType; defaultValue = "" }
+            )
+        ) { backStackEntry ->
+            val detectedText = backStackEntry.arguments?.getString("detectedText") ?: ""
+            val extractedName = backStackEntry.arguments?.getString("extractedName") ?: ""
+            val filePath = backStackEntry.arguments?.getString("filePath")
+
+            RegisterScreen(
+                navController = navController,
+                identityNumber = detectedText,
+                name = extractedName,
+                filePath = filePath,
+                authViewModel = authViewModel,
+            )
         }
         composable("kyc_intro_screen") {
             KYCIntroScreen(navController = navController)
@@ -104,4 +124,3 @@ fun AppNavigation(
         }
     }
 }
-

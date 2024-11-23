@@ -32,7 +32,8 @@ private val LightColorScheme = lightColorScheme(
     secondaryContainer = DarkTeal21.copy(alpha = 0.1f), // Backgrounds using secondary color
     onSecondaryContainer = DarkTeal21,
 
-    background = Color(0xFFF6F6F8), // Subtle light gray for the background
+//    background = Color(0xFFF6F6F8),
+    background = Color(0xFFFFFFFF), // Subtle light gray for the background
     onBackground = DarkTeal40, // Dark teal for better readability on background
 
     surface = Color.White, // Surface color for cards or sheets

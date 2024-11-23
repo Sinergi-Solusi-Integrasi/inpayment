@@ -62,6 +62,11 @@ dependencies {
     implementation("io.insert-koin:koin-androidx-compose")
     implementation("io.insert-koin:koin-core-viewmodel")
 
+    // koin annotation
+    implementation("io.insert-koin:koin-annotations:2.0.0-Beta2")
+    ksp("io.insert-koin:koin-ksp-compiler:2.0.0-Beta2")
+
+
     //accompanist
     implementation("com.google.accompanist:accompanist-permissions:0.36.0")
 
@@ -82,7 +87,9 @@ dependencies {
     implementation("androidx.camera:camera-extensions:${camerax_version}")
 
     /*Text Recognition */
-    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.1")
+//    implementation("com.google.mlkit:text-recognition:16.0.1")
+    implementation("com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.1")
 
     //swiperefresh
     implementation(libs.androidx.swiperefreshlayout)
@@ -124,7 +131,7 @@ dependencies {
     // such as input and measurement/layout
     implementation(libs.ui)
 
-
+    implementation(libs.glide)
 
 
     // Optional - Included automatically by material, only add when you need

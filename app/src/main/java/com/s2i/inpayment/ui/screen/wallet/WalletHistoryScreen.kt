@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProgressIndicatorDefaults
@@ -43,6 +44,7 @@ import androidx.navigation.NavController
 import com.s2i.inpayment.ui.components.HistoryCard
 import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
 import com.s2i.inpayment.ui.components.custome.LogoIndicator
+import com.s2i.inpayment.ui.theme.White30
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -87,6 +89,7 @@ fun WalletHistoryScreen(
            isStartupLoading = false
        }
    }
+
 
     Box(
         modifier = Modifier

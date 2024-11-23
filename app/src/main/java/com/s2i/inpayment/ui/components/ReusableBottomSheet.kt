@@ -35,16 +35,16 @@ import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReusableBottomSheet(
-    imageRes: Int, // resource gambar id
-    message: String, //pesan yang di terima dari api atau dari kita
+    imageRes: Int ? = null, // resource gambar id
+    message: String ? = null, //pesan yang di terima dari api atau dari kita
     sheetState: SheetState, // state untuk bottom sheet
-    onDismiss: () -> Unit, // Callback to dismiss the bottom sheet atau aksi menutup bottomsheet
+    onDismiss: (() -> Unit) ? = null, // Callback to dismiss the bottom sheet atau aksi menutup bottomsheet
     content: (@Composable () -> Unit)? = null
 ) {
     ModalBottomSheet(
         onDismissRequest = {
             Log.d("ReusableBottomSheet", "onDismissRequest called")
-            onDismiss()
+            onDismiss?.invoke()
         },
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surface,
@@ -62,37 +62,41 @@ fun ReusableBottomSheet(
                     .background(MaterialTheme.colorScheme.surface),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image(
-                    painter = painterResource(id = imageRes),
-                    contentDescription = "Image resources",
-                    modifier = Modifier.size(120.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center,
-                    fontSize = 16.sp,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                imageRes?.let {
+                    Image(
+                        painter = painterResource(id = imageRes),
+                        contentDescription = "Image resources",
+                        modifier = Modifier.size(120.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                // Pesan opsional
+                message?.let {
+                    Text(
+                        text = message,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
                 // Add the content here
                 content?.invoke()
             }
             // Close icon positioned at the top-right corner
-            IconButton(
-                onClick = {
-                    Log.d("ReusableBottomSheet", "Close button clicked")
-                    onDismiss()
-                },
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .size(32.dp)
-                    .padding(8.dp)
-            ) {
-                Icon(imageVector = Icons.Default.Close, contentDescription = "Close")
+            onDismiss?.let {
+                IconButton(
+                    onClick = {
+                        Log.d("ReusableBottomSheet", "Close button clicked")
+                        it.invoke()
+                    },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(32.dp)
+                        .padding(8.dp)
+                ) {
+                    Icon(imageVector = Icons.Default.Close, contentDescription = "Close")
+                }
             }
         }
     }
