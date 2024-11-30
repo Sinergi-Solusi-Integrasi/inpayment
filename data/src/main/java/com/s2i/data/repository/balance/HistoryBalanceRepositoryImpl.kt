@@ -13,7 +13,7 @@ class HistoryBalanceRepositoryImpl(
         val response =  apiServices.transactions()
 
         return response.data.let{
-            val historyDataModels = it.map { historyData ->
+            val historyDataModels = response.data.history.map { historyData ->
                 HistoryBalanceModel(
                     transactionId = historyData.transactionId,
                     userId = historyData.userId,
@@ -45,7 +45,9 @@ class HistoryBalanceRepositoryImpl(
             }
 
             InOutBalanceModel(
-                data = historyDataModels
+                accountNumber = response.data.accountNumber,
+                historyCount = response.data.historyCount,
+                history = historyDataModels
             )
         }
     }

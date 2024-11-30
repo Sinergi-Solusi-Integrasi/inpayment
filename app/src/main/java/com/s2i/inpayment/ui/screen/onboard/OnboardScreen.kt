@@ -61,7 +61,7 @@ fun OnboardScreen(navController: NavController) {
                 .padding(top = 48.dp, end = 16.dp) // Moved down
                 .clickable {
                     navController.navigate("login_screen"){
-                        popUpTo("onboard_screen") {
+                        popUpTo(0) {
                             inclusive = true
                         }
                     }

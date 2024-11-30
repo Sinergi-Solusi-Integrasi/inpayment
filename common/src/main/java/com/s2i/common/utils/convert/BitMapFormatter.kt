@@ -3,7 +3,7 @@ package com.s2i.common.utils.convert
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
-import android.media.ExifInterface
+import androidx.exifinterface.media.ExifInterface
 import android.util.Base64
 import android.util.Log
 import java.io.ByteArrayOutputStream
@@ -48,7 +48,10 @@ fun bitmapToBase64WithFormat(bitmap: Bitmap, format: Bitmap.CompressFormat): Tri
     return Triple(base64Data, ext, mimeType)
 }
 
-fun correctImageOrientation(filePath: String, bitmap: Bitmap): Bitmap {
+/**
+ * The rotationDegrees parameter is the rotation in degrees clockwise from the original orientation.
+ */
+fun correctImageOrientation(filePath: String, bitmap: Bitmap, rotationDegrees: Int? = 0): Bitmap {
     val exif = ExifInterface(filePath)
     val orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
 
@@ -57,6 +60,13 @@ fun correctImageOrientation(filePath: String, bitmap: Bitmap): Bitmap {
         ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
         ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
         ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+        ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.postScale(-1f, 1f)
+        ExifInterface.ORIENTATION_FLIP_VERTICAL -> matrix.postScale(1f, -1f)
+    }
+
+    // Apply addition rotation degress
+    rotationDegrees?.let {
+        matrix.postRotate(it.toFloat())
     }
 
     return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
@@ -71,3 +81,7 @@ fun decodeBase64ToBitmap(base64: String): Bitmap? {
         null
     }
 }
+
+/**
+ * The rotationDegrees parameter is the rotation in degrees clockwise from the original orientation.
+ */

@@ -28,6 +28,7 @@ import com.s2i.domain.entity.model.balance.HistoryBalanceModel
 fun HistoryCard(
     dateLabel: String,
     transaction: List<HistoryBalanceModel>,
+    onTransactionClick: (String) -> Unit
 ){
     Column(
         modifier = Modifier
@@ -65,6 +66,10 @@ fun HistoryCard(
                         amount = if (transaction.cashFlow == "MONEY_OUT") "-${ RupiahFormatter.formatToRupiah(transaction.amount)}" else "+${RupiahFormatter.formatToRupiah(transaction.amount)}",
                         isNegative = transaction.cashFlow == "MONEY_OUT",
                         dateTime = transaction.trxDate,
+                        transactionId = transaction.transactionId,
+                        onClick = {
+                            onTransactionClick(transaction.transactionId) // Panggil lambda dengan transactionId
+                        }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
 

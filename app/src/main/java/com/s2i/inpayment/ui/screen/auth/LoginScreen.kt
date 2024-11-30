@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -39,19 +40,24 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.s2i.data.local.auth.SessionManager
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.ReusableBottomSheet
 import com.s2i.inpayment.ui.viewmodel.AuthViewModel
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koinViewModel()) {
+fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koinViewModel(),sessionManager: SessionManager) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    val loginState by authViewModel.loginState.observeAsState()
-    val loadingState by authViewModel.loadingState.observeAsState(false)
+    val loginState by authViewModel.loginState.collectAsState()
+    val loadingState by authViewModel.loadingState.collectAsState()
+    val isLoggedIn = authViewModel.isLoggedIn()
+    val hasNavigated by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
     var isValidUsername by remember { mutableStateOf(true) }
     var isValidPassword by remember { mutableStateOf(true) }
@@ -65,27 +71,35 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
     Log.d("LoginScreen", "Rendering LoginScreen")
 
     // Menggunakan snapshotFlow untuk mengelola showErrorSheet
-    LaunchedEffect(loginState) {
-        snapshotFlow { loginState }
-            .collect { state ->
-                state?.let {
-                    it.onSuccess {
-                        Log.d("LoginScreen", "Login successful, navigating to home_screen")
-                        navController.navigate("home_screen") {
-                            popUpTo(0) { inclusive = true }
-                        }
-                    }.onFailure { error ->
-                        if (!showErrorSheet) {
-                            errorMessage = error.message ?: "Unknown error"
-                            showErrorSheet = true
-                            Log.d("LoginScreen", "Activating error sheet with message: $errorMessage")
-                        } else {
-                            Log.d("LoginScreen", "Error sheet already active, ignoring duplicate error")
-                        }
+    LaunchedEffect(loginState, sessionManager.isLoggedOut) {
+        if (sessionManager.isLoggedOut) {
+            Log.d("LoginScreen", "User is logged out. Waiting for re-login.")
+            return@LaunchedEffect // Do nothing if user is logged out
+        }
+
+        loginState?.let {
+            it.onSuccess {
+                if (!hasNavigated) {
+                    Log.d("LoginScreen", "Login successful, navigating to home_screen")
+                    sessionManager.isLoggedOut = false // Reset logout flag
+                    navController.navigate("home_screen") {
+                        popUpTo("login_screen") { inclusive = true }
                     }
+                } else {
+                    Log.d("LoginScreen", "Navigation already active, ignoring duplicate navigation")
+                }
+            }.onFailure { error ->
+                if (!showErrorSheet) {
+                    errorMessage = error.message ?: "Unknown error"
+                    showErrorSheet = true
+                    Log.d("LoginScreen", "Activating error sheet with message: $errorMessage")
+                } else {
+                    Log.d("LoginScreen", "Error sheet already active, ignoring duplicate error")
                 }
             }
+        }
     }
+
 
     Column(
         modifier = Modifier
@@ -131,7 +145,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
             value = password,
             onValueChange = {
                 password = it
-                isValidPassword = it.length >= 8
+                isValidPassword = it.length >= 6
             },
             label = { Text("Password") },
             isError = !isValidPassword,
@@ -166,6 +180,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
             onClick = {
                 navController.navigate("kyc_intro_screen") {
                     popUpTo("login_screen") { inclusive = false }
+                    launchSingleTop = true
                 }
             },
             enabled = !loadingState,

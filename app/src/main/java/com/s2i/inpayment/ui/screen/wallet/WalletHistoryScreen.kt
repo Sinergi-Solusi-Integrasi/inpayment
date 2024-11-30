@@ -164,7 +164,9 @@ fun WalletHistoryScreen(
             ){
                 groupedTransaction.forEach { (dateLabel, transactions) ->
                     item {
-                        HistoryCard(dateLabel, transactions)
+                        HistoryCard(dateLabel, transactions, onTransactionClick = { transactionId ->
+                            navController.navigate("detail_transaksi_screen/$transactionId")
+                        })
                     }
                 }
             }

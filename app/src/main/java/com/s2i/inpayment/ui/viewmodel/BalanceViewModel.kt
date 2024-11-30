@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.s2i.common.utils.date.Dates
 import com.s2i.data.local.auth.SessionManager
 import com.s2i.domain.entity.model.balance.BalanceModel
+import com.s2i.domain.entity.model.balance.DetailTrxModel
 import com.s2i.domain.entity.model.balance.HistoryBalanceModel
 import com.s2i.domain.entity.model.balance.InOutBalanceModel
 import com.s2i.domain.entity.model.balance.IncomeExpenseModel
@@ -13,6 +14,7 @@ import com.s2i.domain.entity.model.balance.IncomeExpensesTrxModel
 import com.s2i.domain.usecase.auth.LoginUseCase
 import com.s2i.domain.usecase.auth.RegisterUseCase
 import com.s2i.domain.usecase.balance.GetBalanceUseCase
+import com.s2i.domain.usecase.balance.GetDetailTrxUseCase
 import com.s2i.domain.usecase.balance.GetHistoryBalanceUseCase
 import com.s2i.domain.usecase.balance.GetInOutBalanceUseCase
 import com.s2i.domain.usecase.balance.GetIncomeExpensesUseCase
@@ -30,6 +32,7 @@ class BalanceViewModel(
     private val inOutBalanceUseCase: GetInOutBalanceUseCase,
     private val historyUseCase: GetHistoryBalanceUseCase,
     private val incomeExpenseUseCase: GetIncomeExpensesUseCase,
+    private val detailTrxUseCase: GetDetailTrxUseCase,
     private val sessionManager: SessionManager
 ): ViewModel() {
 
@@ -44,6 +47,9 @@ class BalanceViewModel(
 
     private val _incomeExpenses = MutableStateFlow<IncomeExpenseModel?>(null)
     val incomeExpenses: StateFlow<IncomeExpenseModel?> = _incomeExpenses
+
+    private val _detailTrx = MutableStateFlow<DetailTrxModel?>(null)
+    val detailTrx: StateFlow<DetailTrxModel?> = _detailTrx
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
@@ -111,7 +117,7 @@ class BalanceViewModel(
                 val inOutBalance = inOutBalanceUseCase()
 
                 // Parsing and sorting transactions by trxDate in descending order
-                val sortedHistory = inOutBalance.data.sortedByDescending {
+                val sortedHistory = inOutBalance.history.sortedByDescending {
                     Dates.parseIso8601(it.trxDate)
                 }
 
@@ -155,10 +161,27 @@ class BalanceViewModel(
             _loading.value = true
             try{
                 val result = historyUseCase()
-                Log.d("BalanceViewModel", "Fetched Transactions: ${result.data}")
-                _historyTransaction.value = groupTransactionsByDate(result.data)
+                Log.d("BalanceViewModel", "Fetched Transactions: ${result.history}")
+                _historyTransaction.value = groupTransactionsByDate(result.history)
             } catch (e: Exception){
                 _error.value = e.message
+            } finally {
+                _loading.value = false
+            }
+        }
+    }
+
+    // Detail Trx
+    fun fetchDetailTrx(transactionId: String){
+        viewModelScope.launch {
+            _loading.value = true
+            try {
+                val result = detailTrxUseCase(transactionId)
+                _detailTrx.value = result
+                Log.d("BalanceViewModel", "Fetched Transaction Detail: $result")
+            } catch (e: Exception){
+                _error.value = e.message
+                Log.e("BalanceViewModel", "Fetched Transaction Detail:  ${e.message}")
             } finally {
                 _loading.value = false
             }

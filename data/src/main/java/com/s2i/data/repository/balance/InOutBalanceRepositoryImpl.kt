@@ -13,7 +13,7 @@ class InOutBalanceRepositoryImpl(
         val response = apiServices.transactions()
 
         // Maping history data
-        val historyModels = response.data.take(3).map{ historyData ->
+        val historyModels = response.data.history.take(3).map{ historyData ->
             HistoryBalanceModel(
                 transactionId = historyData.transactionId,
                 userId = historyData.userId,
@@ -44,7 +44,9 @@ class InOutBalanceRepositoryImpl(
             )
         }
         return InOutBalanceModel(
-            data = historyModels
+            accountNumber = response.data.accountNumber,
+            historyCount = response.data.historyCount,
+            history = historyModels
         )
     }
 

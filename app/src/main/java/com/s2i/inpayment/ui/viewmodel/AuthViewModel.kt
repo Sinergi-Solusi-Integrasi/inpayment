@@ -6,8 +6,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.s2i.common.utils.convert.bitmapToBase64WithFormat
 import com.s2i.data.local.auth.SessionManager
 import com.s2i.domain.entity.model.auth.AuthModel
+import com.s2i.domain.entity.model.users.BlobImageModel
 import com.s2i.domain.entity.model.users.UsersModel
 import com.s2i.domain.usecase.auth.LoginUseCase
 import com.s2i.domain.usecase.auth.RegisterUseCase
@@ -20,21 +22,22 @@ class AuthViewModel(
     private val registerUseCase: RegisterUseCase,
     private val sessionManager: SessionManager
 ): ViewModel() {
-    private val _loginState = MutableLiveData<Result<AuthModel>?>(null)
-    val loginState: MutableLiveData<Result<AuthModel>?> = _loginState
+
+    private val _loginState = MutableStateFlow<Result<AuthModel>?>(null)
+    val loginState: StateFlow<Result<AuthModel>?> = _loginState
 
     private val _registerState = MutableStateFlow<Result<UsersModel>?>(null)
     val registerState: MutableStateFlow<Result<UsersModel>?> = _registerState
 
-    private val _errorMessage = MutableLiveData<String?>(null)
-    val errorMessage: LiveData<String?> = _errorMessage
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage
 
-    private val _loadingState = MutableLiveData(false)
-    val loadingState: LiveData<Boolean> = _loadingState
+    private val _loadingState = MutableStateFlow(false)
+    val loadingState: StateFlow<Boolean> = _loadingState
 
-    private val _tokenState =
-        MutableStateFlow<TokenViewModel.TokenState>(TokenViewModel.TokenState.Valid)
-    val tokenState: StateFlow<TokenViewModel.TokenState> = _tokenState
+//    private val _tokenState =
+//        MutableStateFlow<TokenViewModel.TokenState>(TokenViewModel.TokenState.Valid)
+//    val tokenState: StateFlow<TokenViewModel.TokenState> = _tokenState
 
     // Tambahkan variabel StateFlow untuk base64Data
     private val _base64Data = MutableStateFlow<String?>(null)
@@ -97,6 +100,7 @@ class AuthViewModel(
             _loadingState.value = false
             result.fold(
                 onSuccess = { authModel ->
+                    Log.d("AuthViewModel", "Login successful: $username")
                     sessionManager.createLoginSession(
                         accessToken = authModel.accessToken,
                         refreshToken = authModel.refreshToken,
@@ -104,6 +108,7 @@ class AuthViewModel(
                         refreshTokenExpiry = authModel.refreshTokenExpiredAt,
                         username = authModel.username
                     )
+                    Log.d("AuthViewModel", "Session updated. isLogin: ${sessionManager.isLogin}")
                 },
                 onFailure = { throwable ->
                     _loginState.value = Result.failure(throwable)
@@ -127,6 +132,13 @@ class AuthViewModel(
     ) {
         _loadingState.value = true
         viewModelScope.launch {
+            // convert bitmap to blobimagemodel
+            val (base64, ext, mimeType) = bitmapToBase64WithFormat(identityBitmap, imageFormat)
+            val identityModel = BlobImageModel(
+                data = base64,
+                ext = ext,
+                mimeType = mimeType
+            )
             try {
                 val result = registerUseCase(
                     name = name,
@@ -136,8 +148,7 @@ class AuthViewModel(
                     address = address,
                     identityNumber = identityNumber,
                     mobileNumber = mobileNumber,
-                    identityBitmap = identityBitmap,
-                    imageFormat = imageFormat
+                    identityImage = identityModel,
                 )
 
                 // Handle success
@@ -168,6 +179,6 @@ class AuthViewModel(
 
     fun logout() {
         sessionManager.logout()
-        _tokenState.value = TokenViewModel.TokenState.Expired
+//        _tokenState.value = TokenViewModel.TokenState.Expired
     }
 }

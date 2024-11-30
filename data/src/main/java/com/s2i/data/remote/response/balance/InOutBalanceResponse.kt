@@ -6,9 +6,9 @@ import com.s2i.data.model.balance.InOutBalanceData
 
 data class InOutBalanceResponse (
     @SerializedName("code")
-    val code: String,
+    val code: Int,
     @SerializedName("message")
     val message: String,
     @SerializedName("data")
-    val data: List<HistoryBalanceData>
+    val data: InOutBalanceData
 )

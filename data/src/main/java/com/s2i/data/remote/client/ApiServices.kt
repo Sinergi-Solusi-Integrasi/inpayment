@@ -10,12 +10,16 @@ import com.s2i.data.remote.response.balance.HistoryBalanceByIdResponse
 import com.s2i.data.remote.response.balance.HistoryBalanceResponse
 import com.s2i.data.remote.response.balance.InOutBalanceResponse
 import com.s2i.data.remote.response.balance.IncomeExpenseResponse
+import com.s2i.data.remote.response.users.ProfileResponse
+import com.s2i.data.remote.response.users.UsersResponse
+import com.s2i.data.remote.response.vehicles.VehiclesResponse
 import com.s2i.domain.entity.model.auth.AuthModel
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiServices {
@@ -38,18 +42,37 @@ interface ApiServices {
         @Body refreshTokenBody: Map<String, String>
     ): RefreshTokenResponse
 
+    // Get Profile
+    @GET("accounts/profile")
+    suspend fun profile(
+    ): UsersResponse
+
+
+    //Vehicles
+
+    // Get Vehicles
+    @GET("vehicles")
+    suspend fun vehicles(
+    ): VehiclesResponse
+
+    // Get Vehicles selected
+    @GET("vehicles/selected")
+    suspend fun vehiclesSelected(
+    ): VehiclesResponse
+
     // Get Balance
     @GET("accounts/balance")
     suspend fun balance(
     ): BalanceResponse
 
     // Get 3 last Transaction
-    @GET("transactions")
+    @GET("transactions/history")
     suspend fun transactions(
     ): InOutBalanceResponse
 
     @GET("transactions/{transaction_id}")
     suspend fun transactionsById(
+        @Path("transaction_id") transactionId: String
     ): HistoryBalanceByIdResponse
 
     // Get Income and Expense

@@ -4,7 +4,9 @@ import com.s2i.domain.usecase.auth.LoginUseCase
 import com.s2i.domain.usecase.auth.RegisterUseCase
 import com.s2i.domain.usecase.auth.TokenUseCase
 import com.s2i.domain.usecase.balance.GetBalanceUseCase
+import com.s2i.domain.usecase.users.GetUsersUseCase
 import com.s2i.domain.usecase.balance.GetInOutBalanceUseCase
+import com.s2i.domain.usecase.balance.GetDetailTrxUseCase
 import com.s2i.domain.usecase.balance.GetHistoryBalanceUseCase
 import com.s2i.domain.usecase.balance.GetIncomeExpensesUseCase
 import org.koin.core.module.dsl.factoryOf
@@ -16,8 +18,10 @@ val useCaseModule = module {
     factoryOf(::RegisterUseCase) // Inject AuthRepository into RegisterUseCase
     factoryOf(::GetBalanceUseCase)// Inject AuthRepository into GetBalanceUseCase
     factoryOf(::GetInOutBalanceUseCase)// Inject AuthRepository into GetBalanceUseCase
+    factoryOf(::GetDetailTrxUseCase)// Inject AuthRepository into GetBalanceUseCase
     factoryOf(::GetHistoryBalanceUseCase)// Inject AuthRepository into GetBalanceUseCase
     factoryOf(::GetIncomeExpensesUseCase)// Inject AuthRepository into GetBalanceUseCase
+    factoryOf(::GetUsersUseCase)// Inject UsersRepository into GetBalanceUseCase
     factoryOf(::TokenUseCase)// Inject AuthRepository into GetBalanceUseCase
 
 

@@ -15,10 +15,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -32,11 +35,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -45,22 +55,57 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.s2i.data.local.auth.SessionManager
+import com.s2i.domain.entity.model.balance.BalanceModel
+import com.s2i.domain.entity.model.users.ProfileModel
+import com.s2i.domain.entity.model.users.UsersProfileModel
 import com.s2i.inpayment.R
+import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
 import com.s2i.inpayment.ui.theme.DarkTeal21
 import com.s2i.inpayment.ui.theme.DarkTeal40
 import com.s2i.inpayment.ui.viewmodel.AuthViewModel
+import com.s2i.inpayment.ui.viewmodel.UsersViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun ProfileScreen(
     navController: NavController,
-    authViewModel: AuthViewModel = koinViewModel()
+    sessionManager: SessionManager,
+    usersViewModel: UsersViewModel = koinViewModel()
 ) {
     val scope = rememberCoroutineScope()
+    val usersState by usersViewModel.users.collectAsState()
+    var isStartupLoading by remember { mutableStateOf(true) }
+    val loading by usersViewModel.loading.collectAsState()
+    var isRefreshing by remember { mutableStateOf(false) }
+    val error by usersViewModel.error.collectAsState()
+
+    LaunchedEffect(Unit){
+        if (loading && isStartupLoading) {
+            isStartupLoading = true
+        } else if (!loading) {
+            delay(500) // Optional delay to keep the loading indicator visible for a short time
+            usersViewModel.fetchUsers()
+            isStartupLoading = false
+        }
+    }
+
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            scope.launch {
+                isStartupLoading = false
+                isRefreshing = true
+                usersViewModel.fetchUsers()
+                delay(2000) // simulate refresh delay
+                isRefreshing = false
+            }
+        }
+    )
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -89,13 +134,23 @@ fun ProfileScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            ProfileCard( navController,
-                authViewModel,
-                scope)
+            if (isStartupLoading) {
+                CustomLinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                )
+            }
+            // Pastikan usersState tidak null sebelum menampilkan profile card
+            if (usersState != null) {
+                ProfileCard(navController, sessionManager, scope, usersState)
+            } else {
+                Text("User data is loading...")
+            }
             Spacer(modifier = Modifier.height(16.dp))
             ProfileMenu()
             Spacer(modifier = Modifier.height(16.dp))
-            ProfileFooter()
+            ProfileFooter(navController, sessionManager, scope)
         }
     }
 }
@@ -103,8 +158,9 @@ fun ProfileScreen(
 @Composable
 fun ProfileCard(
     navController: NavController,
-    authViewModel: AuthViewModel = koinViewModel(),
-    scope: CoroutineScope
+    sessionManager: SessionManager,
+    scope: CoroutineScope,
+    usersState: ProfileModel?
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -125,52 +181,38 @@ fun ProfileCard(
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
                     Text(
-                        text = "Hai, Bambang Prasongko",
+                        text ="Hai, ${usersState?.name ?: "Guest"}",
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
                         color = Color.Black
                     )
                     Text(
-                        text = "0817-0777-696",
+                        text = usersState?.mobileNumber ?: "No Phone Number",
                         fontSize = 14.sp,
                         color = Color.Gray
                     )
                     Text(
-                        text = "RFID: 9360181806061997",
+                        text = "RFID: ${usersState?.selectVehicle?.rfid ?: ""} " ,
                         fontSize = 14.sp,
                         color = Color.Gray
                     )
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = { /* Handle logout */
-                    scope.launch {
-                        // clear the session
-                        authViewModel.logout()
-                        // navigate to login screen
-                        navController.navigate("login_screen") {
-                            launchSingleTop = true
-                        }
-                    }
-                }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ExitToApp,
-                        contentDescription = "Logout",
-                        tint = Color.Gray
-                    )
-                }
             }
             Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Sedan Merah   GOLONGAN 1   Plat Hitam",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
+            // Pastikan jika kendaraan ada, tampilkan detail kendaraan
+            usersState?.selectVehicle?.let { vehicle ->
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Brand: ${vehicle.brand} Model: ${vehicle.model}   ${vehicle.group}   Plate Number: ${vehicle.plateNumber}",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(16.dp))
             Row(
@@ -200,37 +242,75 @@ fun ProfileMenu() {
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
-        ProfileMenuItem(icon = R.drawable.ic_riwayat, title = "All Transactions")
-        ProfileMenuItem(icon = R.drawable.ic_help, title = "Help and Support")
+        ProfileMenuItem(icon = R.drawable.ic_riwayat, title = "All Transactions", onClick = {})
+        ProfileMenuItem(icon = R.drawable.ic_help, title = "Help and Support", onClick = {})
     }
 }
 
 @Composable
-fun ProfileFooter() {
+fun ProfileFooter(
+    navController: NavController,
+    sessionManager: SessionManager,
+    scope: CoroutineScope
+) {
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
-        ProfileMenuItem(icon = R.drawable.ic_about, title = "About Us")
-        ProfileMenuItem(icon = R.drawable.ic_terms, title = "Terms and Conditions")
-        ProfileMenuItem(icon = R.drawable.ic_feedback, title = "Feedback")
+        ProfileMenuItem(icon = R.drawable.ic_about, title = "About Us", {})
+        ProfileMenuItem(icon = R.drawable.ic_terms, title = "Terms and Conditions", {})
+        ProfileMenuItem(icon = R.drawable.ic_feedback, title = "Feedback", {})
+        // Tombol Logout
+        Spacer(modifier = Modifier.height(16.dp))
+        ProfileMenuItem(
+            icon = R.drawable.ic_logout, // Icon logout
+            title = "Logout",
+            onClick = {
+                scope.launch {
+                    // Logout dari session
+                    sessionManager.logout()
+
+                    // Navigasi ke HomeScreen (atau layar yang sesuai)
+                    navController.navigate("login_screen") {
+                        // Pop up semua screen yang ada di atas HomeScreen (termasuk profile_screen)
+                        popUpTo("profile_screen") { inclusive = true }
+                    }
+                }
+            }
+        )
     }
 }
 
 @Composable
-fun ProfileMenuItem(icon: Int, title: String) {
+fun ProfileMenuItem(
+    icon: Any,
+    title: String,
+    onClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { /* Handle click */ }
+            .clickable { onClick() }
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            painter = painterResource(id = icon),
-            contentDescription = title,
-            modifier = Modifier.size(24.dp),
-            tint = Color.Gray
-        )
+        when (icon) {
+            is ImageVector -> {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = title,
+                    modifier = Modifier.size(24.dp),
+                    tint = Color.Gray
+                )
+            }
+            is Int -> {
+                Icon(
+                    painter = painterResource(id = icon),
+                    contentDescription = title,
+                    modifier = Modifier.size(24.dp),
+                    tint = Color.Gray
+                )
+            }
+        }
         Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = title,

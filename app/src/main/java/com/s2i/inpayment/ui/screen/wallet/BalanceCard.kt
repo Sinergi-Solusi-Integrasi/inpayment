@@ -92,6 +92,10 @@ fun BalanceCard(
                         Icon(
                             painter = painterResource(id = R.drawable.ic_topup), // Replace with top-up icon
                             contentDescription = "Top Up",
+                            modifier = Modifier
+                                .clickable {
+
+                                },
                             tint = Color.White
                         )
                         Spacer(modifier = Modifier.width(4.dp))

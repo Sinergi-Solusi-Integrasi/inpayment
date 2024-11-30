@@ -21,12 +21,14 @@ fun TransactionItem(
     amount: String,
     isNegative: Boolean,
     dateTime: String,
+    transactionId: String, // Tambahkan parameter transactionId
+    onClick: (String) -> Unit, // Callback untuk navigasi
     modifier: Modifier = Modifier // Tambahkan parameter modifier di sini
 ) {
     Column(
         modifier = modifier // Gunakan parameter modifier yang telah ditambahkan
             .fillMaxWidth()
-            .clickable { /* Handle TransactionItem click */ } // Membuat seluruh item bisa diklik
+            .clickable { onClick(transactionId) } // Membuat seluruh item bisa diklik
             .padding(vertical = 8.dp)
     ) {
         Row(
@@ -93,7 +95,11 @@ fun PreviewTransactionItem() {
             description = "Pembayaran",
             amount = "-Rp 9.500",
             dateTime = "2222",
-            isNegative = true
+            isNegative = true,
+            transactionId = "trx_001",
+            onClick = { transactionId ->
+                println("Clicked on transaction ID: $transactionId")
+            }
         )
         // Preview for another negative cash flow transaction
         TransactionItem(
@@ -101,7 +107,11 @@ fun PreviewTransactionItem() {
             description = "Biaya Top Up",
             amount = "-Rp 1.000",
             dateTime = "2222",
-            isNegative = true
+            isNegative = true,
+            transactionId = "trx_001",
+            onClick = { transactionId ->
+                println("Clicked on transaction ID: $transactionId")
+            }
         )
         // Preview for positive cash flow transaction
         TransactionItem(
@@ -109,7 +119,11 @@ fun PreviewTransactionItem() {
             description = "Top Up",
             amount = "+Rp 100.000",
             dateTime = "2222",
-            isNegative = false
+            isNegative = false,
+            transactionId = "trx_001",
+            onClick = { transactionId ->
+                println("Clicked on transaction ID: $transactionId")
+            }
         )
     }
 }

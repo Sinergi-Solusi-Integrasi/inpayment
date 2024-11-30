@@ -2,6 +2,7 @@ package com.s2i.domain.repository.auth
 
 import android.graphics.Bitmap
 import com.s2i.domain.entity.model.auth.AuthModel
+import com.s2i.domain.entity.model.users.BlobImageModel
 import com.s2i.domain.entity.model.users.UsersModel
 
 interface AuthRepository {
@@ -14,7 +15,6 @@ interface AuthRepository {
         address: String,
         identityNumber: String,
         mobileNumber: String,
-        identityBitmap: Bitmap,
-        imageFormat: Bitmap.CompressFormat
+        identityImage: BlobImageModel
     ): Result<UsersModel>
 }

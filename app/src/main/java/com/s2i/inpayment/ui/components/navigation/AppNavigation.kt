@@ -25,11 +25,12 @@ import com.s2i.inpayment.ui.screen.kyc.KYCIntroScreen
 import com.s2i.inpayment.ui.screen.onboard.OnboardScreen
 import com.s2i.inpayment.ui.screen.profile.ProfileScreen
 import com.s2i.inpayment.ui.screen.splash.SplashScreen
+import com.s2i.inpayment.ui.screen.wallet.DetailTransactionScreen
 import com.s2i.inpayment.ui.screen.wallet.WalletHistoryScreen
 import com.s2i.inpayment.ui.viewmodel.AuthViewModel
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import com.s2i.inpayment.ui.viewmodel.HomeViewModel
-import com.s2i.inpayment.ui.viewmodel.TokenViewModel
+//import com.s2i.inpayment.ui.viewmodel.TokenViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -37,7 +38,7 @@ fun AppNavigation(
     navController: NavHostController,
     authViewModel: AuthViewModel = koinViewModel(),
     balanceViewModel: BalanceViewModel = koinViewModel(),
-    tokenViewModel: TokenViewModel = koinViewModel(),
+//    tokenViewModel: TokenViewModel = koinViewModel(),
     context: Context
 ) {
     val homeViewModel: HomeViewModel = koinViewModel()
@@ -45,7 +46,7 @@ fun AppNavigation(
     val username = sessionManager.getFromPreference(SessionManager.KEY_USERNAME) ?: "User"
 
     // Observe the token state
-    val tokenState by tokenViewModel.tokenState.collectAsState()
+//    val tokenState by tokenViewModel.tokenState.collectAsState()
 
     NavHost(navController = navController, startDestination = "splash_screen") {
         composable("splash_screen") {
@@ -58,7 +59,7 @@ fun AppNavigation(
             OnboardScreen(navController = navController)
         }
         composable("login_screen") {
-            LoginScreen(navController = navController, authViewModel = authViewModel)
+            LoginScreen(navController = navController, authViewModel = authViewModel, sessionManager = sessionManager)
         }
         composable(
             "register_screen/{detectedText}/{extractedName}?filePath={filePath}",
@@ -87,7 +88,7 @@ fun AppNavigation(
             KycCameraScreen(navController = navController)
         }
         composable("profile_screen") {
-            ProfileScreen(navController = navController, authViewModel = authViewModel)
+            ProfileScreen(navController = navController, sessionManager = sessionManager)
         }
         composable("history_screen") {
             WalletHistoryScreen(
@@ -95,8 +96,17 @@ fun AppNavigation(
                 balanceViewModel =  balanceViewModel
             )
         }
+        composable(
+            "detail_transaksi_screen/{transactionId}",
+            arguments = listOf(navArgument("transactionId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val transactionId = backStackEntry.arguments?.getString("transactionId") ?: ""
+            DetailTransactionScreen(
+                navController = navController,
+                balanceViewModel = balanceViewModel,
+                transactionId = transactionId)
+        }
         composable("home_screen") {
-            if (sessionManager.isLogin) {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     HomeScreen(
                         username = username,
@@ -106,21 +116,15 @@ fun AppNavigation(
                         sessionManager = sessionManager
                     )
                 }
-            } else {
-                // If the user is not logged in, navigate to the login screen
-                navController.navigate("login_screen") {
-                    popUpTo(0) { inclusive = true }
-                }
-            }
         }
     }
 
     // Observe tokenState for logout or token refresh
-    LaunchedEffect(tokenState) {
-        if (tokenState is TokenViewModel.TokenState.Expired) {
-            navController.navigate("login_screen") {
-                popUpTo(0) { inclusive = true }
-            }
-        }
-    }
+//    LaunchedEffect(tokenState) {
+//        if (tokenState is TokenViewModel.TokenState.Expired) {
+//            navController.navigate("login_screen") {
+//                popUpTo(0) { inclusive = true }
+//            }
+//        }
+//    }
 }

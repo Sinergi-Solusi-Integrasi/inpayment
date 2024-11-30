@@ -1,5 +1,6 @@
 package com.s2i.inpayment.ui.screen.home
 
+import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
@@ -42,6 +43,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
@@ -58,7 +60,9 @@ import com.s2i.inpayment.ui.screen.wallet.BalanceCard
 import com.s2i.inpayment.ui.theme.DarkTeal21
 import com.s2i.inpayment.ui.theme.DarkTeal40
 import com.s2i.inpayment.ui.theme.GreenTeal40
+import com.s2i.inpayment.ui.theme.exComeGradient
 import com.s2i.inpayment.ui.theme.gradientBrush
+import com.s2i.inpayment.ui.theme.inComeGradient
 import com.s2i.inpayment.ui.theme.triGradientBrush
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import com.s2i.inpayment.ui.viewmodel.HomeViewModel
@@ -121,19 +125,21 @@ fun HomeScreen(
     val textMeasurer = rememberTextMeasurer()
     var isBalanceValid by remember { mutableStateOf(true) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(sessionManager.isLogin) {
         if (!sessionManager.isLogin) {
+            Log.d("HomeScreen", "User is not logged in. Redirecting to login_screen.")
             navController.navigate("login_screen") {
-                launchSingleTop = true
+                popUpTo("home_screen") { inclusive = true }
             }
         } else {
-            balanceViewModel.fetchBalance() // Trigger fetching the balance when screen is launched
-            balanceViewModel.fetchTriLastTransaction() // Trigger fetching the transaction when screen is launched
+            balanceViewModel.fetchBalance()
+            balanceViewModel.fetchTriLastTransaction()
             balanceViewModel.fetchInComeExpenses()
         }
     }
 
-    if (sessionManager.isLogin) {
+
+    if (sessionManager.isUserLogin()) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -162,7 +168,7 @@ fun HomeScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(brush = gradientBrush()) // The color from your example
+                    .background(Color.White) // Background color from your example) // The color from your example
                     .padding(horizontal = 16.dp, vertical = 24.dp)
             ) {
 
@@ -185,7 +191,7 @@ fun HomeScreen(
                 ) {
                     // Logo on the left
                     Image(
-                        painter = painterResource(id = R.drawable.second_logo), // Replace with the correct logo resource
+                        painter = painterResource(id = R.drawable.logo), // Replace with the correct logo resource
                         contentDescription = "Logo",
                         modifier = Modifier.size(135.dp, 27.dp)
                     )
@@ -200,7 +206,7 @@ fun HomeScreen(
                             Icon(
                                 Icons.Default.Notifications,
                                 contentDescription = "Notifications",
-                                tint = Color.White
+                                tint = Color.Gray
                             )
                         }
 
@@ -269,18 +275,19 @@ fun HomeScreen(
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
+                                        .background(brush = inComeGradient(IntSize(1080, 1920)))
                                         .padding(16.dp),
                                     horizontalAlignment = Alignment.Start
                                 ) {
-                                    Text(text = "Pemasukan", style = MaterialTheme.typography.titleMedium)
+                                    Text(text = "Pemasukan", style = MaterialTheme.typography.titleSmall)
                                     Text(
                                         text = incomeExpense?.data?.incomeTrx?.amount?.let { RupiahFormatter.formatToRupiah(it) } ?: "Loading...",
                                         style = MaterialTheme.typography.bodyLarge,
                                         color = GreenTeal40
                                     )
                                     Text(
-                                        text = incomeExpense?.data?.incomeTrx?.title?.ifEmpty { "Tidak ada keterangan" } ?: "Tidak ada pemasukan",
-                                        style = MaterialTheme.typography.bodyMedium
+                                        text = incomeExpense?.data?.incomeTrx?.title?.ifEmpty { "" } ?: " ",
+                                        style = MaterialTheme.typography.bodySmall
                                     )
                                 }
                             }
@@ -296,16 +303,17 @@ fun HomeScreen(
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
+                                        .background(brush = exComeGradient(IntSize(1080, 1920)))
                                         .padding(16.dp),
                                     horizontalAlignment = Alignment.Start
                                 ) {
-                                    Text(text = "Pengeluaran", style = MaterialTheme.typography.titleMedium)
+                                    Text(text = "Pengeluaran", style = MaterialTheme.typography.titleSmall)
                                     Text(
                                         text = incomeExpense?.data?.expenseTrx?.amount?.let { "-" + RupiahFormatter.formatToRupiah(it) } ?: "Loading...",
                                         style = MaterialTheme.typography.bodyLarge,
                                         color = Color.Red
                                     )
-                                    Text(text = incomeExpense?.data?.expenseTrx?.title ?: " ", style = MaterialTheme.typography.bodyMedium)
+                                    Text(text = incomeExpense?.data?.expenseTrx?.title ?: " ", style = MaterialTheme.typography.bodySmall)
                                 }
                             }
                         }
@@ -430,6 +438,10 @@ fun HomeScreen(
                                     amount = if (transaction.cashFlow == "MONEY_OUT") "-${ RupiahFormatter.formatToRupiah(transaction.amount)}" else "+${RupiahFormatter.formatToRupiah(transaction.amount)}",
                                     isNegative = transaction.cashFlow == "MONEY_OUT",
                                     dateTime = dateTimeFormatted,
+                                    transactionId = transaction.transactionId,
+                                    onClick = { transactionId ->
+                                        navController.navigate("detail_transaksi_screen/$transactionId")
+                                    }
                                 )
                             }
                         }
@@ -454,6 +466,10 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
             LogoIndicator(isRefreshing, pullRefreshState)
+        }
+    } else {
+        navController.navigate("login_screen") {
+            popUpTo("home_screen") { inclusive = true }
         }
     }
 }

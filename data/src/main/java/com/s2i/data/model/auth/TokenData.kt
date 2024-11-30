@@ -5,8 +5,8 @@ import com.google.gson.annotations.SerializedName
 data class TokenData(
     @SerializedName("access_token")
     val accessToken: String,
-    @SerializedName("expires_at")
-    val expiresAt: String,
+    @SerializedName("expired_at")
+    val expiredAt: String,
     @SerializedName("username")
     val username: String
 )

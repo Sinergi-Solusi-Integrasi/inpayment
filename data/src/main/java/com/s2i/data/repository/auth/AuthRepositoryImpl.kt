@@ -16,6 +16,7 @@ import com.s2i.data.BuildConfig
 import com.s2i.data.local.auth.SessionManager
 import com.s2i.data.model.users.BlobImageData
 import com.s2i.data.remote.request.auth.RegisterRequest
+import com.s2i.domain.entity.model.users.BlobImageModel
 import com.s2i.domain.entity.model.users.UsersModel
 
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -102,13 +103,19 @@ class AuthRepositoryImpl(
         address: String,
         identityNumber: String,
         mobileNumber: String,
-        identityBitmap: Bitmap,
-        imageFormat: Bitmap.CompressFormat
+        identityImage: BlobImageModel
     ): Result<UsersModel> {
         Log.d("AuthRepository", "Attempting to register with $username")
 
+        // Convert BlobImageModel (domain model) to BlobImageData (data model)
+        val blobImageData = BlobImageData(
+//            data = identityImage.data,
+            ext = identityImage.ext,
+            mimeType = identityImage.mimeType,
+            data = "data:${identityImage.mimeType};base64,${identityImage.data}"
+        )
+
         //convert image to base64 dan mime
-        val (base64Data, ext, mimeType) = bitmapToBase64WithFormat(identityBitmap, imageFormat)
         val registerRequest = RegisterRequest(
             name = name,
             username =  username,
@@ -117,11 +124,7 @@ class AuthRepositoryImpl(
             mobileNumber =  mobileNumber,
             identityNumber = identityNumber,
             address = address,
-            identityImage = BlobImageData(
-                ext = ext,
-                mimeType = mimeType,
-                data = base64Data
-            )
+            identityImage = blobImageData
         )
 
         return try {

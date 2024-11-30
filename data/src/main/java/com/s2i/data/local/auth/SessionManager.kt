@@ -17,16 +17,22 @@ class SessionManager(context: Context) {
     private var editor: SharedPreferences.Editor = pref.edit()
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.getDefault())
 
+    // Properti isLoggedOut disimpan di SharedPreferences
+    var isLoggedOut: Boolean
+        get() = pref.getBoolean(KEY_IS_LOGGED_OUT, false)
+        set(value) {
+            editor.putBoolean(KEY_IS_LOGGED_OUT, value).apply()
+        }
+
     private fun createPreferences(context: Context): SharedPreferences {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            try {
+        return try {
                 val spec = KeyGenParameterSpec.Builder(
                     MasterKey.DEFAULT_MASTER_KEY_ALIAS,
                     KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
                 )
                     .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                    .setKeySize(MasterKey.DEFAULT_AES_GCM_MASTER_KEY_SIZE)
                     .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                    .setKeySize(MasterKey.DEFAULT_AES_GCM_MASTER_KEY_SIZE)
                     .build()
                 val masterKey = MasterKey.Builder(context)
                     .setKeyGenParameterSpec(spec)
@@ -38,16 +44,18 @@ class SessionManager(context: Context) {
                     EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                     EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
                 )
-            } catch (e: Exception) {
-                Log.e("SessionManager", "Failed to initialize EncryptedSharedPreferences, falling back to regular SharedPreferences", e)
-                context.getSharedPreferences("Session", Context.MODE_PRIVATE).also {
-                    it.edit().clear().apply() // Clear corrupted or unusable preferences
-                }
+        }catch (e: Exception) {
+            Log.e("SessionManager", "Failed to initialize EncryptedSharedPreferences, falling back to regular SharedPreferences", e)
+            context.getSharedPreferences("Session", Context.MODE_PRIVATE).also {
+                it.edit().clear().apply() // Clear corrupted or unusable preferences
             }
-        } else {
-            SecurePreferences(context, "loveyous2iintracs", "session")
         }
     }
+    // Check if user is logged in
+    val isLogin: Boolean
+        get() = !isLoggedOut && pref.getBoolean(KEY_LOGIN, false)
+
+
     // Create session with access token, refresh token and username
     fun createLoginSession(
         accessToken: String, refreshToken: String,
@@ -55,12 +63,13 @@ class SessionManager(context: Context) {
         username: String
     ) {
         editor.putBoolean(KEY_LOGIN, true)
+            .putBoolean(KEY_IS_LOGGED_OUT, false)
             .putString(KEY_ACCESS_TOKEN, accessToken)
             .putString(KEY_REFRESH_TOKEN, refreshToken)
             .putString(KEY_ACCESS_TOKEN_EXPIRY, accessTokenExpiry)
             .putString(KEY_REFRESH_TOKEN_EXPIRY, refreshTokenExpiry)
             .putString(KEY_USERNAME, username)
-            .commit()
+            .apply()
     }
 
     // Check if the access token is expired
@@ -96,20 +105,18 @@ class SessionManager(context: Context) {
 
     // Logout user by clearing the session data
     fun logout() {
-        editor.remove(KEY_LOGIN)
-            .remove(KEY_ACCESS_TOKEN)
-            .remove(KEY_REFRESH_TOKEN)
-            .remove(KEY_ACCESS_TOKEN_EXPIRY)
-            .remove(KEY_REFRESH_TOKEN_EXPIRY)
-            .putBoolean(KEY_LOGIN, false)
-            .commit()
-
+            editor.remove(KEY_LOGIN)
+                .remove(KEY_ACCESS_TOKEN)
+                .remove(KEY_REFRESH_TOKEN)
+                .remove(KEY_ACCESS_TOKEN_EXPIRY)
+                .remove(KEY_REFRESH_TOKEN_EXPIRY)
+                .putBoolean(KEY_LOGIN, false)
+                .putBoolean(KEY_IS_LOGGED_OUT, true)
+                .clear()
+                .apply()
         Log.d("SessionManager", "User logged out successfully. Session data cleared.")
     }
 
-    // Check if user is logged in
-    val isLogin: Boolean
-        get() = pref.getBoolean(KEY_LOGIN, false)
 
     // Save additional key-value pairs in preferences
     fun saveToPreference(key: String, value: String) = editor.putString(key, value).commit()
@@ -126,14 +133,14 @@ class SessionManager(context: Context) {
 
     // Expiry times for both tokens
 
-    val accessTokenExpiry: String?
+    private val accessTokenExpiry: String?
         get() {
             val expiry = pref.getString(KEY_ACCESS_TOKEN_EXPIRY, null)
             Log.d("SessionManager", "Retrieved accessTokenExpiry: $expiry")
             return expiry
         }
 
-    val refreshTokenExpiry: String?
+    private val refreshTokenExpiry: String?
         get() {
             val expiry = pref.getString(KEY_REFRESH_TOKEN_EXPIRY, null)
             Log.d("SessionManager", "Retrieved refreshTokenExpiry: $expiry")
@@ -141,6 +148,7 @@ class SessionManager(context: Context) {
         }
 
     companion object {
+        private const val KEY_IS_LOGGED_OUT = "isLoggedOut"
         const val KEY_LOGIN = "isLogin"
         const val KEY_USERNAME = "username"
         const val KEY_ACCESS_TOKEN = "access_token"

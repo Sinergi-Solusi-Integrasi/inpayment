@@ -13,6 +13,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,6 +33,25 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(navController: NavController, isLoggedIn: Boolean){
+    var hasNavigated by remember { mutableStateOf(false) }
+    // Automatically navigate to OnboardScreen after a delay
+    LaunchedEffect(hasNavigated) {
+        delay(3000) // 3 seconds delay
+        if (!hasNavigated) {
+            hasNavigated = true
+            if (isLoggedIn) {
+                navController.navigate("home_screen") {
+                    popUpTo("splash_screen") { inclusive = true } // This clears everything before `home_screen`
+                }
+            } else {
+                navController.navigate("onboard_screen") {
+                    popUpTo("splash_screen") {
+                        inclusive = true
+                    } // This clears everything before `onboard_screen`
+                }
+            }
+        }
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -118,22 +141,6 @@ fun SplashScreen(navController: NavController, isLoggedIn: Boolean){
                 contentScale = ContentScale.Fit,
                 modifier = Modifier.size(100.dp)
             )
-        }
-    }
-
-    // Automatically navigate to OnboardScreen after a delay
-    LaunchedEffect(Unit) {
-        delay(3000) // 3 seconds delay
-        if(isLoggedIn) {
-            navController.navigate("home_screen") {
-                popUpTo(0) { inclusive = true } // This clears everything before `home_screen`
-                launchSingleTop = true
-            }
-        } else {
-            navController.navigate("onboard_screen") {
-                popUpTo(0) { inclusive = true } // This clears everything before `onboard_screen`
-                launchSingleTop = true
-            }
         }
     }
 }

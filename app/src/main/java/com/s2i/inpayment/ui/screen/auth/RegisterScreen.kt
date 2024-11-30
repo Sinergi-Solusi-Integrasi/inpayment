@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.compose.ui.graphics.asImageBitmap
+import com.s2i.common.utils.convert.correctImageOrientation
 import com.s2i.common.utils.convert.decodeBase64ToBitmap
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.ReusableBottomSheet
@@ -70,6 +71,7 @@ fun RegisterScreen(
     val imageFormat by authViewModel.imageFormat.collectAsState()
     val mimeType by authViewModel.mimeType.collectAsState()
     val ext by authViewModel.ext.collectAsState()
+    var capturedPhoto by remember { mutableStateOf<Bitmap?>(null) }
 
 
     val scaffoldState = rememberBottomSheetScaffoldState()
@@ -77,19 +79,15 @@ fun RegisterScreen(
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     val scrollState = rememberScrollState()
     var isStartupLoading by remember { mutableStateOf(true) }
-    val loading by authViewModel.loadingState.observeAsState(false)
+    val loadingState by authViewModel.loadingState.collectAsState()
 
 
     // Use LaunchedEffect to control startup loading and fetch identityBitmap
     // Use LaunchedEffect to control startup loading and fetch identityBitmap
     LaunchedEffect(Unit) {
         // Simulate fetching bitmap
-        if (loading && isStartupLoading) {
-            isStartupLoading = true
-        } else if (!loading) {
             delay(500) // Optional delay to keep the loading indicator visible for a short time
             isStartupLoading = false
-        }
     }
 
     val bitmap = remember(filePath) {
@@ -98,21 +96,17 @@ fun RegisterScreen(
         }
     }
 
-    LaunchedEffect(identityBitmap) {
-        identityBitmap?.let {
-            Log.d("RegisterScreen", "New identity bitmap received, updating UI")
+    val corectedBitmap =
+        if (bitmap != null) {
+            correctImageOrientation(filePath?: "", bitmap)
+        } else {
+            Log.d("RegisterScreen", "Bitmap is null")
+            null
         }
-    }
+    capturedPhoto = corectedBitmap
 
 
-// Logging for debugging
-    LaunchedEffect(identityBitmap, imageFormat, mimeType, ext) {
-        Log.d("RegisterScreen", "base64: $base64s")
-        Log.d("RegisterScreen", "identityBitmap: $identityBitmap")
-        Log.d("RegisterScreen", "imageFormat: $imageFormat")
-        Log.d("RegisterScreen", "mimeType: $mimeType")
-        Log.d("RegisterScreen", "ext: $ext")
-    }
+
 
     var identityNumberState by remember { mutableStateOf(identityNumber?: "") }
     var nameState by remember { mutableStateOf(name?: "") }
@@ -140,7 +134,9 @@ fun RegisterScreen(
             it.fold(
                 onSuccess = {
                     authViewModel.clearIdentityData() // Bersihkan data setelah digunakan
-                    navController.navigate("login_screen")
+                    navController.navigate("login_screen"){
+                        popUpTo(0) { inclusive = true }
+                    }
                 },
                 onFailure = { error ->
                     Log.e("RegisterScreen", "Registration error: ${error.message}")
@@ -168,7 +164,7 @@ fun RegisterScreen(
             MaterialTheme.colorScheme.surfaceVariant
         } else {
             MaterialTheme.colorScheme.primary
-        }
+        }, label = "appbar color animation"
     )
 
 
@@ -178,7 +174,7 @@ fun RegisterScreen(
             -200f
         } else {
             0f
-        }
+        }, label = ""
     )
 
 
@@ -199,7 +195,13 @@ fun RegisterScreen(
             scaffoldState = scaffoldState,
             sheetPeekHeight = 300.dp,
             sheetContent = {
-                Column(
+                if (loadingState) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                    )
+                } else {
+                    Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .nestedScroll(nestedScrollConnection)
@@ -207,149 +209,150 @@ fun RegisterScreen(
                         .padding(16.dp)
                         .verticalScroll(scrollState)
                 ) {
-                    OutlinedTextField(
-                        value = identityNumberState,
-                        onValueChange = { identityNumberState = it },
-                        label = { Text("KTP/SIM/PASSPORT Number") },
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedTextField(
-                        value = nameState,
-                        onValueChange = { nameState = it },
-                        label = { Text("Full Name") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedTextField(
-                        value = username,
-                        onValueChange = { username = it },
-                        label = { Text("Username") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedTextField(
-                        value = email,
-                        onValueChange = {
-                            email = it
-                            isValidEmail = Patterns.EMAIL_ADDRESS.matcher(it).matches()
-                        },
-                        label = { Text("Email Address") },
-                        isError = !isValidEmail,
-                        modifier = Modifier.fillMaxWidth(),
-                        trailingIcon = if (!isValidEmail && email.isNotEmpty()) {
-                            {
-                                Icon(
-                                    Icons.Default.Error,
-                                    contentDescription = null,
-                                    tint = Color.Red
-                                )
-                            }
-                        } else null
-                    )
-                    if (!isValidEmail && email.isNotEmpty()) {
-                        Text("Please enter a valid email", color = Color.Red, fontSize = 12.sp)
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedTextField(
-                        value = phoneNumber,
-                        onValueChange = { phoneNumber = it },
-                        label = { Text("Mobile Phone") },
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedTextField(
-                        value = address,
-                        onValueChange = { address = it },
-                        label = { Text("Full Name") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedTextField(
-                        value = password,
-                        onValueChange = {
-                            password = it
-                            isValidPassword = it.length >= 8
-                            isPasswordsMatch = password == confirmPassword
-                        },
-                        label = { Text("Create Password") },
-                        isError = !isValidPassword,
-                        modifier = Modifier.fillMaxWidth(),
-                        trailingIcon = {
-                            val image = if (passwordVisible)
-                                Icons.Default.Visibility
-                            else Icons.Default.VisibilityOff
-                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                Icon(imageVector = image, contentDescription = null)
-                            }
-                        },
-                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation()
-                    )
-                    if (!isValidPassword && password.isNotEmpty()) {
-                        Text(
-                            "Password must be at least 8 characters",
-                            color = Color.Red,
-                            fontSize = 12.sp
+                        OutlinedTextField(
+                            value = identityNumberState,
+                            onValueChange = { identityNumberState = it },
+                            label = { Text("KTP/SIM/PASSPORT Number") },
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                         )
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                    OutlinedTextField(
-                        value = confirmPassword,
-                        onValueChange = {
-                            confirmPassword = it
-                            isPasswordsMatch = it == password
-                        },
-                        label = { Text("Repeat Password") },
-                        isError = !isPasswordsMatch,
-                        modifier = Modifier.fillMaxWidth(),
-                        trailingIcon = {
-                            val image = if (confirmPasswordVisible)
-                                Icons.Default.Visibility
-                            else Icons.Default.VisibilityOff
-                            IconButton(onClick = {
-                                confirmPasswordVisible = !confirmPasswordVisible
-                            }) {
-                                Icon(imageVector = image, contentDescription = null)
-                            }
-                        },
-                        visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation()
-                    )
-                    if (!isPasswordsMatch && confirmPassword.isNotEmpty()) {
-                        Text("Passwords do not match", color = Color.Red, fontSize = 12.sp)
-                    }
+                        OutlinedTextField(
+                            value = nameState,
+                            onValueChange = { nameState = it },
+                            label = { Text("Full Name") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                        OutlinedTextField(
+                            value = username,
+                            onValueChange = { username = it },
+                            label = { Text("Username") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                    Button(
-                        onClick = {
-                            bitmap?.let { bitmap ->
-                                authViewModel.register(
-                                    name = nameState,
-                                    username = username,
-                                    password = password,
-                                    email = email,
-                                    address = address,
-                                    identityNumber = identityNumberState,
-                                    mobileNumber = phoneNumber,
-                                    identityBitmap = bitmap,
-                                    imageFormat = imageFormat
-                                        ?: Bitmap.CompressFormat.JPEG // Default jika null
-                                )
-                            }
-                        },
-                        enabled = isFormValid,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Create Account")
+                        OutlinedTextField(
+                            value = email,
+                            onValueChange = {
+                                email = it
+                                isValidEmail = Patterns.EMAIL_ADDRESS.matcher(it).matches()
+                            },
+                            label = { Text("Email Address") },
+                            isError = !isValidEmail,
+                            modifier = Modifier.fillMaxWidth(),
+                            trailingIcon = if (!isValidEmail && email.isNotEmpty()) {
+                                {
+                                    Icon(
+                                        Icons.Default.Error,
+                                        contentDescription = null,
+                                        tint = Color.Red
+                                    )
+                                }
+                            } else null
+                        )
+                        if (!isValidEmail && email.isNotEmpty()) {
+                            Text("Please enter a valid email", color = Color.Red, fontSize = 12.sp)
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        OutlinedTextField(
+                            value = phoneNumber,
+                            onValueChange = { phoneNumber = it },
+                            label = { Text("Mobile Phone") },
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        OutlinedTextField(
+                            value = address,
+                            onValueChange = { address = it },
+                            label = { Text("Address") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        OutlinedTextField(
+                            value = password,
+                            onValueChange = {
+                                password = it
+                                isValidPassword = it.length >= 8
+                                isPasswordsMatch = password == confirmPassword
+                            },
+                            label = { Text("Create Password") },
+                            isError = !isValidPassword,
+                            modifier = Modifier.fillMaxWidth(),
+                            trailingIcon = {
+                                val image = if (passwordVisible)
+                                    Icons.Default.Visibility
+                                else Icons.Default.VisibilityOff
+                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                    Icon(imageVector = image, contentDescription = null)
+                                }
+                            },
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation()
+                        )
+                        if (!isValidPassword && password.isNotEmpty()) {
+                            Text(
+                                "Password must be at least 8 characters",
+                                color = Color.Red,
+                                fontSize = 12.sp
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        OutlinedTextField(
+                            value = confirmPassword,
+                            onValueChange = {
+                                confirmPassword = it
+                                isPasswordsMatch = it == password
+                            },
+                            label = { Text("Repeat Password") },
+                            isError = !isPasswordsMatch,
+                            modifier = Modifier.fillMaxWidth(),
+                            trailingIcon = {
+                                val image = if (confirmPasswordVisible)
+                                    Icons.Default.Visibility
+                                else Icons.Default.VisibilityOff
+                                IconButton(onClick = {
+                                    confirmPasswordVisible = !confirmPasswordVisible
+                                }) {
+                                    Icon(imageVector = image, contentDescription = null)
+                                }
+                            },
+                            visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation()
+                        )
+                        if (!isPasswordsMatch && confirmPassword.isNotEmpty()) {
+                            Text("Passwords do not match", color = Color.Red, fontSize = 12.sp)
+                        }
+
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        Button(
+                            onClick = {
+                                capturedPhoto?.let { photo ->
+                                    val selectedFormat = imageFormat ?: Bitmap.CompressFormat.JPEG
+                                    authViewModel.register(
+                                        name = nameState,
+                                        username = username,
+                                        password = password,
+                                        email = email,
+                                        address = address,
+                                        identityNumber = identityNumberState,
+                                        mobileNumber = phoneNumber,
+                                        identityBitmap = photo,
+                                        imageFormat = selectedFormat
+                                    )
+                                }
+                            },
+                            enabled = isFormValid,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Create Account")
+                        }
                     }
                 }
             },
@@ -387,9 +390,22 @@ fun RegisterScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     // Displaying the identity bitmap image
-                    bitmap?.let { bitmap ->
+                    if (capturedPhoto != null) {
+
+                        capturedPhoto?.let { bitmap ->
+                            Image(
+                                bitmap = bitmap.asImageBitmap(),
+                                contentDescription = "Captured Photo",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .aspectRatio(16f / 9f)
+                                    .padding(8.dp),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    } else {
                         Image(
-                            bitmap = bitmap.asImageBitmap(),
+                            painter = painterResource(id = R.drawable.ic_id_card),
                             contentDescription = "Captured Photo",
                             modifier = Modifier
                                 .fillMaxWidth()
