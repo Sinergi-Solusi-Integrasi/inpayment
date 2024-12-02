@@ -81,12 +81,12 @@ fun WalletHistoryScreen(
 
     // Memanggil fetchHistory hanya sekali ketika layar pertama kali dibuka
    LaunchedEffect(Unit){
-       balanceViewModel.fetchHistory()
        if (loading && isStartupLoading) {
            isStartupLoading = true
        } else if (!loading) {
            delay(500) // Optional delay to keep the loading indicator visible for a short time
            isStartupLoading = false
+           balanceViewModel.fetchHistory()
        }
    }
 

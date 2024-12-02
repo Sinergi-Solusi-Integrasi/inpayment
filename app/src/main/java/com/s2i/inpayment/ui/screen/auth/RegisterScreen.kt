@@ -340,9 +340,9 @@ fun RegisterScreen(
                                         username = username,
                                         password = password,
                                         email = email,
+                                        mobileNumber = phoneNumber,
                                         address = address,
                                         identityNumber = identityNumberState,
-                                        mobileNumber = phoneNumber,
                                         identityBitmap = photo,
                                         imageFormat = selectedFormat
                                     )

@@ -8,9 +8,11 @@ import com.s2i.data.repository.balance.HistoryBalanceRepositoryImpl
 import com.s2i.data.repository.balance.DetailTrxRepositoryImpl
 import com.s2i.data.repository.balance.IncomeExpensesRepositoryImpl
 import com.s2i.data.repository.users.UsersProfileRepositoryImpl
+import com.s2i.data.repository.vehicles.VehiclesRepositoryImpl
 import com.s2i.domain.repository.auth.AuthRepository
 import com.s2i.domain.repository.auth.TokenRepository
 import com.s2i.domain.repository.users.UsersProfileRepository
+import com.s2i.domain.repository.vehicles.VehiclesRepository
 import com.s2i.domain.repository.balance.BalanceRepository
 import com.s2i.domain.repository.balance.DetailTrxRepository
 import com.s2i.domain.repository.balance.HistoryBalanceRepository
@@ -29,5 +31,6 @@ val repoModule = module {
     singleOf(::HistoryBalanceRepositoryImpl) { bind<HistoryBalanceRepository>() }
     singleOf(::IncomeExpensesRepositoryImpl) { bind<IncomeExpenseRepository>() }
     singleOf(::UsersProfileRepositoryImpl) { bind<UsersProfileRepository>() }
+    singleOf(::VehiclesRepositoryImpl) { bind<VehiclesRepository>() }
 //    singleOf(::TokenRepositoryImpl) { bind<TokenRepository>()}
 }

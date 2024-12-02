@@ -19,6 +19,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -58,6 +59,21 @@ interface ApiServices {
     // Get Vehicles selected
     @GET("vehicles/selected")
     suspend fun vehiclesSelected(
+    ): VehiclesResponse
+
+    // Get Vehicles selected
+    @PUT("vehicles/selected")
+    suspend fun vehiclesSwitchSelected(
+    ): VehiclesResponse
+
+    // Get Vehicles disable
+    @PUT("vehicles/{vehicle_id}/disable")
+    suspend fun vehiclesdisable(
+    ): VehiclesResponse
+
+    // Get Vehicles disable
+    @PUT("vehicles/{vehicle_id}/enable")
+    suspend fun vehiclesenable(
     ): VehiclesResponse
 
     // Get Balance

@@ -12,9 +12,9 @@ interface AuthRepository {
         username: String,
         password: String,
         email: String,
+        mobileNumber: String,
         address: String,
         identityNumber: String,
-        mobileNumber: String,
         identityImage: BlobImageModel
     ): Result<UsersModel>
 }

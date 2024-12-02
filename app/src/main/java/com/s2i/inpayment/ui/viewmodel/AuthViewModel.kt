@@ -124,9 +124,9 @@ class AuthViewModel(
         username: String,
         password: String,
         email: String,
+        mobileNumber: String,
         address: String,
         identityNumber: String,
-        mobileNumber: String,
         identityBitmap: Bitmap,
         imageFormat: Bitmap.CompressFormat
     ) {
@@ -145,9 +145,9 @@ class AuthViewModel(
                     username = username,
                     password = password,
                     email = email,
+                    mobileNumber = mobileNumber,
                     address = address,
                     identityNumber = identityNumber,
-                    mobileNumber = mobileNumber,
                     identityImage = identityModel,
                 )
 

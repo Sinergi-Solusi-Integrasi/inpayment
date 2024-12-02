@@ -100,9 +100,9 @@ class AuthRepositoryImpl(
         username: String,
         password: String,
         email: String,
+        mobileNumber: String,
         address: String,
         identityNumber: String,
-        mobileNumber: String,
         identityImage: BlobImageModel
     ): Result<UsersModel> {
         Log.d("AuthRepository", "Attempting to register with $username")
@@ -122,8 +122,8 @@ class AuthRepositoryImpl(
             password =  password,
             email = email,
             mobileNumber =  mobileNumber,
-            identityNumber = identityNumber,
             address = address,
+            identityNumber = identityNumber,
             identityImage = blobImageData
         )
 

@@ -132,6 +132,7 @@ dependencies {
     implementation(libs.ui)
 
     implementation(libs.glide)
+    implementation(libs.coil.compose)
 
 
     // Optional - Included automatically by material, only add when you need

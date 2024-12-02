@@ -12,8 +12,8 @@ class RegisterUseCase(private val authRepository: AuthRepository) {
         password: String,
         email: String,
         mobileNumber: String,
-        identityNumber: String,
         address: String,
+        identityNumber: String,
         identityImage: BlobImageModel,
     ): Result<UsersModel> {
         return authRepository.register(
@@ -22,8 +22,8 @@ class RegisterUseCase(private val authRepository: AuthRepository) {
             password,
             email,
             mobileNumber,
-            identityNumber,
             address,
+            identityNumber,
             identityImage
         )
     }

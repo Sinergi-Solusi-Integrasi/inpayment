@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DirectionsCarFilled
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
@@ -148,7 +149,7 @@ fun ProfileScreen(
                 Text("User data is loading...")
             }
             Spacer(modifier = Modifier.height(16.dp))
-            ProfileMenu()
+            ProfileMenu(navController)
             Spacer(modifier = Modifier.height(16.dp))
             ProfileFooter(navController, sessionManager, scope)
         }
@@ -238,10 +239,17 @@ fun ProfileCard(
 }
 
 @Composable
-fun ProfileMenu() {
+fun ProfileMenu(
+    navController: NavController
+) {
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
+        ProfileMenuItem(icon = Icons.Default.DirectionsCarFilled, title = "Vehicles", onClick = {// Navigasi ke HomeScreen (atau layar yang sesuai)
+            navController.navigate("vehicles_screen") {
+                // Pop up semua screen yang ada di atas HomeScreen (termasuk profile_screen)
+                popUpTo("profile_screen") { inclusive = false }
+            }})
         ProfileMenuItem(icon = R.drawable.ic_riwayat, title = "All Transactions", onClick = {})
         ProfileMenuItem(icon = R.drawable.ic_help, title = "Help and Support", onClick = {})
     }
