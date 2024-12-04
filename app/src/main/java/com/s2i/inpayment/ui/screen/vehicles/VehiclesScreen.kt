@@ -44,6 +44,8 @@ fun VehiclesScreen(
     vehiclesViewModel: VehiclesViewModel = koinViewModel()
 ) {
     val vehiclesState = vehiclesViewModel.getVehiclesState.collectAsState()
+    val enableState = vehiclesViewModel.enableVehiclesState.collectAsState()
+    val disableState = vehiclesViewModel.disableVehiclesState.collectAsState()
     val loading by vehiclesViewModel.loading.collectAsState()
     var isStartupLoading by remember { mutableStateOf(true) }
     var isRefreshing by remember { mutableStateOf(false) }
@@ -126,8 +128,12 @@ fun VehiclesScreen(
                 VehiclesItem(
                     vehiclesState = vehicles,  // Menggunakan List<VehicleModel> yang benar
                     onAddVehicle = { /* aksi tambah kendaraan */ },
-                    onDisactive = { vehicle -> /* aksi non-aktifkan kendaraan */ },
-                    onActive = { vehicle -> /* aksi aktifkan kendaraan */ }
+                    onDisactive = { vehicleId ->
+                        vehiclesViewModel.disableVehicles(vehicleId) // Panggil disable
+                    },
+                    onActive = { vehicleId ->
+                        vehiclesViewModel.enableVehicles(vehicleId) // Panggil enable
+                    }
                 )
             }
         }

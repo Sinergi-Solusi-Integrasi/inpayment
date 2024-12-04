@@ -1,6 +1,8 @@
 package com.s2i.inpayment.module.network
 
 import android.util.Log
+import coil3.ImageLoader
+import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import com.google.gson.GsonBuilder
 import com.s2i.data.BuildConfig
 import com.s2i.data.local.auth.SessionManager
@@ -58,4 +60,15 @@ val networkModule = module {
     single {
         get<Retrofit>().create(ApiServices::class.java)
     }
+
+    single {
+        val okHttpClient: OkHttpClient = get()  // Inject OkHttpClient
+        ImageLoader.Builder(get())
+            .components {
+                add(OkHttpNetworkFetcherFactory(callFactory = { okHttpClient }))  // Menggunakan OkHttpClient yang sudah dikonfigurasi
+            }
+            .build()
+    }
+
+
 }

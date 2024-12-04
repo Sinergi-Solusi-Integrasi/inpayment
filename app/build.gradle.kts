@@ -133,6 +133,7 @@ dependencies {
 
     implementation(libs.glide)
     implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 
 
     // Optional - Included automatically by material, only add when you need

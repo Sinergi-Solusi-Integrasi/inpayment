@@ -1,13 +1,17 @@
 package com.s2i.data.repository.vehicles
 
 import com.s2i.data.remote.client.ApiServices
+import com.s2i.domain.entity.model.balance.HistoryBalanceModel
+import com.s2i.domain.entity.model.balance.TopUpModel
 import com.s2i.domain.entity.model.vehicle.AgencyCardModel
 import com.s2i.domain.entity.model.vehicle.GetVehiclesModel
+import com.s2i.domain.entity.model.vehicle.StatusVehiclesModel
 import com.s2i.domain.entity.model.vehicle.VehicleModel
 import com.s2i.domain.repository.vehicles.VehiclesRepository
 
 class VehiclesRepositoryImpl(
     private val apiServices: ApiServices
+
 ) : VehiclesRepository {
 
     override suspend fun getVehicles(): GetVehiclesModel {
@@ -54,5 +58,41 @@ class VehiclesRepositoryImpl(
             data = vehicles
         )
 
+    }
+
+    override suspend fun getStatusEnableVehicles(vehicleId: String): StatusVehiclesModel {
+        val response = apiServices.vehiclesEnable(vehicleId)
+        val responseData = response.data
+
+
+        return responseData.let{
+            val vehicles = VehicleModel(
+                vehicleId = responseData.vehicleId,
+                status = responseData.status,
+            )
+            StatusVehiclesModel(
+                code = response.code,
+                message = response.message,
+                data = vehicles
+            )
+        }
+    }
+
+    override suspend fun getStatusDisableVehicles(vehicleId: String): StatusVehiclesModel {
+        val response = apiServices.vehiclesDisable(vehicleId)
+        val responseData = response.data
+
+
+        return responseData.let{
+            val vehicles = VehicleModel(
+                vehicleId = responseData.vehicleId,
+                status = responseData.status,
+            )
+            StatusVehiclesModel(
+                code = response.code,
+                message = response.message,
+                data = vehicles
+            )
+        }
     }
 }

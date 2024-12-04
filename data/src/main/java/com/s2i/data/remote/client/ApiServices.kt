@@ -12,12 +12,14 @@ import com.s2i.data.remote.response.balance.InOutBalanceResponse
 import com.s2i.data.remote.response.balance.IncomeExpenseResponse
 import com.s2i.data.remote.response.users.ProfileResponse
 import com.s2i.data.remote.response.users.UsersResponse
+import com.s2i.data.remote.response.vehicles.SelectedVehiclesResponse
 import com.s2i.data.remote.response.vehicles.VehiclesResponse
 import com.s2i.domain.entity.model.auth.AuthModel
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
@@ -66,15 +68,17 @@ interface ApiServices {
     suspend fun vehiclesSwitchSelected(
     ): VehiclesResponse
 
-    // Get Vehicles disable
-    @PUT("vehicles/{vehicle_id}/disable")
-    suspend fun vehiclesdisable(
-    ): VehiclesResponse
+    // PUT Vehicles disable
+    @PATCH("vehicles/{vehicle_id}/disable")
+    suspend fun vehiclesDisable(
+        @Path("vehicle_id") vehicleId: String
+    ): SelectedVehiclesResponse
 
-    // Get Vehicles disable
-    @PUT("vehicles/{vehicle_id}/enable")
-    suspend fun vehiclesenable(
-    ): VehiclesResponse
+    // PUT Vehicles disable
+    @PATCH("vehicles/{vehicle_id}/enable")
+    suspend fun vehiclesEnable(
+        @Path("vehicle_id") vehicleId: String
+    ): SelectedVehiclesResponse
 
     // Get Balance
     @GET("accounts/balance")
@@ -95,5 +99,10 @@ interface ApiServices {
     @GET("transactions/cashflow")
     suspend fun incomeExpense(
     ): IncomeExpenseResponse
+
+    // Get Notification
+    @GET("notifications/payments/pull")
+    suspend fun notifTrx(
+    )
 
 }

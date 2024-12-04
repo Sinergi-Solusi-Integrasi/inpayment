@@ -18,8 +18,8 @@ import com.s2i.domain.entity.model.vehicle.VehicleModel
 fun VehiclesItem(
     vehiclesState: List<VehicleModel>,
     onAddVehicle: () -> Unit,
-    onDisactive: (VehicleModel) -> Unit,
-    onActive: (VehicleModel) -> Unit
+    onDisactive: (String) -> Unit,
+    onActive: (String) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         vehiclesState.forEach { vehicle ->
