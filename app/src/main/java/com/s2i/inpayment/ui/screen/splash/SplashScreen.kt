@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,26 +29,43 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.s2i.inpayment.R
+import com.s2i.inpayment.ui.components.permission.hasAllPermissions
 import com.s2i.inpayment.ui.theme.DarkTeal21
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(navController: NavController, isLoggedIn: Boolean){
     var hasNavigated by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     // Automatically navigate to OnboardScreen after a delay
+    // Cek apakah semua izin telah diberikan
     LaunchedEffect(hasNavigated) {
         delay(3000) // 3 seconds delay
         if (!hasNavigated) {
             hasNavigated = true
-            if (isLoggedIn) {
-                navController.navigate("home_screen") {
-                    popUpTo("splash_screen") { inclusive = true } // This clears everything before `home_screen`
+            val allPermissionsGranted = hasAllPermissions(context) // Periksa izin
+
+            when {
+                isLoggedIn && !allPermissionsGranted -> {
+                    // Login berhasil tapi izin belum diberikan
+                    navController.navigate("permission_screen") {
+                        popUpTo("splash_screen") { inclusive = true }
+                    }
                 }
-            } else {
-                navController.navigate("onboard_screen") {
-                    popUpTo("splash_screen") {
-                        inclusive = true
-                    } // This clears everything before `onboard_screen`
+
+                isLoggedIn && allPermissionsGranted -> {
+                    // Login berhasil dan semua izin sudah diberikan
+                    navController.navigate("home_screen") {
+                        popUpTo("splash_screen") { inclusive = true }
+                    }
+                }
+
+                else -> {
+                    navController.navigate("onboard_screen") {
+                        popUpTo("splash_screen") {
+                            inclusive = true
+                        } // This clears everything before `onboard_screen`
+                    }
                 }
             }
         }

@@ -1,6 +1,7 @@
 package com.s2i.inpayment.ui.theme
 
 import android.app.Activity
+import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -77,11 +78,21 @@ fun InPaymentTheme(
 //        else -> LightColorScheme
 //    }
 
+    // Force the app to light mode regardless of the system setting
     if (!view.isInEditMode) {
+        // Make sure the activity follows the light mode
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as android.app.UiModeManager
+            uiModeManager?.nightMode = android.app.UiModeManager.MODE_NIGHT_NO // Force light mode
+        }
+
+        // Make status and navigation bars transparent and light themed
         val activity = context as Activity
         activity.window.statusBarColor = Color.Transparent.toArgb()
         WindowCompat.setDecorFitsSystemWindows(activity.window, false)
         WindowCompat.getInsetsController(activity.window, view).isAppearanceLightStatusBars = true
+        activity.window.navigationBarColor = Color.Transparent.toArgb() // Make navigation bar transparent
+        WindowCompat.getInsetsController(activity.window, view).isAppearanceLightNavigationBars = true // Light navigation bars
     }
 
     MaterialTheme(

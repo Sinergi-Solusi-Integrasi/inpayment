@@ -1,5 +1,6 @@
 package com.s2i.data.repository.auth
 
+import android.devicelock.DeviceId
 import android.graphics.Bitmap
 import com.s2i.data.remote.client.ApiServices
 import com.s2i.data.remote.response.auth.LoginResponse
@@ -15,7 +16,10 @@ import com.s2i.common.utils.convert.bitmapToBase64WithFormat
 import com.s2i.data.BuildConfig
 import com.s2i.data.local.auth.SessionManager
 import com.s2i.data.model.users.BlobImageData
+import com.s2i.data.remote.request.auth.LogoutRequest
 import com.s2i.data.remote.request.auth.RegisterRequest
+import com.s2i.domain.entity.model.auth.AuthLogoutModel
+import com.s2i.domain.entity.model.auth.LogoutModel
 import com.s2i.domain.entity.model.users.BlobImageModel
 import com.s2i.domain.entity.model.users.UsersModel
 
@@ -76,8 +80,8 @@ class AuthRepositoryImpl(
                         val errorMessage = when (response.code()) {
                             401 -> "Unauthorized"
                             403 -> "Forbidden"
-                            404 -> "Not Found"
-                            502 -> "Bad Gateway"
+                            404 -> "Oops, sepertinya Anda belum mendaftar. Silahkan mendaftar dulu ya!"
+                            502 -> "Mohon maaf, saat ini kami mengalami masalah teknis. Silakan coba lagi nanti."
                             500 -> "Internal Server Error"
                             else -> "Unknown Error: ${response.code()}"
                         }
@@ -146,6 +150,37 @@ class AuthRepositoryImpl(
         } catch (e: Exception) {
             Log.e("AuthRepository", "Registration error: ${e.message}", e)
             Result.failure(Exception("Registration error: ${e.message}"))
+        }
+    }
+
+    override suspend fun logout(
+        deviceId: String?
+    ): AuthLogoutModel {
+        Log.d("AuthRepository", "Attempting to logout")
+
+        val logoutRequest = LogoutRequest(
+            deviceId = deviceId
+        )
+
+        return try{
+            val response = apiServices.logout(logoutRequest)
+            if (response.code != 0) {
+                val errorMessage = response.message ?: "Uknown "
+                Log.e("AuthRepository", "Logout failed: $errorMessage")
+                throw Exception("Logout failed: $errorMessage")
+            } else {
+                Log.d("AuthRepository", "Logout successful")
+                AuthLogoutModel(
+                    code = response.code,
+                    message = response.message,
+                    data = LogoutModel(
+                        logoutAt = response.data.logoutAt
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Logout error: ${e.message}", e)
+            throw Exception("Logout error: ${e.message}")
         }
     }
 }

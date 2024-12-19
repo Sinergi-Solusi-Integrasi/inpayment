@@ -78,26 +78,6 @@ fun DetailTrxCard(
     val view = LocalView.current
     val density = LocalDensity.current
 
-    // State for permissions
-    val storagePermissionState = rememberPermissionState(
-        permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            Manifest.permission.READ_MEDIA_IMAGES
-        } else {
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        }
-    )
-
-    val notificationPermissionState = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
-    } else {
-        null // Notification permissions are not applicable for API < 33
-    }
-
-    // Function to check if notifications are enabled (for Realme or other devices)
-    fun areNotificationsEnabled(): Boolean {
-        return NotificationManagerCompat.from(context).areNotificationsEnabled()
-    }
-
 
     // Konten scrollable di bawah header
     transactionDetail?.let { detail ->
@@ -169,38 +149,38 @@ fun DetailTrxCard(
                         modifier = Modifier.padding(bottom = 24.dp)
                     )
 
-                    // Detail Penerima
-                    Text(
-                        text = "Send to",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(bottom = 24.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Recipient Avatar",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                                .size(48.dp)
-                                .padding(end = 8.dp)
-                        )
-                        Column {
-                            Text(
-                                text = detail.title.ifEmpty { "Recipient" },
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = detail.accountNumber,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
-                        }
-                    }
+//                    // Detail Penerima
+//                    Text(
+//                        text = "Send to",
+//                        style = MaterialTheme.typography.bodyMedium,
+//                        color = MaterialTheme.colorScheme.onBackground,
+//                        modifier = Modifier.padding(bottom = 8.dp)
+//                    )
+//                    Row(
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        modifier = Modifier.padding(bottom = 24.dp)
+//                    ) {
+//                        Icon(
+//                            imageVector = Icons.Default.Person,
+//                            contentDescription = "Recipient Avatar",
+//                            tint = MaterialTheme.colorScheme.primary,
+//                            modifier = Modifier
+//                                .size(48.dp)
+//                                .padding(end = 8.dp)
+//                        )
+//                        Column {
+//                            Text(
+//                                text = detail.title.ifEmpty { "Recipient" },
+//                                style = MaterialTheme.typography.bodyLarge,
+//                                fontWeight = FontWeight.Bold
+//                            )
+//                            Text(
+//                                text = detail.accountNumber,
+//                                style = MaterialTheme.typography.bodyMedium,
+//                                color = MaterialTheme.colorScheme.onBackground
+//                            )
+//                        }
+//                    }
 
                     // Detail Transaksi
                     Column(
@@ -258,57 +238,7 @@ fun DetailTrxCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Tombol Aksi
-            Button(
-                onClick = {
-                    when {
-                        // Check for POST_NOTIFICATIONS permission
-                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                                notificationPermissionState != null &&
-                                !notificationPermissionState.status.isGranted -> {
-                            notificationPermissionState.launchPermissionRequest()
-                        }
 
-                        // Check if notifications are disabled at the system level
-                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !areNotificationsEnabled() -> {
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    "Please enable notifications for this app in system settings."
-                                )
-                            }
-                            // Open system settings
-                            context.startActivity(
-                                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                                    putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                                }
-                            )
-                        }
-
-                        // Check for storage permissions
-                        !storagePermissionState.status.isGranted -> {
-                            storagePermissionState.launchPermissionRequest()
-                        }
-
-                        else -> {
-                            // Proceed with saving and sharing receipt
-                            coroutineScope.launch {
-                                // Dummy bitmap generation for testing
-                                val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
-                                val fileUri = saveBitmapToFile(context, bitmap)
-
-                                fileUri?.let {
-                                    shareScreenshot(context, it)
-                                } ?: snackbarHostState.showSnackbar("Failed to save receipt")
-                            }
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            ) {
-                Text(text = "Share Receipt")
-            }
             // SnackbarHost untuk menampilkan snackbar
             SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.CenterHorizontally))
         }

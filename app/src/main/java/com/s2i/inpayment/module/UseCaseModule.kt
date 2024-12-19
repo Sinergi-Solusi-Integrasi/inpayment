@@ -3,7 +3,11 @@ package com.s2i.inpayment.module
 import com.s2i.domain.usecase.auth.LoginUseCase
 import com.s2i.domain.usecase.auth.RegisterUseCase
 import com.s2i.domain.usecase.auth.TokenUseCase
+import com.s2i.domain.usecase.auth.LogoutUseCase
+import com.s2i.domain.usecase.notifications.services.ServicesUseCase
 import com.s2i.domain.usecase.balance.GetBalanceUseCase
+import com.s2i.domain.usecase.notifications.GetNotificationTrxUseCase
+import com.s2i.domain.usecase.notifications.services.DevicesTokenUseCase
 import com.s2i.domain.usecase.users.GetUsersUseCase
 import com.s2i.domain.usecase.balance.GetInOutBalanceUseCase
 import com.s2i.domain.usecase.balance.GetDetailTrxUseCase
@@ -28,6 +32,10 @@ val useCaseModule = module {
     factoryOf(::GetVehiclesUseCase)// Inject VehiclesRepository into GetVehiclesUseCase
     factoryOf(::EnableStatusUseCase)// Inject VehiclesRepository into GetVehiclesUseCase
     factoryOf(::GetDisableStatusUseCase)// Inject VehiclesRepository into GetVehiclesUseCase
+    factoryOf(::GetNotificationTrxUseCase)// Inject VehiclesRepository into GetVehiclesUseCase
+    factoryOf(::DevicesTokenUseCase)// Inject VehiclesRepository into GetVehiclesUseCase
+    factoryOf(::LogoutUseCase)// Inject AuthRepository into GetBalanceUseCase
+    factoryOf(::ServicesUseCase)
     factoryOf(::TokenUseCase)// Inject AuthRepository into GetBalanceUseCase
 
 

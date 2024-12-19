@@ -1,5 +1,10 @@
     package com.s2i.inpayment.ui.screen.wallet
 
+    import android.Manifest
+    import android.content.Intent
+    import android.graphics.Bitmap
+    import android.os.Build
+    import android.provider.Settings
     import androidx.compose.foundation.background
     import androidx.compose.foundation.layout.Arrangement
     import androidx.compose.foundation.layout.Box
@@ -9,6 +14,7 @@
     import androidx.compose.foundation.layout.fillMaxSize
     import androidx.compose.foundation.layout.fillMaxWidth
     import androidx.compose.foundation.layout.height
+    import androidx.compose.foundation.layout.navigationBarsPadding
     import androidx.compose.foundation.layout.padding
     import androidx.compose.foundation.layout.size
     import androidx.compose.foundation.layout.width
@@ -28,6 +34,7 @@
     import androidx.compose.material3.Icon
     import androidx.compose.material3.IconButton
     import androidx.compose.material3.MaterialTheme
+    import androidx.compose.material3.SnackbarHostState
     import androidx.compose.material3.Text
     import androidx.compose.runtime.Composable
     import androidx.compose.runtime.LaunchedEffect
@@ -40,24 +47,58 @@
     import androidx.compose.ui.Alignment
     import androidx.compose.ui.Modifier
     import androidx.compose.ui.platform.LocalContext
+    import androidx.compose.ui.platform.LocalDensity
+    import androidx.compose.ui.platform.LocalView
     import androidx.compose.ui.text.font.FontWeight
     import androidx.compose.ui.tooling.preview.Preview
     import androidx.compose.ui.unit.dp
+    import androidx.core.app.NotificationManagerCompat
     import androidx.navigation.NavController
+    import com.google.accompanist.permissions.ExperimentalPermissionsApi
+    import com.google.accompanist.permissions.isGranted
+    import com.google.accompanist.permissions.rememberPermissionState
     import com.s2i.inpayment.ui.components.DetailTrxCard
     import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
+    import com.s2i.inpayment.ui.components.saveBitmapToFile
+    import com.s2i.inpayment.ui.components.shareScreenshot
     import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
     import kotlinx.coroutines.delay
     import kotlinx.coroutines.launch
     import org.koin.compose.viewmodel.koinViewModel
 
-    @OptIn(ExperimentalMaterialApi::class)
+    @OptIn(ExperimentalMaterialApi::class, ExperimentalPermissionsApi::class)
     @Composable
     fun DetailTransactionScreen(
         balanceViewModel: BalanceViewModel = koinViewModel(),
         navController: NavController,
         transactionId: String
     ) {
+
+        val snackbarHostState = remember { SnackbarHostState() }
+        val coroutineScope = rememberCoroutineScope()
+        val context = LocalContext.current
+        val view = LocalView.current
+        val density = LocalDensity.current
+
+        // State for permissions
+        val storagePermissionState = rememberPermissionState(
+            permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Manifest.permission.READ_MEDIA_IMAGES
+            } else {
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            }
+        )
+
+        val notificationPermissionState = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            null // Notification permissions are not applicable for API < 33
+        }
+
+        // Function to check if notifications are enabled (for Realme or other devices)
+        fun areNotificationsEnabled(): Boolean {
+            return NotificationManagerCompat.from(context).areNotificationsEnabled()
+        }
 
         val transactionDetail by balanceViewModel.detailTrx.collectAsState()
         var isStartupLoading by remember { mutableStateOf(true) }
@@ -152,6 +193,57 @@
                     .padding(top = 72.dp) // Tambahkan jarak agar tidak menimpa header
             ) {
                 DetailTrxCard(transactionDetail = transactionDetail?.data) // Panggil komponen `DetailTrxCard`
+            }
+
+            // Tombol Aksi
+            // Tombol Share di bagian bawah
+            Button(
+                onClick = {
+                    when {
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                                notificationPermissionState != null &&
+                                !notificationPermissionState.status.isGranted -> {
+                            notificationPermissionState.launchPermissionRequest()
+                        }
+
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !areNotificationsEnabled() -> {
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(
+                                    "Please enable notifications for this app in system settings."
+                                )
+                            }
+                            context.startActivity(
+                                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                    putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                                }
+                            )
+                        }
+
+                        !storagePermissionState.status.isGranted -> {
+                            storagePermissionState.launchPermissionRequest()
+                        }
+
+                        else -> {
+                            coroutineScope.launch {
+                                val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+                                val fileUri = saveBitmapToFile(context, bitmap)
+
+                                fileUri?.let {
+                                    shareScreenshot(context, it)
+                                } ?: snackbarHostState.showSnackbar("Failed to save receipt")
+                            }
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter) // Posisi tombol di bawah
+                    .background(MaterialTheme.colorScheme.background)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 16.dp) // Tambahkan jarak dari bawah
+                    .navigationBarsPadding() // Sesuaikan dengan navbar
+            ) {
+                Text(text = "Share Receipt")
             }
 
         }

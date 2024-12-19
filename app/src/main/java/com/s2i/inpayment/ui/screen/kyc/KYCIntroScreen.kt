@@ -142,16 +142,6 @@ fun KYCIntroScreen(
                     }
                 }
             )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Option 2
-            KYCOptions(
-                title = "Take a selfie of yourself",
-                descriptions = "To match your face to your ID photo",
-                leadingImageVector = Icons.Default.Camera, // Icon untuk sisi kiri
-                trailingImageVector = Icons.AutoMirrored.Filled.ArrowForwardIos, // Icon untuk sisi kanan
-                onClick = { /* Navigate to selfie upload */ }
-            )
 
             Spacer(modifier = Modifier.height(24.dp))
 

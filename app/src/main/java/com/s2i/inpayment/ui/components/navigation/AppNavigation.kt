@@ -23,6 +23,7 @@ import com.s2i.inpayment.ui.screen.auth.LoginScreen
 import com.s2i.inpayment.ui.screen.auth.RegisterScreen
 import com.s2i.inpayment.ui.screen.kyc.KYCIntroScreen
 import com.s2i.inpayment.ui.screen.onboard.OnboardScreen
+import com.s2i.inpayment.ui.screen.permission.PermissionScreen
 import com.s2i.inpayment.ui.screen.profile.ProfileScreen
 import com.s2i.inpayment.ui.screen.splash.SplashScreen
 import com.s2i.inpayment.ui.screen.vehicles.VehiclesScreen
@@ -90,6 +91,9 @@ fun AppNavigation(
         }
         composable("kyc_camera_screen") {
             KycCameraScreen(navController = navController)
+        }
+        composable("permission_screen") {
+            PermissionScreen(navController = navController)
         }
         composable("profile_screen") {
             ProfileScreen(navController = navController, sessionManager = sessionManager)

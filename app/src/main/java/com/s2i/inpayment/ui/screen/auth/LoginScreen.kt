@@ -25,15 +25,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -43,21 +42,26 @@ import androidx.navigation.NavController
 import com.s2i.data.local.auth.SessionManager
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.ReusableBottomSheet
+import com.s2i.inpayment.ui.components.permission.hasAllPermissions
 import com.s2i.inpayment.ui.viewmodel.AuthViewModel
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.debounce
+import com.s2i.inpayment.utils.helper.handleLoginFailer
+import com.s2i.inpayment.utils.helper.handleSessionLogout
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koinViewModel(),sessionManager: SessionManager) {
+fun LoginScreen(
+    navController: NavController,
+    authViewModel: AuthViewModel = koinViewModel(),
+    sessionManager: SessionManager
+) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val loginState by authViewModel.loginState.collectAsState()
     val loadingState by authViewModel.loadingState.collectAsState()
     val isLoggedIn = authViewModel.isLoggedIn()
-    val hasNavigated by remember { mutableStateOf(false) }
+    var hasNavigated by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
     var isValidUsername by remember { mutableStateOf(true) }
     var isValidPassword by remember { mutableStateOf(true) }
@@ -66,37 +70,59 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
     val coroutineScope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
 
+
     val usernamePatterns = "^\\S{4,20}$".toRegex()
-    val isFormValid = username.isNotEmpty() && password.isNotEmpty() && isValidUsername && isValidPassword
+    val isFormValid =
+        username.isNotEmpty() && password.isNotEmpty() && isValidUsername && isValidPassword
     Log.d("LoginScreen", "Rendering LoginScreen")
+    val context = LocalContext.current
+
+    LaunchedEffect(sessionManager.isLoggedOut) {
+        Log.d("LoginScreen", "LaunchedEffect triggered: isLoggedOut=${sessionManager.isLoggedOut}, showErrorSheet=$showErrorSheet")
+        if (sessionManager.isLoggedOut && !showErrorSheet) {
+            Log.d("LoginScreen", "User is logged out. Waiting for re-login.")
+            // Tampilkan sheet tanpa reset navigasi secara langsung
+            authViewModel.resetLoginState()
+        }
+    }
 
     // Menggunakan snapshotFlow untuk mengelola showErrorSheet
     LaunchedEffect(loginState, sessionManager.isLoggedOut) {
-        if (sessionManager.isLoggedOut) {
-            Log.d("LoginScreen", "User is logged out. Waiting for re-login.")
-            return@LaunchedEffect // Do nothing if user is logged out
-        }
-
         loginState?.let {
             it.onSuccess {
                 if (!hasNavigated) {
-                    Log.d("LoginScreen", "Login successful, navigating to home_screen")
-                    sessionManager.isLoggedOut = false // Reset logout flag
-                    navController.navigate("home_screen") {
-                        popUpTo("login_screen") { inclusive = true }
+                    hasNavigated = true
+                    sessionManager.isLoggedOut = false
+                    val allPermissionsGranted = hasAllPermissions(context)
+                    when {
+                        !allPermissionsGranted -> {
+                            // Izin tidak lengkap, navigasi ke permission_screen
+                            Log.d("LoginScreen", "Permissions not granted. Navigating to permission screen.")
+                            navController.navigate("permission_screen") {
+                                popUpTo("login_screen") { inclusive = true }
+                            }
+                        }
+                        else -> {
+                            // Semua izin sudah diberikan, navigasi ke home_screen
+                            Log.d("LoginScreen", "Permissions granted. Navigating to home screen.")
+                            sessionManager.isLoggedOut = false
+                            navController.navigate("home_screen") {
+                                popUpTo("login_screen") { inclusive = true }
+                            }
+                        }
                     }
-                } else {
-                    Log.d("LoginScreen", "Navigation already active, ignoring duplicate navigation")
                 }
             }.onFailure { error ->
-                if (!showErrorSheet) {
-                    errorMessage = error.message ?: "Unknown error"
-                    showErrorSheet = true
-                    Log.d("LoginScreen", "Activating error sheet with message: $errorMessage")
-                } else {
-                    Log.d("LoginScreen", "Error sheet already active, ignoring duplicate error")
-                }
+               handleLoginFailer(
+                   error = error,
+                   showErrorSheet = showErrorSheet,
+                   setShowErrorSheet = { showErrorSheet = it },
+                   setErrorMessage = { errorMessage = it }
+               )
+                authViewModel.resetLoginState()
+                Log.d("onFailure", "Login failed. Showing error sheet: ${authViewModel.resetLoginState()}")
             }
+
         }
     }
 
@@ -151,7 +177,8 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
             isError = !isValidPassword,
             modifier = Modifier.fillMaxWidth(),
             trailingIcon = {
-                val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                val image =
+                    if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(imageVector = image, contentDescription = null)
                 }
@@ -166,7 +193,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
 
         Button(
             onClick = {
-                authViewModel.login(username, password)
+                    authViewModel.login(username, password)
             },
             enabled = !loadingState && isFormValid,
             modifier = Modifier.fillMaxWidth()

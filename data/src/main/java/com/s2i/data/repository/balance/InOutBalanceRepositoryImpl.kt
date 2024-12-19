@@ -3,6 +3,7 @@ package com.s2i.data.repository.balance
 import com.s2i.data.remote.client.ApiServices
 import com.s2i.domain.entity.model.balance.HistoryBalanceModel
 import com.s2i.domain.entity.model.balance.InOutBalanceModel
+import com.s2i.domain.entity.model.balance.TollPayModel
 import com.s2i.domain.entity.model.balance.TopUpModel
 import com.s2i.domain.repository.balance.InOutBalanceRepository
 
@@ -40,7 +41,27 @@ class InOutBalanceRepositoryImpl(
                         customerName = it.customerName,
                         externTrxId = it.externTrxId
                     )
-                } ?: TopUpModel("", "", "", "", "", "")
+                } ?: TopUpModel("", "", "", "", "", ""),
+                tollPayment = historyData?.tollPayment?.let {
+                    TollPayModel(
+                        trxId = it.trxId,
+                        vehiclesId = it.vehiclesId,
+                        branchId = it.branchId,
+                        gateId = it.gateId,
+                        stationId = it.stationId,
+                        shift = it.shift,
+                        period = it.period,
+                        tollCollectorId = it.tollCollectorId,
+                        shiftLeaderId = it.shiftLeaderId,
+                        receiptNumber = it.receiptNumber,
+                        plateNumber = it.plateNumber,
+                        rfid = it.rfid,
+                        rfidDetected = it.rfidDetected,
+                        plateDetected = it.plateDetected
+
+                    )
+
+                }
             )
         }
         return InOutBalanceModel(

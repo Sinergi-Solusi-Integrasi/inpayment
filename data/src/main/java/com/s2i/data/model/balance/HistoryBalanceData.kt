@@ -37,5 +37,7 @@ data class HistoryBalanceData(
     @SerializedName("updated_at")
     val updatedAt: String,
     @SerializedName("top_up")
-    val topUp: TopUpData? = null
+    val topUp: TopUpData? = null,
+    @SerializedName("toll_payment")
+    val tollPayment: TollPayData? = null
 )

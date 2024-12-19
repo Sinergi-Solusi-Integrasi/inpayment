@@ -8,10 +8,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.s2i.common.utils.convert.bitmapToBase64WithFormat
 import com.s2i.data.local.auth.SessionManager
+import com.s2i.domain.entity.model.auth.AuthLogoutModel
 import com.s2i.domain.entity.model.auth.AuthModel
+import com.s2i.domain.entity.model.auth.LogoutModel
 import com.s2i.domain.entity.model.users.BlobImageModel
 import com.s2i.domain.entity.model.users.UsersModel
 import com.s2i.domain.usecase.auth.LoginUseCase
+import com.s2i.domain.usecase.auth.LogoutUseCase
 import com.s2i.domain.usecase.auth.RegisterUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +23,7 @@ import kotlinx.coroutines.launch
 class AuthViewModel(
     private val loginUseCase: LoginUseCase,
     private val registerUseCase: RegisterUseCase,
+    private val logoutUseCase: LogoutUseCase,
     private val sessionManager: SessionManager
 ): ViewModel() {
 
@@ -28,6 +32,9 @@ class AuthViewModel(
 
     private val _registerState = MutableStateFlow<Result<UsersModel>?>(null)
     val registerState: MutableStateFlow<Result<UsersModel>?> = _registerState
+
+    private val _logoutState = MutableStateFlow<AuthLogoutModel?>(null)
+    val logoutState: MutableStateFlow<AuthLogoutModel?> = _logoutState
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
@@ -93,11 +100,10 @@ class AuthViewModel(
 
 
     fun login(username: String, password: String) {
-        _loadingState.value = true // Start loading
         viewModelScope.launch {
+            _loadingState.value = true // Start loading
             val result = loginUseCase(username, password)
             _loginState.value = result
-            _loadingState.value = false
             result.fold(
                 onSuccess = { authModel ->
                     Log.d("AuthViewModel", "Login successful: $username")
@@ -115,6 +121,7 @@ class AuthViewModel(
                     _errorMessage.value = throwable.message ?: "Unknown error"
                 }
             )
+            _loadingState.value = false
         }
     }
 
@@ -130,8 +137,8 @@ class AuthViewModel(
         identityBitmap: Bitmap,
         imageFormat: Bitmap.CompressFormat
     ) {
-        _loadingState.value = true
         viewModelScope.launch {
+            _loadingState.value = true
             // convert bitmap to blobimagemodel
             val (base64, ext, mimeType) = bitmapToBase64WithFormat(identityBitmap, imageFormat)
             val identityModel = BlobImageModel(
@@ -167,6 +174,41 @@ class AuthViewModel(
         }
     }
 
+    // Logout
+    fun logout(
+    ) {
+        viewModelScope.launch {
+            _loadingState.value = true
+            try {
+                // Ambil devicesId dari SessionManager
+                val devicesId = sessionManager.getFromPreference(SessionManager.KEY_DEVICE_ID)
+                Log.d("LogoutViewModel", "Devices ID: $devicesId")
+
+                // Tetap panggil API logout meskipun devicesId null atau kosong
+                val result = logoutUseCase(devicesId)
+                Log.d("AuthViewModel", "Logout API successful: $result")
+
+                // Hapus semua data lokal di SessionManager setelah logout API berhasil
+                sessionManager.logout()
+                Log.d("AuthViewModel", "All session data cleared after successful logout.")
+
+                // Update state logout
+                _logoutState.value = result
+            } catch(e: Exception) {
+                _errorMessage.value = e.message ?: "Unknown error occurred"
+                Log.e("LogoutViewModel", "Logout error: ${e.message}")
+            } finally {
+                _loadingState.value = false
+            }
+        }
+
+    }
+
+    fun resetLoginState() {
+        _loginState.value = null // Reset setelah proses selesai
+        _logoutState.value = null
+    }
+
 
     // Function to check if the user is logged in
     fun isLoggedIn(): Boolean {
@@ -177,8 +219,8 @@ class AuthViewModel(
         _errorMessage.value = null
     }
 
-    fun logout() {
-        sessionManager.logout()
-//        _tokenState.value = TokenViewModel.TokenState.Expired
-    }
+//    fun logout() {
+//        sessionManager.logout()
+////        _tokenState.value = TokenViewModel.TokenState.Expired
+//    }
 }

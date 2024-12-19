@@ -1,5 +1,6 @@
 package com.s2i.inpayment.ui.screen.home
 
+import android.os.Build
 import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
@@ -40,6 +41,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,6 +49,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
+import com.google.firebase.messaging.FirebaseMessaging
 import com.s2i.common.utils.convert.RupiahFormatter
 import com.s2i.common.utils.date.Dates
 import com.s2i.data.local.auth.SessionManager
@@ -55,6 +58,7 @@ import com.s2i.inpayment.ui.components.TransactionItem
 import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
 import com.s2i.inpayment.ui.components.custome.LogoIndicator
 import com.s2i.inpayment.ui.components.custome.LogoWithBeam
+import com.s2i.inpayment.ui.components.permission.hasAllPermissions
 import com.s2i.inpayment.ui.screen.splash.SplashScreen
 import com.s2i.inpayment.ui.screen.wallet.BalanceCard
 import com.s2i.inpayment.ui.theme.DarkTeal21
@@ -66,6 +70,9 @@ import com.s2i.inpayment.ui.theme.inComeGradient
 import com.s2i.inpayment.ui.theme.triGradientBrush
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import com.s2i.inpayment.ui.viewmodel.HomeViewModel
+import com.s2i.inpayment.ui.viewmodel.NotificationsViewModel
+import com.s2i.inpayment.ui.viewmodel.ServicesViewModel
+import com.s2i.inpayment.utils.NotificationManagerUtil
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -83,6 +90,8 @@ fun HomeScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
     balanceViewModel: BalanceViewModel = koinViewModel(),
+    notificationViewModel: NotificationsViewModel = koinViewModel(),
+    servicesViewModel: ServicesViewModel = koinViewModel(),
     username: String,
     sessionManager: SessionManager
 ) {
@@ -90,6 +99,7 @@ fun HomeScreen(
     var isStartupLoading by remember { mutableStateOf(true) }
     val loading by balanceViewModel.loading.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
+    var isTokenRegistered by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     // Set `isStartupLoading` only based on the ViewModel's loading state during initial load
 
@@ -118,12 +128,30 @@ fun HomeScreen(
         }
     )
 
+    // Ambil context dari LocalContext
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        while (true) {
+            val allPermissionsGranted = hasAllPermissions(context)
+            if (!allPermissionsGranted) {
+                navController.navigate("permission_screen") {
+                    popUpTo("home_screen") { inclusive = true }
+                }
+            }
+            delay(1000) // Check every second
+        }
+    }
+
+    val bindingState by servicesViewModel.bindingState.collectAsState()
+    val errorState by servicesViewModel.errorState.collectAsState()
+    val loadingState by servicesViewModel.loading.collectAsState()
     val transactions by balanceViewModel.triLastTransaction.collectAsState()
     val incomeExpense by balanceViewModel.incomeExpenses.collectAsState()
     //toogle visible balance
     val balanceState by balanceViewModel.balance.collectAsState()
     val textMeasurer = rememberTextMeasurer()
     var isBalanceValid by remember { mutableStateOf(true) }
+
 
     LaunchedEffect(sessionManager.isLogin) {
         if (!sessionManager.isLogin) {
@@ -136,6 +164,57 @@ fun HomeScreen(
             balanceViewModel.fetchTriLastTransaction()
             balanceViewModel.fetchInComeExpenses()
         }
+    }
+
+    fun sendTokenToServer(token: String) {
+        val brand = Build.BRAND
+        val model = Build.MODEL ?: "Unknown"
+        val osType = Build.VERSION.RELEASE ?: "Unknown"
+        val platform = "Android"
+        val sdkVersion = "Android API ${Build.VERSION.SDK_INT}"
+        Log.d("DeviceInfoActivity", "Device Info - Brand: $brand, Model: $model, OS Type: $osType, Platform: $platform, SDK Version: $sdkVersion, Token: $token")
+
+        //Simpan ke shareprefernecs melalui sessionmanager
+
+        notificationViewModel.registerDevices(
+            brand = brand,
+            model = model,
+            osType = osType,
+            platform = platform,
+            sdkVersion = sdkVersion,
+            tokenFirebase = token
+        )
+    }
+
+    LaunchedEffect(Unit) {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.w("MainActivity", "Fetching FCM registration token failed", task.exception)
+                return@addOnCompleteListener
+            } // Dapatkan token baru
+            val token = task.result
+            Log.d("MainActivity", "FCM Registration Token: $token")
+            sendTokenToServer(token)
+
+            // Setelah token terkirim, lakukan bindAccount
+            val deviceId = sessionManager.getFromPreference(SessionManager.KEY_DEVICE_ID)
+            if (!deviceId.isNullOrBlank()) {
+                Log.d("HomeScreen", "Device ID: $deviceId, proceeding to bind account.")
+                servicesViewModel.bindAccount(deviceId)
+            } else {
+                Log.e("HomeScreen", "Device ID not found after registration")
+            }
+        }
+    }
+
+    // Menangani hasil response BindingModel
+    bindingState?.let { bindingModel ->
+        Log.d("HomeScreen", "Binding Successful: ${bindingModel.message}")
+    }
+
+    // Menampilkan error jika ada
+    errorState?.let { errorMessage ->
+        Log.e("HomeScreen", "Error: $errorMessage")
     }
 
 
@@ -321,77 +400,6 @@ fun HomeScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
-//            Card(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(180.dp) // Adjust height as needed
-//                    .padding(8.dp), // Padding around the card
-//            ) {
-//                Box(
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                        .background(DarkTeal40) // Apply the gradient brush here
-//                ) {
-//                    Column(
-//                        modifier = Modifier
-//                            .padding(16.dp),
-//                        verticalArrangement = Arrangement.Center
-//                    ) {
-//                        Text(
-//                            text = "Saldo",
-//                            style = MaterialTheme.typography.titleMedium,
-//                            color = Color.White
-//                        )
-//                        Spacer(modifier = Modifier.height(5.dp))
-//                        Row(
-//                            verticalAlignment = Alignment.CenterVertically
-//                        ) {
-//                            Text(
-//                                text = if (isBalanceValid) balanceState?.let { RupiahFormatter.formatToRupiah(it.balance) } ?: "Loading..." else "****", // Update balance value
-//                                style = MaterialTheme.typography.displaySmall,
-//                                color = Color.White
-//                            )
-//                            Spacer(modifier = Modifier.width(8.dp))
-//                            IconButton(onClick = { isBalanceValid = !isBalanceValid }) {
-//                                Icon(
-//                                    imageVector = if(isBalanceValid) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-//                                    contentDescription = if (isBalanceValid) "Hide Balance" else "Show Balance",
-//                                    tint = Color.White
-//                                )
-//                            }
-//                        }
-//                        Spacer(modifier = Modifier.height(16.dp))
-//                        Row(
-//                            horizontalArrangement = Arrangement.SpaceBetween,
-//                            modifier = Modifier.fillMaxWidth()
-//                        ) {
-//                            // Top-Up Button
-//                            Row(
-//                                verticalAlignment = Alignment.CenterVertically
-//                            ) {
-//                                Icon(
-//                                    painter = painterResource(id = R.drawable.ic_topup), // Replace with top-up icon
-//                                    contentDescription = "Top Up",
-//                                    tint = Color.White
-//                                )
-//                                Spacer(modifier = Modifier.width(4.dp))
-//                                Text("Top Up", color = Color.White)
-//                                Spacer(modifier = Modifier.width(8.dp))
-//                                //riwayat
-//                                Icon(
-//                                    Icons.Default.Receipt, // Replace with history icon
-//                                    contentDescription = "Riwayat",
-//                                    modifier = Modifier
-//                                        .size(16.dp),
-//                                    tint = Color.White
-//                                )
-//                                Spacer(modifier = Modifier.width(4.dp))
-//                                Text("Riwayat", color = Color.White)
-//                            }
-//                        }
-//                    }
-//                }
-//            }
 
             }
 
@@ -446,18 +454,21 @@ fun HomeScreen(
                             }
                         }
                         // "See More" button
-                        TextButton(onClick = { /* Handle see more */
-                            navController.navigate("history_screen") {
-                                launchSingleTop = true
-                            }
-                        },
+                        TextButton(
+                            onClick = { /* Handle see more */
+                                navController.navigate("history_screen") {
+                                    launchSingleTop = true
+                                }
+                            },
                             modifier = Modifier
                                 .align(Alignment.CenterHorizontally)
-                                .padding(vertical = 16.dp)
+                                .padding(vertical = 12.dp) // Menyesuaikan padding vertikal
+                                .height(40.dp) // Menyesuaikan tinggi tombol
+
                         ) {
                             Text(
                                 text = "Lihat Riwayat",
-                                style = MaterialTheme.typography.titleSmall,
+                                style = MaterialTheme.typography.bodyLarge,
                                 color = DarkTeal21)
                         }
                     }
@@ -473,6 +484,7 @@ fun HomeScreen(
         }
     }
 }
+
 
 //@Preview(showBackground = true)
 //@Composable

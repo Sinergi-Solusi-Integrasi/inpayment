@@ -75,6 +75,7 @@ import org.koin.androidx.compose.koinViewModel
 fun ProfileScreen(
     navController: NavController,
     sessionManager: SessionManager,
+    authViewModel: AuthViewModel = koinViewModel(),
     usersViewModel: UsersViewModel = koinViewModel()
 ) {
     val scope = rememberCoroutineScope()
@@ -88,7 +89,6 @@ fun ProfileScreen(
         if (loading && isStartupLoading) {
             isStartupLoading = true
         } else if (!loading) {
-            delay(500) // Optional delay to keep the loading indicator visible for a short time
             usersViewModel.fetchUsers()
             isStartupLoading = false
         }
@@ -258,6 +258,7 @@ fun ProfileMenu(
 @Composable
 fun ProfileFooter(
     navController: NavController,
+//    authViewModel: AuthViewModel,
     sessionManager: SessionManager,
     scope: CoroutineScope
 ) {

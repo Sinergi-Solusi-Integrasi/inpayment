@@ -19,5 +19,6 @@ data class HistoryBalanceModel(
     val trxDate: String,
     val createdAt: String,
     val updatedAt: String,
-    val topUp: TopUpModel?
+    val topUp: TopUpModel?,
+    val tollPayment: TollPayModel?
 )

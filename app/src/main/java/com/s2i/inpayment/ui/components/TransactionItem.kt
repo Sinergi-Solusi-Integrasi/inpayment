@@ -29,12 +29,12 @@ fun TransactionItem(
         modifier = modifier // Gunakan parameter modifier yang telah ditambahkan
             .fillMaxWidth()
             .clickable { onClick(transactionId) } // Membuat seluruh item bisa diklik
-            .padding(vertical = 8.dp)
+            .padding(vertical = 4.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp),
+                .padding(vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -44,19 +44,19 @@ fun TransactionItem(
             ) {
                 Text(
                     text = title.ifEmpty { "Transaksi Tanpa Judul" },
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp), // Menyesuaikan font
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = description,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp), // Menyesuaikan font
                     color = Color.Gray
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 Text( // Menambahkan tampilan waktu transaksi
                     text = dateTime,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp), // Menyesuaikan font
                     color = Color.Gray
                 )
             }
@@ -65,7 +65,7 @@ fun TransactionItem(
             Text(
                 text = amount,
                 color = if (isNegative) Color.Red else GreenTeal40,
-                style = MaterialTheme.typography.titleMedium.copy(fontSize = 16.sp),
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = 14.sp),
                 textAlign = TextAlign.End,
                 modifier = Modifier.padding(start = 8.dp)
             )

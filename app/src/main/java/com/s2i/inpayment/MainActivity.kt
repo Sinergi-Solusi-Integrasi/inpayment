@@ -40,7 +40,6 @@ class MainActivity : ComponentActivity() {
 //                val navController = rememberNavController()
                 // Initialize HomeView  Model using the viewModel() function
 //                val homeViewModel: HomeViewModel = viewModel()
-
                 // Navigation Setup
 
                 // Call your navigation setup here

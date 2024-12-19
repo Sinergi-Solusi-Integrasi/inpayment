@@ -72,6 +72,28 @@ class SessionManager(context: Context) {
             .apply()
     }
 
+    // create device token and devices info
+    fun createDeviceToken(
+        devicesId: String,
+        deviceToken: String, deviceBrand: String,
+        deviceModel: String, osType: String,
+        sdkVersion: String, devicePlatform: String,
+//        deviceVersion: String
+    ) {
+        editor.putString(KEY_DEVICE_ID, devicesId)
+            .putString(KEY_DEVICE_TOKEN, deviceToken)
+            .putString(KEY_DEVICE_BRAND, deviceBrand)
+            .putString(KEY_DEVICE_MODEL, deviceModel)
+            .putString(KEY_DEVICE_OS, osType)
+            .putString(KEY_DEVICE_SDK, sdkVersion)
+//            .putString(KEY_DEVICE_VERSION, deviceVersion)
+            .putString(KEY_DEVICE_PLATFORM, devicePlatform)
+            .apply()
+
+        Log.d("SessionManager", "Device ID saved: $devicesId")
+        Log.d("SessionManager", "Stored deviceToken: $deviceToken")
+    }
+
     // Check if the access token is expired
     // Check if the access token is expired
     fun isAccessTokenExpired(): Boolean {
@@ -110,6 +132,14 @@ class SessionManager(context: Context) {
                 .remove(KEY_REFRESH_TOKEN)
                 .remove(KEY_ACCESS_TOKEN_EXPIRY)
                 .remove(KEY_REFRESH_TOKEN_EXPIRY)
+                .remove(KEY_DEVICE_ID)
+                .remove(KEY_DEVICE_TOKEN)
+                .remove(KEY_DEVICE_BRAND)
+                .remove(KEY_DEVICE_MODEL)
+                .remove(KEY_DEVICE_OS)
+                .remove(KEY_DEVICE_SDK)
+//                .remove(KEY_DEVICE_VERSION)
+                .remove(KEY_DEVICE_PLATFORM)
                 .putBoolean(KEY_LOGIN, false)
                 .putBoolean(KEY_IS_LOGGED_OUT, true)
                 .clear()
@@ -155,6 +185,14 @@ class SessionManager(context: Context) {
         const val KEY_REFRESH_TOKEN = "refresh_token"
         const val KEY_ACCESS_TOKEN_EXPIRY = "access_token_expiry"
         const val KEY_REFRESH_TOKEN_EXPIRY = "refresh_token_expiry"
+        const val KEY_DEVICE_BRAND = "brand"
+        const val KEY_DEVICE_MODEL = "model"
+        const val KEY_DEVICE_OS = "os"
+//        const val KEY_DEVICE_VERSION = "version"
+        const val KEY_DEVICE_ID = "device_id"
+        const val KEY_DEVICE_PLATFORM = "device_name"
+        const val KEY_DEVICE_SDK = "sdk_version"
+        const val KEY_DEVICE_TOKEN = "firebase_token"
     }
 
     // Check if the user is logged in by checking if the access token exists

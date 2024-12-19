@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.googleDevtoolsKsp)
     id("kotlin-parcelize")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -68,7 +69,7 @@ dependencies {
 
 
     //accompanist
-    implementation("com.google.accompanist:accompanist-permissions:0.36.0")
+    implementation(libs.accompanist.permissions)
 
     // CameraX core library using the camera2 implementation
     val camerax_version = "1.5.0-alpha03"
@@ -85,6 +86,21 @@ dependencies {
     implementation("androidx.camera:camera-mlkit-vision:${camerax_version}")
     // If you want to additionally use the CameraX Extensions library
     implementation("androidx.camera:camera-extensions:${camerax_version}")
+
+    // Import the Firebase BoM
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+
+
+    // TODO: Add the dependencies for Firebase products you want to use
+    // When using the BoM, don't specify versions in Firebase dependencies
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-messaging-ktx")
+    implementation("com.google.firebase:firebase-messaging-directboot")
+
+
+    // Add the dependencies for any other desired Firebase products
+    // https://firebase.google.com/docs/android/setup#available-libraries
 
     /*Text Recognition */
     implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.1")
@@ -118,6 +134,8 @@ dependencies {
     implementation(project(":data"))
     implementation(project(":core"))
     implementation(project(":common"))
+
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
 
     //material design
     // Choose one of the following:
