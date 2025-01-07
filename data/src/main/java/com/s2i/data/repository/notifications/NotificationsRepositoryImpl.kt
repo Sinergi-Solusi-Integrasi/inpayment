@@ -58,7 +58,8 @@ class NotificationsRepositoryImpl(
                         plateNumber = it.plateNumber,
                         rfid = it.rfid,
                         rfidDetected = it.rfidDetected,
-                        plateDetected = it.plateDetected
+                        plateDetected = it.plateDetected,
+                        vehicleCaptures = it.vehicleCaptures
 
                     )
 

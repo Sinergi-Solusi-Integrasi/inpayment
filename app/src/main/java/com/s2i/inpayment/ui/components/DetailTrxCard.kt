@@ -11,6 +11,8 @@ import android.provider.Settings
 import android.os.Environment
 import android.util.Log
 import android.view.View
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,6 +23,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -41,6 +44,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
@@ -51,6 +56,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.FileProvider
+import coil3.ImageLoader
+import coil3.compose.rememberAsyncImagePainter
+import coil3.compose.rememberConstraintsSizeResolver
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -59,6 +70,7 @@ import com.s2i.common.utils.date.Dates
 import com.s2i.domain.entity.model.balance.HistoryBalanceModel
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import kotlinx.coroutines.launch
+import org.koin.compose.getKoin
 import org.koin.compose.viewmodel.koinViewModel
 import java.io.File
 import java.io.FileOutputStream
@@ -72,6 +84,7 @@ import java.util.UUID
 fun DetailTrxCard(
     transactionDetail: HistoryBalanceModel?
 ) {
+    val imageLoader: ImageLoader = getKoin().get()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -114,7 +127,7 @@ fun DetailTrxCard(
                     val iconImageVector = if (detail.status.lowercase() == "failed") Icons.Default.Close else Icons.Default.CheckCircle
                     val iconColor = if (detail.status.lowercase() == "failed") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                     val statusMessage = if (detail.status.lowercase() == "failed") "Transaction Failed" else "Transaction Successful"
-                    val statusDescription = if (detail.status.lowercase() == "failed") "Your transaction failed" else "Your transaction was successful"
+                    val statusDescription = if (detail.status.lowercase() == "failed") "Your transaction ${detail.title} failed" else "Your transaction ${detail.title} was successful"
 
                     Icon(
                         imageVector = iconImageVector,
@@ -149,38 +162,35 @@ fun DetailTrxCard(
                         modifier = Modifier.padding(bottom = 24.dp)
                     )
 
-//                    // Detail Penerima
-//                    Text(
-//                        text = "Send to",
-//                        style = MaterialTheme.typography.bodyMedium,
-//                        color = MaterialTheme.colorScheme.onBackground,
-//                        modifier = Modifier.padding(bottom = 8.dp)
-//                    )
-//                    Row(
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        modifier = Modifier.padding(bottom = 24.dp)
-//                    ) {
-//                        Icon(
-//                            imageVector = Icons.Default.Person,
-//                            contentDescription = "Recipient Avatar",
-//                            tint = MaterialTheme.colorScheme.primary,
-//                            modifier = Modifier
-//                                .size(48.dp)
-//                                .padding(end = 8.dp)
-//                        )
-//                        Column {
-//                            Text(
-//                                text = detail.title.ifEmpty { "Recipient" },
-//                                style = MaterialTheme.typography.bodyLarge,
-//                                fontWeight = FontWeight.Bold
-//                            )
-//                            Text(
-//                                text = detail.accountNumber,
-//                                style = MaterialTheme.typography.bodyMedium,
-//                                color = MaterialTheme.colorScheme.onBackground
-//                            )
-//                        }
-//                    }
+                    // Detail Penerima
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 24.dp)
+                    ) {
+                        detail.tollPayment?.vehicleCaptures?.firstOrNull()?.let { imageUrl ->
+                            Log.d("ImageDebug", "URL: $imageUrl")
+                            val sizeResolver = rememberConstraintsSizeResolver()
+                            val painter = rememberAsyncImagePainter(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(imageUrl)
+                                    // Menambahkan header Authorization
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .crossfade(true) // Opsional: crossfade untuk transisi yang mulus
+//                                .placeholder(R.drawable.placeholder) // Placeholder saat gambar belum dimuat
+//                                .error(R.drawable.error_image) // Gambar fallback jika terjadi error
+                                    .build(),
+                                imageLoader = imageLoader,
+                            )
+                            Image(
+                                painter = painter,
+                                contentDescription = "Vehicle Image",
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .clip(RoundedCornerShape(10)) // Membuat gambar berbentuk lingkaran
+                                    .background(Color.Gray)
+                            )
+                        }?: Log.e("ImageDebug", "Image URL is null or empty")
+                    }
 
                     // Detail Transaksi
                     Column(

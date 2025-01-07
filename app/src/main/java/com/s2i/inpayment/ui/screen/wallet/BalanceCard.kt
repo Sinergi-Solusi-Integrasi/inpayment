@@ -94,7 +94,9 @@ fun BalanceCard(
                             contentDescription = "Top Up",
                             modifier = Modifier
                                 .clickable {
-
+                                    navController.navigate("payment_methods_screen") {
+                                        launchSingleTop = true
+                                    }
                                 },
                             tint = Color.White
                         )

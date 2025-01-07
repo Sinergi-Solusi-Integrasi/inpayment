@@ -93,6 +93,7 @@ fun LoginScreen(
                 if (!hasNavigated) {
                     hasNavigated = true
                     sessionManager.isLoggedOut = false
+                    authViewModel.resetLoginState()
                     val allPermissionsGranted = hasAllPermissions(context)
                     when {
                         !allPermissionsGranted -> {

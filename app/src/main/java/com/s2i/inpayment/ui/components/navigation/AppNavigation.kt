@@ -28,6 +28,7 @@ import com.s2i.inpayment.ui.screen.profile.ProfileScreen
 import com.s2i.inpayment.ui.screen.splash.SplashScreen
 import com.s2i.inpayment.ui.screen.vehicles.VehiclesScreen
 import com.s2i.inpayment.ui.screen.wallet.DetailTransactionScreen
+import com.s2i.inpayment.ui.screen.wallet.PaymentMethodsScreen
 import com.s2i.inpayment.ui.screen.wallet.WalletHistoryScreen
 import com.s2i.inpayment.ui.viewmodel.AuthViewModel
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
@@ -59,6 +60,9 @@ fun AppNavigation(
         }
         composable("onboard_screen") {
             OnboardScreen(navController = navController)
+        }
+        composable("payment_methods_screen") {
+            PaymentMethodsScreen(navController = navController)
         }
         composable("login_screen") {
             LoginScreen(navController = navController, authViewModel = authViewModel, sessionManager = sessionManager)

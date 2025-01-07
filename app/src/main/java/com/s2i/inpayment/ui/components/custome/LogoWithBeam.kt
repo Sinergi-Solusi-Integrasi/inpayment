@@ -26,7 +26,7 @@ fun LogoWithBeam(
     ) {
         // Display the uploaded logo image
         Image(
-            painter = painterResource(id = R.drawable.logo_loading), // replace `logo_image` with the actual file name
+            painter = painterResource(id = R.drawable.logo), // replace `logo_image` with the actual file name
             contentDescription = "Logo with Beam",
             modifier = Modifier.size(120.dp) // Adjust size as needed
         )

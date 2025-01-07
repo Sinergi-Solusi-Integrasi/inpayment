@@ -57,7 +57,7 @@ interface ApiServices {
     ): RefreshTokenResponse
 
     // Logout
-    @DELETE("auth/logout")
+    @POST("auth/logout")
     suspend fun logout(
         @Body logoutData: LogoutRequest
     ): LogoutResponse

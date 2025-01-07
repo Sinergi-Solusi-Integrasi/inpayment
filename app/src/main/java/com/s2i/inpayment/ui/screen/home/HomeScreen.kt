@@ -264,18 +264,20 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .pullRefresh(state = pullRefreshState)
-                        .padding(horizontal = 8.dp, vertical = 16.dp),
+                        .padding(vertical = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween, // Menjaga jarak antara logo dan profil
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Logo on the left
                     Image(
-                        painter = painterResource(id = R.drawable.logo), // Replace with the correct logo resource
+                        painter = painterResource(id = R.drawable.logo),
                         contentDescription = "Logo",
-                        modifier = Modifier.size(135.dp, 27.dp)
+                        modifier = Modifier
+                            .size(60.dp)  // Sesuaikan ukuran logo
+                            .align(Alignment.CenterVertically)  // Pastikan logo tetap di tengah secara vertikal
                     )
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.weight(1f))
 
                     // Notification icon in the center
                     Row(
@@ -442,7 +444,7 @@ fun HomeScreen(
                                 )
                                 TransactionItem(
                                     title = transaction.title.ifEmpty { " " },
-                                    description = transaction.trxType,
+                                    description = transaction.paymentMethod,
                                     amount = if (transaction.cashFlow == "MONEY_OUT") "-${ RupiahFormatter.formatToRupiah(transaction.amount)}" else "+${RupiahFormatter.formatToRupiah(transaction.amount)}",
                                     isNegative = transaction.cashFlow == "MONEY_OUT",
                                     dateTime = dateTimeFormatted,
@@ -469,7 +471,7 @@ fun HomeScreen(
                             Text(
                                 text = "Lihat Riwayat",
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = DarkTeal21)
+                                color = GreenTeal40)
                         }
                     }
                 }

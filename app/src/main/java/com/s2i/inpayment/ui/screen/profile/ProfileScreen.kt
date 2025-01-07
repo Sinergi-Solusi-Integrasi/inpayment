@@ -151,7 +151,7 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(16.dp))
             ProfileMenu(navController)
             Spacer(modifier = Modifier.height(16.dp))
-            ProfileFooter(navController, sessionManager, scope)
+            ProfileFooter(navController, authViewModel, sessionManager, scope)
         }
     }
 }
@@ -258,7 +258,7 @@ fun ProfileMenu(
 @Composable
 fun ProfileFooter(
     navController: NavController,
-//    authViewModel: AuthViewModel,
+    authViewModel: AuthViewModel,
     sessionManager: SessionManager,
     scope: CoroutineScope
 ) {
@@ -276,7 +276,9 @@ fun ProfileFooter(
             onClick = {
                 scope.launch {
                     // Logout dari session
-                    sessionManager.logout()
+                    authViewModel.logout()
+
+                    sessionManager.isLoggedOut = true
 
                     // Navigasi ke HomeScreen (atau layar yang sesuai)
                     navController.navigate("login_screen") {

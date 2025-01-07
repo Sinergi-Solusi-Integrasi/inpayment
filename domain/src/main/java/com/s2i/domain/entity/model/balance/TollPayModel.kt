@@ -16,6 +16,7 @@ data class TollPayModel(
     val plateNumber: String,
     val rfid: String,
     val rfidDetected: Boolean,
-    val plateDetected: Boolean
+    val plateDetected: Boolean,
+    val vehicleCaptures: List<String>
 )
 

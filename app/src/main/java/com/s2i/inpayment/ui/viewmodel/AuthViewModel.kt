@@ -175,24 +175,24 @@ class AuthViewModel(
     }
 
     // Logout
-    fun logout(
-    ) {
+    fun logout() {
         viewModelScope.launch {
             _loadingState.value = true
             try {
-                // Ambil devicesId dari SessionManager
                 val devicesId = sessionManager.getFromPreference(SessionManager.KEY_DEVICE_ID)
                 Log.d("LogoutViewModel", "Devices ID: $devicesId")
 
-                // Tetap panggil API logout meskipun devicesId null atau kosong
+                // Panggil logout API
                 val result = logoutUseCase(devicesId)
                 Log.d("AuthViewModel", "Logout API successful: $result")
 
-                // Hapus semua data lokal di SessionManager setelah logout API berhasil
+                // Hapus semua data sesi
                 sessionManager.logout()
-                Log.d("AuthViewModel", "All session data cleared after successful logout.")
 
-                // Update state logout
+                // Set isLoggedOut menjadi true agar LaunchEffect tidak memicu navigasi otomatis
+                sessionManager.isLoggedOut = true
+
+                Log.d("AuthViewModel", "All session data cleared after successful logout.")
                 _logoutState.value = result
             } catch(e: Exception) {
                 _errorMessage.value = e.message ?: "Unknown error occurred"
@@ -201,8 +201,8 @@ class AuthViewModel(
                 _loadingState.value = false
             }
         }
-
     }
+
 
     fun resetLoginState() {
         _loginState.value = null // Reset setelah proses selesai

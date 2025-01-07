@@ -218,7 +218,6 @@ fun VehiclesCards(
 //                                .error(R.drawable.error_image) // Gambar fallback jika terjadi error
                                 .build(),
                             imageLoader = imageLoader,
-
                             )
                         Image(
                             painter = painter,

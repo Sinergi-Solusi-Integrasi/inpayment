@@ -30,5 +30,7 @@ data class TollPayData(
     @SerializedName("rfid_detected")
     val rfidDetected: Boolean,
     @SerializedName("plate_detected")
-    val plateDetected: Boolean
+    val plateDetected: Boolean,
+    @SerializedName("vehicle_captures")
+    val vehicleCaptures: List<String>,
 )

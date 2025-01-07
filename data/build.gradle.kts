@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -5,6 +7,17 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+// Baca local.properties dari root project
+val localProperties = Properties()  // Menggunakan import java.util.Properties
+val localPropertiesFile = rootProject.file("local.properties")
+
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+
+// Ambil QRIS_URL dan BASE_URL dari local.properties
+val qrisUrl = localProperties["QRIS_URL"] ?: "https://default.qris.url/"
+val baseUrl = localProperties["BASE_URL"] ?: "https://default.base.url/"
 android {
     namespace = "com.s2i.data"
     compileSdk = 35
@@ -14,6 +27,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BASE_URL", "\"https://inpayment.app-intracs.co.id/\"")
+        buildConfigField("String", "QRIS_URL", "\"$qrisUrl\"")
         consumerProguardFiles("consumer-rules.pro")
     }
 
