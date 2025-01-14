@@ -9,6 +9,7 @@ import com.s2i.inpayment.ui.viewmodel.VehiclesViewModel
 import com.s2i.inpayment.ui.viewmodel.NotificationsViewModel
 import com.s2i.inpayment.ui.viewmodel.ServicesViewModel
 import com.s2i.inpayment.ui.viewmodel.UsersViewModel
+import com.s2i.inpayment.ui.viewmodel.QrisViewModel
 import org.koin.core.module.dsl.viewModelOf
 
 import org.koin.dsl.module
@@ -23,4 +24,5 @@ val viewModule = module {
     viewModelOf(::NotificationsViewModel) // NotificationsViewModel
     viewModelOf(::ServicesViewModel) // ServicesViewModel)
     viewModelOf(::TokenViewModel) // Example HomeViewModel
+    viewModelOf(::QrisViewModel)
 }

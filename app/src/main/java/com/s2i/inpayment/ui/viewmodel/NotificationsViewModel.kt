@@ -131,21 +131,5 @@ class NotificationsViewModel(
         }
     }
 
-    private fun sendTransactionNotificationToFCM(title: String, message: String) {
-        // Kirim data ke FCM (Anda bisa menggunakan Firebase Admin SDK di server untuk mengirimkan notifikasi)
-        // FCM push message API (untuk pengiriman notifikasi ke client)
-        // Di sisi server, Anda akan mengirimkan notifikasi melalui FCM API.
-       FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
-           if (!task.isSuccessful){
-               Log.w(TAG, "Feetching FCM Registration token faileD", task.exception)
-               return@OnCompleteListener
-           }
-       })
-
-        // Kirimkan pesan menggunakan API FCM (gunakan FCM REST API atau Admin SDK di server)
-        // Gunakan HTTP request untuk mengirimkan data ini ke FCM
-        Log.d("NotificationsViewModel", "FCM message sent: $title - $message")
-    }
-
 
 }

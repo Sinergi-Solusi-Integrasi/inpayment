@@ -7,9 +7,11 @@ import com.google.gson.GsonBuilder
 import com.s2i.data.BuildConfig
 import com.s2i.data.local.auth.SessionManager
 import com.s2i.data.remote.client.ApiServices
+import com.s2i.data.remote.client.WalletServices
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import org.koin.core.qualifier.named
 import java.util.concurrent.TimeUnit
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -48,8 +50,12 @@ val networkModule = module {
             .readTimeout(60, TimeUnit.SECONDS)     // Increased read timeout
             .build()
     }
+}
 
-    single {
+val retrofitModule = module {
+
+    //Qris
+    single(named("default")) {
         Retrofit.Builder()
             .baseUrl(BuildConfig.BASE_URL)
             .client(get())
@@ -57,8 +63,22 @@ val networkModule = module {
             .build()
     }
 
+    //Qris
+    single(named("qris")) {
+        Retrofit.Builder()
+            .baseUrl(BuildConfig.QRIS_URL)
+            .client(get())
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
     single {
-        get<Retrofit>().create(ApiServices::class.java)
+        get<Retrofit>(named("default")).create(ApiServices::class.java)
+    }
+
+    //qris url
+    single {
+        get<Retrofit>(named("qris")).create(WalletServices::class.java)
     }
 
     single {
@@ -69,6 +89,5 @@ val networkModule = module {
             }
             .build()
     }
-
 
 }

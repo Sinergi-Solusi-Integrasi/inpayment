@@ -101,7 +101,16 @@ fun BalanceCard(
                             tint = Color.White
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Top Up", color = Color.White)
+                        Text(
+                            "Top Up",
+                            color = Color.White,
+                            modifier = Modifier
+                                .clickable {
+                                    navController.navigate("payment_methods_screen") {
+                                        launchSingleTop = true
+                                    }
+                                }
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
                         //riwayat
                         Icon(
@@ -118,7 +127,16 @@ fun BalanceCard(
                             tint = Color.White
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Riwayat", color = Color.White)
+                        Text(
+                            "Riwayat",
+                            color = Color.White,
+                            modifier = Modifier
+                                .clickable {
+                                    navController.navigate("history_screen") {
+                                        launchSingleTop = true
+                                    }
+                                }
+                        )
                     }
                 }
             }

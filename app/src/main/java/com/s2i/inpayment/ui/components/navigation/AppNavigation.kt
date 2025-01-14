@@ -29,6 +29,8 @@ import com.s2i.inpayment.ui.screen.splash.SplashScreen
 import com.s2i.inpayment.ui.screen.vehicles.VehiclesScreen
 import com.s2i.inpayment.ui.screen.wallet.DetailTransactionScreen
 import com.s2i.inpayment.ui.screen.wallet.PaymentMethodsScreen
+import com.s2i.inpayment.ui.screen.wallet.PaymentScreen
+import com.s2i.inpayment.ui.screen.wallet.QrisScreen
 import com.s2i.inpayment.ui.screen.wallet.WalletHistoryScreen
 import com.s2i.inpayment.ui.viewmodel.AuthViewModel
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
@@ -55,6 +57,7 @@ fun AppNavigation(
         composable("splash_screen") {
             SplashScreen(
                 navController = navController,
+                sessionManager = sessionManager,
                 isLoggedIn = authViewModel.isLoggedIn()
             )
         }
@@ -63,6 +66,18 @@ fun AppNavigation(
         }
         composable("payment_methods_screen") {
             PaymentMethodsScreen(navController = navController)
+        }
+
+        composable("payment_screen") {
+            PaymentScreen(navController = navController)
+        }
+        composable(
+            "qris_screen/{qrisCode}",
+            arguments = listOf(navArgument("qrisCode") {type = NavType.StringType})
+        ) { backStackEntry ->
+            val qrisCode = backStackEntry.arguments?.getString("qrisCode")
+            QrisScreen(qrisState = qrisCode, navController = navController)
+
         }
         composable("login_screen") {
             LoginScreen(navController = navController, authViewModel = authViewModel, sessionManager = sessionManager)

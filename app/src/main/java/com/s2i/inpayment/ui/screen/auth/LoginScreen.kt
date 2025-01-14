@@ -1,5 +1,6 @@
 package com.s2i.inpayment.ui.screen.auth
 
+import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
@@ -39,11 +40,14 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.google.firebase.messaging.FirebaseMessaging
 import com.s2i.data.local.auth.SessionManager
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.ReusableBottomSheet
 import com.s2i.inpayment.ui.components.permission.hasAllPermissions
 import com.s2i.inpayment.ui.viewmodel.AuthViewModel
+import com.s2i.inpayment.ui.viewmodel.NotificationsViewModel
+import com.s2i.inpayment.ui.viewmodel.ServicesViewModel
 import com.s2i.inpayment.utils.helper.handleLoginFailer
 import com.s2i.inpayment.utils.helper.handleSessionLogout
 import kotlinx.coroutines.launch
@@ -54,6 +58,8 @@ import org.koin.androidx.compose.koinViewModel
 fun LoginScreen(
     navController: NavController,
     authViewModel: AuthViewModel = koinViewModel(),
+    notificationViewModel: NotificationsViewModel = koinViewModel(),
+    servicesViewModel: ServicesViewModel = koinViewModel(),
     sessionManager: SessionManager
 ) {
     var username by remember { mutableStateOf("") }
@@ -61,6 +67,8 @@ fun LoginScreen(
     val loginState by authViewModel.loginState.collectAsState()
     val loadingState by authViewModel.loadingState.collectAsState()
     val isLoggedIn = authViewModel.isLoggedIn()
+    val bindingState by servicesViewModel.bindingState.collectAsState()
+    val errorState by servicesViewModel.errorState.collectAsState()
     var hasNavigated by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
     var isValidUsername by remember { mutableStateOf(true) }
@@ -77,12 +85,55 @@ fun LoginScreen(
     Log.d("LoginScreen", "Rendering LoginScreen")
     val context = LocalContext.current
 
+    // Fungsi untuk mengirim token ke server
+    fun sendTokenToServer(token: String) {
+        val brand = Build.BRAND
+        val model = Build.MODEL ?: "Unknown"
+        val osType = Build.VERSION.RELEASE ?: "Unknown"
+        val platform = "Android"
+        val sdkVersion = "Android API ${Build.VERSION.SDK_INT}"
+        Log.d("DeviceInfoActivity", "Device Info - Brand: $brand, Model: $model, OS Type: $osType, Platform: $platform, SDK Version: $sdkVersion, Token: $token")
+
+        // Simpan ke SharedPreferences melalui SessionManager
+
+        notificationViewModel.registerDevices(
+            brand = brand,
+            model = model,
+            osType = osType,
+            platform = platform,
+            sdkVersion = sdkVersion,
+            tokenFirebase = token
+        )
+    }
+
+    // Dapatkan token Firebase dan simpan
+    LaunchedEffect(Unit) {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.w("LoginScreen", "Fetching FCM registration token failed", task.exception)
+                return@addOnCompleteListener
+            }
+            val token = task.result
+            Log.d("LoginScreen", "FCM Registration Token: $token")
+            sendTokenToServer(token)
+        }
+    }
+
     LaunchedEffect(sessionManager.isLoggedOut) {
         Log.d("LoginScreen", "LaunchedEffect triggered: isLoggedOut=${sessionManager.isLoggedOut}, showErrorSheet=$showErrorSheet")
         if (sessionManager.isLoggedOut && !showErrorSheet) {
             Log.d("LoginScreen", "User is logged out. Waiting for re-login.")
             // Tampilkan sheet tanpa reset navigasi secara langsung
             authViewModel.resetLoginState()
+//            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+//                if (!task.isSuccessful) {
+//                    Log.w("LoginScreen", "Fetching FCM registration token failed", task.exception)
+//                    return@addOnCompleteListener
+//                }
+//                val token = task.result
+//                Log.d("LoginScreen", "FCM Registration Token: $token")
+//                sendTokenToServer(token)
+//            }
         }
     }
 

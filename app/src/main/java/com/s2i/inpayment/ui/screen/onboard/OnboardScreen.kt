@@ -162,7 +162,7 @@ fun RectIndicator(isSelected: Boolean) {
         modifier = Modifier
             .size(width = if (isSelected) 20.dp else 10.dp, height = 6.dp)
             .background(
-                if (isSelected) DarkTeal21 else Color.Gray,
+                if (isSelected) GreenTeal21 else Color.Gray,
                 shape = RoundedCornerShape(3.dp)
             )
     )

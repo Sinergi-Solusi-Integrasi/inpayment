@@ -18,6 +18,10 @@ if (localPropertiesFile.exists()) {
 // Ambil QRIS_URL dan BASE_URL dari local.properties
 val qrisUrl = localProperties["QRIS_URL"] ?: "https://default.qris.url/"
 val baseUrl = localProperties["BASE_URL"] ?: "https://default.base.url/"
+val mid = localProperties["MID"] ?: "default_mid"
+val tid = localProperties["TID"] ?: "default_tid"
+val clientId = localProperties["CLIENT_ID"] ?: "default_client_id"
+val clientSecret = localProperties["CLIENT_SECRETE"] ?: "default_client_secrete"
 android {
     namespace = "com.s2i.data"
     compileSdk = 35
@@ -28,6 +32,10 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BASE_URL", "\"https://inpayment.app-intracs.co.id/\"")
         buildConfigField("String", "QRIS_URL", "\"$qrisUrl\"")
+        buildConfigField("String", "MID", "\"$mid\"")
+        buildConfigField("String", "TID", "\"$tid\"")
+        buildConfigField("String", "CLIENT_ID", "\"$clientId\"")
+        buildConfigField("String", "CLIENT_SECRETE", "\"$clientSecret\"")
         consumerProguardFiles("consumer-rules.pro")
     }
 

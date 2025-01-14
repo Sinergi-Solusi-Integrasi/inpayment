@@ -47,7 +47,7 @@ fun PermissionScreen(
         Manifest.permission.CAMERA,
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             Manifest.permission.READ_MEDIA_IMAGES
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
         } else {
             Manifest.permission.READ_EXTERNAL_STORAGE

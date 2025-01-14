@@ -67,6 +67,8 @@ dependencies {
     implementation("io.insert-koin:koin-annotations:2.0.0-Beta2")
     ksp("io.insert-koin:koin-ksp-compiler:2.0.0-Beta2")
 
+    //qrcode
+    implementation("com.google.zxing:core:3.5.2")
 
     //accompanist
     implementation(libs.accompanist.permissions)

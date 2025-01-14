@@ -110,6 +110,10 @@ fun RegisterScreen(
 
     var identityNumberState by remember { mutableStateOf(identityNumber?: "") }
     var nameState by remember { mutableStateOf(name?: "") }
+    var identityError by remember { mutableStateOf<String?>(null) }
+    var nameError by remember { mutableStateOf<String?>(null) }
+
+    val focusManager = LocalFocusManager.current
     var email by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
@@ -124,6 +128,22 @@ fun RegisterScreen(
     var isPasswordsMatch by remember { mutableStateOf(true) }
     val isFormValid = email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty() &&
             username.isNotEmpty() && isValidEmail && isValidPassword && isPasswordsMatch
+
+    LaunchedEffect(identityNumberState, nameState) {
+        // Validasi Identity Number
+        identityError = when {
+            identityNumberState.isEmpty() -> null
+            identityNumberState.all { it.isDigit() } && identityNumberState.length == 16 -> null
+            else -> "KTP/SIM/PASSPORT Number must be 16 digits"
+        }
+
+        // Validasi Full Name (Hanya Huruf dan Spasi)
+        nameError = when {
+            nameState.isEmpty() -> null
+            nameState.all { it.isLetter() || it.isWhitespace() } -> null
+            else -> "Full Name must only contain letters and spaces"
+        }
+    }
 
 
 //    val bitmap = remember { decodeBase64ToBitmap(base64Image) }
@@ -211,19 +231,63 @@ fun RegisterScreen(
                 ) {
                         OutlinedTextField(
                             value = identityNumberState,
-                            onValueChange = { identityNumberState = it },
+                            onValueChange = { newValue ->
+                                identityNumberState = newValue
+
+                                //validasi hanya angka dan panjangnya harus 16 digit
+
+                                if(newValue.all { it.isDigit() } && newValue.length == 16) {
+                                    identityError = null
+                                } else if (newValue.isNotEmpty()){
+                                    identityError = "KTP/SIM/PASSPORT Number must be 16 digits"
+                                } else {
+                                    identityError = null
+                                }
+
+                            },
                             label = { Text("KTP/SIM/PASSPORT Number") },
                             modifier = Modifier.fillMaxWidth(),
+                            isError = identityError != null,
                             keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                         )
+                        identityError?.let {
+                            Text(
+                                text = it,
+                                color = Color.Red,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
                         Spacer(modifier = Modifier.height(16.dp))
 
                         OutlinedTextField(
                             value = nameState,
-                            onValueChange = { nameState = it },
+                            onValueChange = { newValue ->
+                                nameState = newValue
+
+                                // validasi hanya huruf dan spasi (tanpa angka dan simbol)
+                                if (newValue.all { it.isLetter() || it.isWhitespace() }) {
+                                    nameError = null
+                                } else if (newValue.isNotEmpty()) {
+                                    nameError = "Full Name must only contain letters and spaces"
+                                } else {
+                                    nameError = null
+                                }
+
+                            },
                             label = { Text("Full Name") },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            isError = nameError != null
                         )
+                        nameError?.let {
+                            Text(
+                                text = it,
+                                color = Color.Red,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
+
                         Spacer(modifier = Modifier.height(16.dp))
 
                         OutlinedTextField(
@@ -333,6 +397,7 @@ fun RegisterScreen(
 
                         Button(
                             onClick = {
+                                focusManager.clearFocus()
                                 capturedPhoto?.let { photo ->
                                     val selectedFormat = imageFormat ?: Bitmap.CompressFormat.JPEG
                                     authViewModel.register(
@@ -349,7 +414,9 @@ fun RegisterScreen(
                                 }
                             },
                             enabled = isFormValid,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 16.dp),
                         ) {
                             Text("Create Account")
                         }

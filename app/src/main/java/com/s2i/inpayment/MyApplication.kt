@@ -10,6 +10,7 @@ import androidx.work.WorkManager
 import com.google.firebase.FirebaseApp
 import com.s2i.inpayment.module.network.networkModule
 import com.s2i.inpayment.module.app.appModule
+import com.s2i.inpayment.module.network.retrofitModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.GlobalContext
@@ -26,7 +27,8 @@ class MyApplication : Application()  {
             modules(
                 listOf(
                     appModule,
-                    networkModule
+                    networkModule,
+                    retrofitModule
                 )
             )
         }

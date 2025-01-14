@@ -202,6 +202,9 @@ fun PaymentMethodsScreen(
                     title = "QRIS",
                     onClick = {
                         // Aksi untuk QRIS
+                        navController.navigate("payment_screen") {
+                            launchSingleTop = true
+                        }
                     }
                 )
 

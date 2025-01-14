@@ -132,7 +132,6 @@ class SessionManager(context: Context) {
                 .remove(KEY_REFRESH_TOKEN)
                 .remove(KEY_ACCESS_TOKEN_EXPIRY)
                 .remove(KEY_REFRESH_TOKEN_EXPIRY)
-                .remove(KEY_DEVICE_ID)
                 .remove(KEY_DEVICE_TOKEN)
                 .remove(KEY_DEVICE_BRAND)
                 .remove(KEY_DEVICE_MODEL)
@@ -142,7 +141,7 @@ class SessionManager(context: Context) {
                 .remove(KEY_DEVICE_PLATFORM)
                 .putBoolean(KEY_LOGIN, false)
                 .putBoolean(KEY_IS_LOGGED_OUT, true)
-                .clear()
+//                .clear()
                 .apply()
         Log.d("SessionManager", "User logged out successfully. Session data cleared.")
     }

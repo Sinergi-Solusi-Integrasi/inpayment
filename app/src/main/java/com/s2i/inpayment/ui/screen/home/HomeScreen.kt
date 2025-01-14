@@ -160,43 +160,6 @@ fun HomeScreen(
                 popUpTo("home_screen") { inclusive = true }
             }
         } else {
-            balanceViewModel.fetchBalance()
-            balanceViewModel.fetchTriLastTransaction()
-            balanceViewModel.fetchInComeExpenses()
-        }
-    }
-
-    fun sendTokenToServer(token: String) {
-        val brand = Build.BRAND
-        val model = Build.MODEL ?: "Unknown"
-        val osType = Build.VERSION.RELEASE ?: "Unknown"
-        val platform = "Android"
-        val sdkVersion = "Android API ${Build.VERSION.SDK_INT}"
-        Log.d("DeviceInfoActivity", "Device Info - Brand: $brand, Model: $model, OS Type: $osType, Platform: $platform, SDK Version: $sdkVersion, Token: $token")
-
-        //Simpan ke shareprefernecs melalui sessionmanager
-
-        notificationViewModel.registerDevices(
-            brand = brand,
-            model = model,
-            osType = osType,
-            platform = platform,
-            sdkVersion = sdkVersion,
-            tokenFirebase = token
-        )
-    }
-
-    LaunchedEffect(Unit) {
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (!task.isSuccessful) {
-                Log.w("MainActivity", "Fetching FCM registration token failed", task.exception)
-                return@addOnCompleteListener
-            } // Dapatkan token baru
-            val token = task.result
-            Log.d("MainActivity", "FCM Registration Token: $token")
-            sendTokenToServer(token)
-
-            // Setelah token terkirim, lakukan bindAccount
             val deviceId = sessionManager.getFromPreference(SessionManager.KEY_DEVICE_ID)
             if (!deviceId.isNullOrBlank()) {
                 Log.d("HomeScreen", "Device ID: $deviceId, proceeding to bind account.")
@@ -204,8 +167,22 @@ fun HomeScreen(
             } else {
                 Log.e("HomeScreen", "Device ID not found after registration")
             }
+            balanceViewModel.fetchBalance()
+            balanceViewModel.fetchTriLastTransaction()
+            balanceViewModel.fetchInComeExpenses()
         }
     }
+//
+//    LaunchedEffect(Unit) {
+//        // Setelah token terkirim, lakukan bindAccount
+//        val deviceId = sessionManager.getFromPreference(SessionManager.KEY_DEVICE_ID)
+//        if (!deviceId.isNullOrBlank()) {
+//            Log.d("HomeScreen", "Device ID: $deviceId, proceeding to bind account.")
+//            servicesViewModel.bindAccount(deviceId)
+//        } else {
+//            Log.e("HomeScreen", "Device ID not found after registration")
+//        }
+//    }
 
     // Menangani hasil response BindingModel
     bindingState?.let { bindingModel ->
