@@ -5,7 +5,7 @@ import com.s2i.data.model.wallet.TopupData
 
 data class TopupResponse(
     @SerializedName("code")
-    val code: String,
+    val code: Int,
     @SerializedName("message")
     val message: String,
     @SerializedName("data")

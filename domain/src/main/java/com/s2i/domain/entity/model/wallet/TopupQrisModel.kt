@@ -7,7 +7,7 @@ data class TopupQrisModel(
     val userId: String,
     val userName: String,
     val referenceId: String,
-    val amout: Int,
+    val amount: Int,
     val feeAmount: Int,
     val paymentMethod: String,
     val status: String,

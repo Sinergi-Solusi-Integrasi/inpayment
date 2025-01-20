@@ -1,14 +1,10 @@
-package com.s2i.data.model.wallet
+package com.s2i.data.remote.request.wallet
 
 import com.google.gson.annotations.SerializedName
 
-data class TopupData(
-    @SerializedName("transaction_id")
-    val transactionId: String,
+data class TopupRequest(
     @SerializedName("user_id")
     val userId: String,
-    @SerializedName("user_name")
-    val userName: String,
     @SerializedName("reference_id")
     val referenceId: String,
     @SerializedName("amount")
@@ -17,8 +13,4 @@ data class TopupData(
     val feeAmount: Int,
     @SerializedName("payment_method")
     val paymentMethod: String,
-    @SerializedName("status")
-    val status: String,
-    @SerializedName("datetime")
-    val datetime: String,
 )

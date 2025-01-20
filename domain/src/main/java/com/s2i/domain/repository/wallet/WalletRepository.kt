@@ -1,8 +1,8 @@
 package com.s2i.domain.repository.wallet
 
-import com.google.gson.annotations.SerializedName
 import com.s2i.domain.entity.model.wallet.OrderQrisModel
 import com.s2i.domain.entity.model.wallet.QrisCreateModel
+import com.s2i.domain.entity.model.wallet.TopupQris
 
 interface WalletRepository {
 
@@ -19,4 +19,12 @@ interface WalletRepository {
     suspend fun orderQuerys(
         trxId: String
     ): OrderQrisModel
+
+    suspend fun topUp(
+        userId: String,
+        referenceId: String,
+        amount: Int,
+        feeAmount: Int,
+        paymentMethod: String
+    ): TopupQris
 }

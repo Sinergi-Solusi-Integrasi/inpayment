@@ -4,6 +4,7 @@ import com.s2i.data.model.balance.InOutBalanceData
 import com.s2i.data.remote.request.auth.LogoutRequest
 import com.s2i.data.remote.request.auth.RegisterRequest
 import com.s2i.data.remote.request.services.DevicesTokenRequest
+import com.s2i.data.remote.request.wallet.TopupRequest
 import com.s2i.data.remote.response.auth.LoginResponse
 import com.s2i.data.remote.response.auth.LogoutResponse
 import com.s2i.data.remote.response.auth.RefreshTokenResponse
@@ -20,6 +21,7 @@ import com.s2i.data.remote.response.users.ProfileResponse
 import com.s2i.data.remote.response.users.UsersResponse
 import com.s2i.data.remote.response.vehicles.SelectedVehiclesResponse
 import com.s2i.data.remote.response.vehicles.VehiclesResponse
+import com.s2i.data.remote.response.wallet.TopupResponse
 import com.s2i.domain.entity.model.auth.AuthModel
 import retrofit2.Call
 import retrofit2.Response
@@ -134,5 +136,11 @@ interface ApiServices {
     suspend fun bindingAccounts(
         @Path("device_id") deviceId: String
     ): BindingAccountResponse
+
+    // Topup
+    @POST("payments/topup")
+    suspend fun topup(
+        @Body topupRequest: TopupRequest
+    ): TopupResponse
 
 }
