@@ -3,6 +3,7 @@ package com.s2i.data.repository.wallet
 import android.util.Log
 import com.s2i.data.mapper.toDomainQrisModel
 import com.s2i.data.remote.client.WalletServices
+import com.s2i.domain.entity.model.wallet.OrderQrisModel
 import com.s2i.domain.entity.model.wallet.QrisCreateModel
 import com.s2i.domain.repository.wallet.WalletRepository
 
@@ -35,4 +36,20 @@ class QrisRepositoryImpl(
             throw Exception ("Error while creating QRIS: ${e.message}")
         }
     }
+
+    override suspend fun orderQuerys(trxId: String): OrderQrisModel {
+        return try {
+            val response = qrisApiService.orderQuery(trxId)
+            OrderQrisModel(
+                rCode = response.rCode ?: "00", // Default ke "00" jika null
+                message = response.message ?: "Pending",
+                trxId = response.trxId ?: trxId // Gunakan trxId yang dikirim jika null
+            )
+        } catch (e: Exception) {
+            Log.e("QrisRepositoryImpl", "Error while querying QRIS order: ${e.message}")
+            throw Exception("Error while querying QRIS order: ${e.message}")
+        }
+    }
+
+
 }

@@ -1,9 +1,11 @@
 package com.s2i.data.remote.client
 
+import com.s2i.data.remote.response.wallet.CheckQrisResponse
 import com.s2i.data.remote.response.wallet.QrisResponse
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface WalletServices {
 
@@ -22,9 +24,8 @@ interface WalletServices {
 
     //Order Query
 
-    @FormUrlEncoded
-    @POST("orderQuery/TRXM95YISU61NY")
+    @POST("DanaApi/public/orderQuery/{trxid}")
     suspend fun orderQuery(
-
-    ): QrisResponse
+        @Path("trxid") trxId: String
+    ): CheckQrisResponse
 }

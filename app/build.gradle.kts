@@ -121,8 +121,8 @@ dependencies {
     implementation("io.insert-koin:koin-compose-viewmodel-navigation")
     implementation("io.insert-koin:koin-androidx-compose-navigation")
 
-    implementation("androidx.compose.runtime:runtime:1.7.4")
-    implementation("androidx.compose.runtime:runtime-livedata:1.7.4")
+    implementation("androidx.compose.runtime:runtime:1.7.6")
+    implementation("androidx.compose.runtime:runtime-livedata:1.7.6")
 
     // Retrofit for networking
     implementation(libs.retrofit)

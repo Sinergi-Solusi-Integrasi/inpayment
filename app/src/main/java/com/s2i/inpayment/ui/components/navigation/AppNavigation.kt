@@ -2,6 +2,7 @@
 package com.s2i.inpayment.ui.components.navigation
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -72,11 +73,16 @@ fun AppNavigation(
             PaymentScreen(navController = navController)
         }
         composable(
-            "qris_screen/{qrisCode}",
-            arguments = listOf(navArgument("qrisCode") {type = NavType.StringType})
+            "qris_screen/{qrisCode}/{trxId}",
+            arguments = listOf(navArgument("qrisCode") {type = NavType.StringType}, navArgument("trxId") { type = NavType.StringType })
         ) { backStackEntry ->
             val qrisCode = backStackEntry.arguments?.getString("qrisCode")
-            QrisScreen(qrisState = qrisCode, navController = navController)
+            val trxId = backStackEntry.arguments?.getString("trxId")
+            // Log untuk memastikan data diterima
+            Log.d("Navigation", "Navigated to QRIS Screen")
+            Log.d("Navigation", "qrisCode: $qrisCode")
+            Log.d("Navigation", "trxId: $trxId")
+            QrisScreen(qrisState = qrisCode, trxId = trxId,  navController = navController)
 
         }
         composable("login_screen") {

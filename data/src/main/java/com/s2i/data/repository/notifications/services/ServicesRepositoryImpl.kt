@@ -12,6 +12,7 @@ import com.s2i.domain.repository.notifications.services.ServicesRepository
 class ServicesRepositoryImpl(
     private val apiServices: ApiServices,
 ): ServicesRepository {
+
     override suspend fun devicesToken(
         brand: String,
         model: String,

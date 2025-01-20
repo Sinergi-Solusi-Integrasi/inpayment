@@ -24,6 +24,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.TextRange
 import androidx.navigation.NavController
 import com.s2i.common.utils.convert.RupiahFormatter
 import com.s2i.data.BuildConfig
@@ -36,6 +37,7 @@ import com.s2i.inpayment.utils.helper.generateCurrentTime
 import com.s2i.inpayment.utils.helper.generateSignature
 import com.s2i.inpayment.utils.helper.generateTrxId
 import org.koin.androidx.compose.koinViewModel
+import java.math.BigInteger
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +46,7 @@ fun PaymentScreen(
     qrisViewModel: QrisViewModel = koinViewModel(),
     navController: NavController
 ) {
+    var rawAmount by remember { mutableStateOf(("")) }
     var amount by remember { mutableStateOf(TextFieldValue("")) }
     var isValidAmount by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -95,7 +98,7 @@ fun PaymentScreen(
 
     LaunchedEffect(qrisState) {
         if (qrisState?.qrisCode != null) {
-            navController.navigate("qris_screen/${qrisState?.qrisCode}")
+            navController.navigate("qris_screen/${qrisState?.qrisCode}/${qrisState?.trxId}")
         }
     }
 
@@ -137,9 +140,10 @@ fun PaymentScreen(
                 Button(
                     onClick = {
                     /* Aksi ketika tombol lanjut ditekan */
-                        val txnAmount = amount.text.toIntOrNull()
+                        val txnAmount = rawAmount.toLongOrNull()
                         if (txnAmount != null && txnAmount > 0) {
-                            val formattedAmount = txnAmount.toString()
+//                            val formattedAmount = txnAmount.toString()
+                            val formattedAmount = "${txnAmount}00"
                             Log.d("AmountDebug", "Formatted Amount: $formattedAmount")
 
                             qrisViewModel.sendQris(
@@ -216,20 +220,48 @@ fun PaymentScreen(
                             OutlinedTextField(
                                 value = amount,
                                 onValueChange = { newValue ->
-                                    if (newValue.text.all { it.isDigit() }) {
-                                        amount = newValue
-                                        val inputAmount = newValue.text.toLongOrNull() ?: 0
-                                        if (inputAmount in 1..20000000) {
-                                            isValidAmount = true
-                                            errorMessage = null
+//                                    if (newValue.text.all { it.isDigit() }) {
+//                                        amount = newValue
+//                                        val inputAmount = newValue.text.toLongOrNull() ?: 0
+//                                        if (inputAmount in 10000..20000000) {
+//                                            isValidAmount = true
+//                                            errorMessage = null
+//                                        } else {
+//                                            isValidAmount = false
+//                                            errorMessage = "Minimal Rp 10.000 dan Maksimal Rp 20.000.000"
+//                                        }
+//                                    } else if (newValue.text.isEmpty()) {
+//                                        isValidAmount = false
+//                                        errorMessage = null
+//                                        amount = newValue
+//                                    }
+
+                                    val unformattedInput = newValue.text.replace("[^\\d]".toRegex(), "") // Hapus semua titik
+                                    if (unformattedInput.all { it.isDigit() }) { // Validasi hanya angka
+                                        rawAmount = unformattedInput // Simpan nilai mentah
+                                        val inputAmount = unformattedInput.toBigIntegerOrNull()?.times(100.toBigInteger()) ?: BigInteger.ZERO
+                                        val formattedText = if (inputAmount > BigInteger.ZERO) {
+                                            RupiahFormatter.formatToRupiah(inputAmount / 100.toBigInteger()) // Format ke Rupiah tanpa "00" di belakang
                                         } else {
-                                            isValidAmount = false
-                                            errorMessage = "Minimal Rp 1 dan Maksimal Rp 20.000.000"
+                                            ""
                                         }
-                                    } else if (newValue.text.isEmpty()) {
+
+                                        // Hitung posisi kursor baru berdasarkan panjang teks sebelum dan sesudah
+                                        val cursorPosition = formattedText.length - (unformattedInput.length - newValue.selection.end)
+
+                                        amount = TextFieldValue(
+                                            text = formattedText,
+                                            selection = TextRange(cursorPosition.coerceIn(0, formattedText.length)) // Tetapkan posisi kursor baru
+                                        )
+
+                                        // Validasi jumlah
+                                        isValidAmount = inputAmount in BigInteger("100")..BigInteger("2000000000")
+                                        errorMessage = if (isValidAmount) null else "Minimal Rp 10.000 dan Maksimal Rp 20.000.000"
+                                    } else if (newValue.text.isEmpty()) { // Jika teks kosong
+                                        rawAmount = ""
+                                        amount = newValue
                                         isValidAmount = false
                                         errorMessage = null
-                                        amount = newValue
                                     }
                                 },
                                 placeholder = { Text("Rp. 0", color = Color.Gray) },

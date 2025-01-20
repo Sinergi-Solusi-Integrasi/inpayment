@@ -2,7 +2,9 @@ package com.s2i.inpayment.ui.screen.wallet
 
 
 import android.os.Build
+import android.util.Log
 import android.widget.ImageView
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -25,14 +27,19 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.s2i.common.utils.convert.RupiahFormatter
+import com.s2i.inpayment.MainActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.s2i.inpayment.R
+import com.s2i.inpayment.ui.components.services.notifications.NotificationWorker
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
+import com.s2i.inpayment.ui.viewmodel.QrisViewModel
+import com.s2i.inpayment.utils.NotificationManagerUtil
 import com.s2i.inpayment.utils.helper.generateQRCode
 import org.koin.androidx.compose.koinViewModel
 
@@ -41,9 +48,13 @@ import org.koin.androidx.compose.koinViewModel
 fun QrisScreen(
     balanceViewModel: BalanceViewModel = koinViewModel(),
     qrisState: String?,
+    trxId: String?,
+    qrisViewModel: QrisViewModel = koinViewModel(),
     navController: NavController
 ) {
 
+    val context = LocalContext.current
+    val orderQrisState by qrisViewModel.orderQrisState.collectAsState() // Observe orderQuery result
     var isValidAmount by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isStartupLoading by remember { mutableStateOf(true) }
@@ -73,6 +84,49 @@ fun QrisScreen(
         }
     }
 
+    LaunchedEffect(trxId) {
+        trxId?.let {
+            var lastState: String? = null
+            while (true) {
+                try {
+                    qrisViewModel.orderQuery(it)
+
+                    //periksa status api
+                    val orderState = orderQrisState
+                    if (orderState !=null) {
+                        val currentStatus = orderState.rCode
+                        Log.d("QrisScreen", "Order state: ${orderState.rCode}, message: ${orderState.message}")
+
+                        // Jika status berubah, tampilkan notifikasi
+                        if(currentStatus != lastState) {
+                            val statusMessage = when (orderState.rCode) {
+                                "00" -> "Pembayaran Berhasil"
+                                "99" -> "Pembayaran Pending"
+                                else -> "Pembayaran Gagal: ${orderState.message}"
+                            }
+
+                            // Tampilkan notifikasi
+                            NotificationManagerUtil.showNotification(context, trxId = it, title = "Status Pembayaran", messageBody = statusMessage)
+                            lastState = currentStatus
+                        }
+
+
+                        // Jika pembayaran berhasil atau gagal, hentikan polling
+                        if (currentStatus == "00") {
+                            Log.d("QrisScreen", "Stopping polling: Pembayaran berhasil.")
+                            break
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("QrisScreen", "Error during order query: ${e.message}")
+                }
+
+                // Tunggu 5 detik sebelum polling berikutnya
+                delay(5000L)
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             // Header
@@ -86,7 +140,10 @@ fun QrisScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
+                    IconButton(onClick = {
+                        navController.navigate("home_screen") {
+                            popUpTo("qris_screen") { inclusive = true }
+                        }}) {
                         Icon(
                             imageVector = Icons.Filled.Close,
                             contentDescription = "Back",
@@ -150,20 +207,41 @@ fun QrisScreen(
                             .background(Color.White)
                             .padding(16.dp)
                     ) {
-                        Column {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
                             if (qrisState !=null) {
-                                // Generate QRCode from qrisstate
-                                AndroidView(
-                                    factory = { context ->
-                                        ImageView(context).apply {
-                                            val qrisBitmap = generateQRCode(qrisState)
-                                            setImageBitmap(qrisBitmap)
-                                        }
-                                    },
+                                // Template QRIS dengan barcode di tengah
+                                Box(
                                     modifier = Modifier
-                                        .size(250.dp)
-                                        .padding(16.dp)
-                                )
+                                        .fillMaxWidth()
+                                        .aspectRatio(3/4f),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.template_qris),
+                                        contentDescription = "Template QRIS",
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                    // Generate QRCode from qrisstate
+                                    AndroidView(
+                                        factory = { context ->
+                                            ImageView(context).apply {
+                                                val qrisBitmap = generateQRCode(qrisState)
+                                                setImageBitmap(qrisBitmap)
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .size(250.dp)
+                                            .padding(16.dp)
+
+                                    )
+                                }
+
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(
                                     text = "Scan QR Code untuk melanjutkan Pembayaran",
@@ -172,6 +250,35 @@ fun QrisScreen(
                                         .padding(horizontal = 16.dp),
                                     textAlign = TextAlign.Center
                                 )
+
+                                // Display QRIS order status (optional)
+                                orderQrisState?.let { orderState ->
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    val statusColor = when (orderState.rCode) {
+                                        "00" -> Color.Green  // Success
+                                        "99" -> Color.Yellow // Pending
+                                        else -> Color.Red    // Error
+                                    }
+                                    Text(
+                                        text = when (orderState.rCode) {
+                                            "00" -> "Pembayaran Berhasil"
+                                            "99" -> "Pembayaran Pending"
+                                            else -> "Pembayaran Gagal: ${orderState.message}"
+                                        },
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = statusColor,
+                                        textAlign = TextAlign.Center
+                                    )
+                                    orderState.trxId?.let { trxId ->
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = "Transaction ID: $trxId",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                }
+
                             } else {
                                 Text(
                                     text = "QR Code Tidak Ditemukan",

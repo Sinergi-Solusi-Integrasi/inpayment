@@ -17,6 +17,7 @@ import com.s2i.domain.usecase.vehicles.GetVehiclesUseCase
 import com.s2i.domain.usecase.vehicles.EnableStatusUseCase
 import com.s2i.domain.usecase.vehicles.GetDisableStatusUseCase
 import com.s2i.domain.usecase.wallet.CreateQrisUseCase
+import com.s2i.domain.usecase.wallet.OrderQueryQrisUseCase
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
 
@@ -39,6 +40,7 @@ val useCaseModule = module {
     factoryOf(::ServicesUseCase)
     factoryOf(::TokenUseCase)// Inject AuthRepository into GetBalanceUseCase
     factoryOf(::CreateQrisUseCase)
+    factoryOf(::OrderQueryQrisUseCase)
 
 
 }
