@@ -58,10 +58,12 @@ class AuthRepositoryImpl(
                                 refreshToken = authData.refreshToken,
                                 accessTokenExpiry = authData.accessTokenExpiredAt,
                                 refreshTokenExpiry = authData.refreshTokenExpiredAt,
-                                username = authData.username
+                                username = authData.username,
+                                userId = authData.userId
                             )
                             continuation.resume(Result.success(
                                 AuthModel(
+                                    userId = authData.userId,
                                     name = authData.name,
                                     username = authData.username,
                                     accessToken = authData.accessToken,

@@ -73,16 +73,22 @@ fun AppNavigation(
             PaymentScreen(navController = navController)
         }
         composable(
-            "qris_screen/{qrisCode}/{trxId}",
-            arguments = listOf(navArgument("qrisCode") {type = NavType.StringType}, navArgument("trxId") { type = NavType.StringType })
+            "qris_screen/{qrisCode}/{trxId}/{amount}",
+            arguments = listOf(navArgument(
+                "qrisCode") {type = NavType.StringType},
+                navArgument("trxId") { type = NavType.StringType },
+                navArgument("amount") { type = NavType.StringType }
+            )
         ) { backStackEntry ->
             val qrisCode = backStackEntry.arguments?.getString("qrisCode")
             val trxId = backStackEntry.arguments?.getString("trxId")
+            val amount = backStackEntry.arguments?.getString("amount")?.toIntOrNull() // tanpa format desimal 00
             // Log untuk memastikan data diterima
             Log.d("Navigation", "Navigated to QRIS Screen")
             Log.d("Navigation", "qrisCode: $qrisCode")
             Log.d("Navigation", "trxId: $trxId")
-            QrisScreen(qrisState = qrisCode, trxId = trxId,  navController = navController)
+            Log.d("Navigation", "amount: $amount")
+            QrisScreen(qrisState = qrisCode, trxId = trxId, amount = amount,  navController = navController)
 
         }
         composable("login_screen") {

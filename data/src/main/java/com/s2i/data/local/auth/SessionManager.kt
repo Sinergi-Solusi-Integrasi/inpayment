@@ -60,7 +60,7 @@ class SessionManager(context: Context) {
     fun createLoginSession(
         accessToken: String, refreshToken: String,
         accessTokenExpiry: String, refreshTokenExpiry: String,
-        username: String
+        username: String, userId: String
     ) {
         editor.putBoolean(KEY_LOGIN, true)
             .putBoolean(KEY_IS_LOGGED_OUT, false)
@@ -69,6 +69,7 @@ class SessionManager(context: Context) {
             .putString(KEY_ACCESS_TOKEN_EXPIRY, accessTokenExpiry)
             .putString(KEY_REFRESH_TOKEN_EXPIRY, refreshTokenExpiry)
             .putString(KEY_USERNAME, username)
+            .putString(KEY_USER_ID, userId)
             .apply()
     }
 
@@ -180,6 +181,7 @@ class SessionManager(context: Context) {
         private const val KEY_IS_LOGGED_OUT = "isLoggedOut"
         const val KEY_LOGIN = "isLogin"
         const val KEY_USERNAME = "username"
+        const val KEY_USER_ID = "user_id"
         const val KEY_ACCESS_TOKEN = "access_token"
         const val KEY_REFRESH_TOKEN = "refresh_token"
         const val KEY_ACCESS_TOKEN_EXPIRY = "access_token_expiry"

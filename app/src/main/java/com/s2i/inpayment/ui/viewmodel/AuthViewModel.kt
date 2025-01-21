@@ -112,7 +112,8 @@ class AuthViewModel(
                         refreshToken = authModel.refreshToken,
                         accessTokenExpiry = authModel.accessTokenExpiredAt,
                         refreshTokenExpiry = authModel.refreshTokenExpiredAt,
-                        username = authModel.username
+                        username = authModel.username,
+                        userId = authModel.userId
                     )
                     Log.d("AuthViewModel", "Session updated. isLogin: ${sessionManager.isLogin}")
                 },

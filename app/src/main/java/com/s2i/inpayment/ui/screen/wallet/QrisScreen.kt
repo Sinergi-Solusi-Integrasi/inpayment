@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.pullrefresh.pullRefresh
@@ -27,15 +28,18 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.s2i.common.utils.convert.RupiahFormatter
+import com.s2i.data.local.auth.SessionManager
 import com.s2i.inpayment.MainActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.s2i.inpayment.R
+import com.s2i.inpayment.ui.components.ReusableBottomSheet
 import com.s2i.inpayment.ui.components.services.notifications.NotificationWorker
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import com.s2i.inpayment.ui.viewmodel.QrisViewModel
@@ -49,17 +53,25 @@ fun QrisScreen(
     balanceViewModel: BalanceViewModel = koinViewModel(),
     qrisState: String?,
     trxId: String?,
+    amount: Int?, // tanpa format desimal 00
     qrisViewModel: QrisViewModel = koinViewModel(),
     navController: NavController
 ) {
 
     val context = LocalContext.current
     val orderQrisState by qrisViewModel.orderQrisState.collectAsState() // Observe orderQuery result
+    val sessionManager = SessionManager(context)
+    val userId = sessionManager.getFromPreference(SessionManager.KEY_USER_ID).toString()
     var isValidAmount by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isStartupLoading by remember { mutableStateOf(true) }
     var isRefreshing by remember { mutableStateOf(false) }
+
+
     val coroutineScope = rememberCoroutineScope()
+    // State untuk BottomSheet
+    val sheetState = rememberModalBottomSheetState()
+    var showBottomSheet by remember { mutableStateOf(false) }
 
     val balanceState by balanceViewModel.balance.collectAsState()
 
@@ -114,6 +126,13 @@ fun QrisScreen(
                         // Jika pembayaran berhasil atau gagal, hentikan polling
                         if (currentStatus == "00") {
                             Log.d("QrisScreen", "Stopping polling: Pembayaran berhasil.")
+                            qrisViewModel.topup(
+                                userId = userId,
+                                referenceId = trxId,
+                                amount = amount?: 0,
+                                feeAmount = 0,
+                                paymentMethod = "QRIS"
+                            )
                             break
                         }
                     }
@@ -122,7 +141,7 @@ fun QrisScreen(
                 }
 
                 // Tunggu 5 detik sebelum polling berikutnya
-                delay(5000L)
+                delay(1000L)
             }
         }
     }
@@ -141,9 +160,11 @@ fun QrisScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = {
-                        navController.navigate("home_screen") {
-                            popUpTo("qris_screen") { inclusive = true }
-                        }}) {
+//                        navController.navigate("home_screen") {
+//                            popUpTo("qris_screen") { inclusive = true }
+//                        }
+                        showBottomSheet = true
+                    }) {
                         Icon(
                             imageVector = Icons.Filled.Close,
                             contentDescription = "Back",
@@ -173,7 +194,7 @@ fun QrisScreen(
                         containerColor = if (isValidAmount) MaterialTheme.colorScheme.primary else Color.LightGray
                     )
                 ) {
-                    Text("Lanjut")
+                    Text("Download")
                 }
             }
         }
@@ -291,6 +312,40 @@ fun QrisScreen(
                 }
             }
         }
+    }
+
+    //ReusableBottomSheet
+    if(showBottomSheet){
+        ReusableBottomSheet(
+            message = "Apakah Anda yakin ingin membatalkan pembayaran ini?",
+            sheetState = sheetState,
+            onDismiss = {
+                coroutineScope.launch {
+                    sheetState.hide()
+                    showBottomSheet = false
+                }
+            },
+            content = {
+                // Add the content here
+                Button(
+                    onClick = {
+                        coroutineScope.launch {
+                            sheetState.hide()
+                            showBottomSheet = false
+                            navController.navigate("home_screen") {
+                                popUpTo("qris_screen") { inclusive = true }
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    shape = RoundedCornerShape(16.dp),
+                ) {
+                    Text("Quit", style = MaterialTheme.typography.bodyLarge)
+                }
+            }
+        )
     }
 }
 

@@ -58,7 +58,7 @@ fun ReusableBottomSheet(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(24.dp)
                     .background(MaterialTheme.colorScheme.surface),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -78,7 +78,7 @@ fun ReusableBottomSheet(
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
                 // Add the content here
                 content?.invoke()
@@ -92,7 +92,6 @@ fun ReusableBottomSheet(
                     },
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .size(32.dp)
                         .padding(8.dp)
                 ) {
                     Icon(imageVector = Icons.Default.Close, contentDescription = "Close")

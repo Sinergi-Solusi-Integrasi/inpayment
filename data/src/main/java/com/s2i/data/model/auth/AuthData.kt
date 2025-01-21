@@ -3,6 +3,9 @@ package com.s2i.data.model.auth
 import com.google.gson.annotations.SerializedName
 
 data class AuthData(
+
+    @SerializedName("user_id")
+    val userId: String,
     @SerializedName("name")
     val name: String,
     @SerializedName("username")
