@@ -127,7 +127,12 @@ fun VehiclesScreen(
                 // Mengirimkan List<VehicleModel> ke VehiclesItem
                 VehiclesItem(
                     vehiclesState = vehicles,  // Menggunakan List<VehicleModel> yang benar
-                    onAddVehicle = { /* aksi tambah kendaraan */ },
+                    onAddVehicle = { /* aksi tambah kendaraan */
+                        navController.navigate("intro_vehicle_screen") {
+                            // Pop up semua screen yang ada di atas HomeScreen (termasuk profile_screen)
+                            popUpTo("vehicle_screen") { inclusive = false }
+                        }
+                    },
                     onDisactive = { vehicleId ->
                         vehiclesViewModel.disableVehicles(vehicleId) // Panggil disable
                     },

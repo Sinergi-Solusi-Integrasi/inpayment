@@ -66,11 +66,7 @@ fun RegisterScreen(
     filePath: String? = null
 ) {
     // Collecting states from ViewModel
-    val base64s by authViewModel.base64Data.collectAsState()
-    val identityBitmap by authViewModel.identityBitmap.collectAsState()
     val imageFormat by authViewModel.imageFormat.collectAsState()
-    val mimeType by authViewModel.mimeType.collectAsState()
-    val ext by authViewModel.ext.collectAsState()
     var capturedPhoto by remember { mutableStateOf<Bitmap?>(null) }
 
 

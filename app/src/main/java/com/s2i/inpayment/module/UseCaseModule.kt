@@ -15,6 +15,7 @@ import com.s2i.domain.usecase.balance.GetHistoryBalanceUseCase
 import com.s2i.domain.usecase.balance.GetIncomeExpensesUseCase
 import com.s2i.domain.usecase.vehicles.GetVehiclesUseCase
 import com.s2i.domain.usecase.vehicles.EnableStatusUseCase
+import com.s2i.domain.usecase.vehicles.RegistVehiclesUseCase
 import com.s2i.domain.usecase.vehicles.GetDisableStatusUseCase
 import com.s2i.domain.usecase.wallet.CreateQrisUseCase
 import com.s2i.domain.usecase.wallet.OrderQueryQrisUseCase
@@ -34,6 +35,7 @@ val useCaseModule = module {
     factoryOf(::GetUsersUseCase)// Inject UsersRepository into GetUsersUseCase
     factoryOf(::GetVehiclesUseCase)// Inject VehiclesRepository into GetVehiclesUseCase
     factoryOf(::EnableStatusUseCase)// Inject VehiclesRepository into GetVehiclesUseCase
+    factoryOf(::RegistVehiclesUseCase)
     factoryOf(::GetDisableStatusUseCase)// Inject VehiclesRepository into GetVehiclesUseCase
     factoryOf(::GetNotificationTrxUseCase)// Inject VehiclesRepository into GetVehiclesUseCase
     factoryOf(::DevicesTokenUseCase)// Inject VehiclesRepository into GetVehiclesUseCase

@@ -16,6 +16,8 @@ data class VehiclesData(
     val model: String,
     @SerializedName("varian")
     val varian: String,
+    @SerializedName("name")
+    val nameVehicles: String? = null,
     @SerializedName("color")
     val color: String,
     @SerializedName("plate_number")

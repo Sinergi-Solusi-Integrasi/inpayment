@@ -2,6 +2,7 @@ package com.s2i.inpayment.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,6 +32,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.s2i.inpayment.ui.theme.gradientBrushCards
 
 @Composable
 fun KYCOptions(
@@ -40,7 +42,8 @@ fun KYCOptions(
     leadingImageVector: ImageVector? = null, // ImageVector for leading icon
     trailingIcon: Painter? = null, // Painter for trailing icon
     trailingImageVector: ImageVector? = null, // ImageVector for trailing icon
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val isHovered by remember { mutableStateOf(false) }
     Row(
@@ -54,22 +57,38 @@ fun KYCOptions(
             .clickable { onClick() }
             .padding(16.dp)
     ) {
-        // Leading Icon
-        if(leadingIcon != null) {
-            Icon(
-                painter = leadingIcon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(40.dp)
-            )
-        } else if(leadingImageVector != null) {
-            Icon(
-                imageVector = leadingImageVector,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(40.dp)
-            )
+        // Wrap with Box
+        if(leadingIcon != null || leadingImageVector != null) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(
+                        brush = gradientBrushCards(),
+                        shape = RoundedCornerShape(12.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+
+                // Leading Icon
+                if(leadingIcon != null) {
+                    Icon(
+                        painter = leadingIcon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else if(leadingImageVector != null) {
+                    Icon(
+                        imageVector = leadingImageVector,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+            }
         }
+
         Spacer(modifier = Modifier.width(16.dp))
 
         // Text content

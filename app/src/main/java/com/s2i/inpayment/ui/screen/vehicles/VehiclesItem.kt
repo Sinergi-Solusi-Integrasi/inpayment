@@ -28,6 +28,7 @@ fun VehiclesItem(
                 onDisactive = onDisactive,
                 onActive = onActive
             )
+            Spacer(modifier = Modifier.height(16.dp))
         }
         Spacer(modifier = Modifier.height(16.dp))
         IconButton(onClick = onAddVehicle) {

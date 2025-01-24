@@ -27,6 +27,8 @@ import com.s2i.inpayment.ui.screen.onboard.OnboardScreen
 import com.s2i.inpayment.ui.screen.permission.PermissionScreen
 import com.s2i.inpayment.ui.screen.profile.ProfileScreen
 import com.s2i.inpayment.ui.screen.splash.SplashScreen
+import com.s2i.inpayment.ui.screen.vehicles.ImageVehiclesScreen
+import com.s2i.inpayment.ui.screen.vehicles.IntroAddVehiclesScreen
 import com.s2i.inpayment.ui.screen.vehicles.VehiclesScreen
 import com.s2i.inpayment.ui.screen.wallet.DetailTransactionScreen
 import com.s2i.inpayment.ui.screen.wallet.PaymentMethodsScreen
@@ -117,11 +119,20 @@ fun AppNavigation(
         composable("kyc_intro_screen") {
             KYCIntroScreen(navController = navController)
         }
+
+        composable("kyc_camera_screen") {
+            KycCameraScreen(navController = navController)
+        }
+
         composable("vehicles_screen") {
             VehiclesScreen(navController = navController)
         }
-        composable("kyc_camera_screen") {
-            KycCameraScreen(navController = navController)
+
+        composable("intro_vehicle_screen") {
+            IntroAddVehiclesScreen(navController = navController)
+        }
+        composable("image_vehicle_screen") {
+            ImageVehiclesScreen(navController = navController)
         }
         composable("permission_screen") {
             PermissionScreen(navController = navController)

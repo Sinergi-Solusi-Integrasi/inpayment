@@ -62,22 +62,6 @@ class AuthViewModel(
     private val _ext = MutableStateFlow<String?>(null)
     val ext: StateFlow<String?> = _ext
 
-    // New function to fetch data
-    fun fetchBitmap(): Bitmap? {
-        return _identityBitmap.value
-    }
-
-    fun fetchImageFormat(): Bitmap.CompressFormat? {
-        return _imageFormat.value
-    }
-
-    fun fetchMimeType(): String? {
-        return _mimeType.value
-    }
-
-    fun fetchExt(): String? {
-        return _ext.value
-    }
 
 
     fun updateIdentityData(base64Data: String, bitmap: Bitmap, format: Bitmap.CompressFormat, mimeType: String, ext: String) {
