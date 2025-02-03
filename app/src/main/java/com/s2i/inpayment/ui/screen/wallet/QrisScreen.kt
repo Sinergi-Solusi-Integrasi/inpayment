@@ -1,15 +1,22 @@
 package com.s2i.inpayment.ui.screen.wallet
 
-
+import android.content.ContentValues
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.widget.ImageView
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
@@ -21,23 +28,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.s2i.common.utils.convert.RupiahFormatter
 import com.s2i.data.local.auth.SessionManager
-import com.s2i.inpayment.MainActivity
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.ReusableBottomSheet
 import com.s2i.inpayment.ui.components.services.notifications.NotificationWorker
@@ -45,7 +46,12 @@ import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import com.s2i.inpayment.ui.viewmodel.QrisViewModel
 import com.s2i.inpayment.utils.NotificationManagerUtil
 import com.s2i.inpayment.utils.helper.generateQRCode
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import java.io.OutputStream
+import androidx.compose.ui.draw.clip
+import com.s2i.inpayment.ui.components.permission.hasAllPermissions
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -86,6 +92,26 @@ fun QrisScreen(
             }
         }
     )
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (!isGranted) {
+            Toast.makeText(context, "Izin diperlukan untuk menyimpan QRIS", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+//    LaunchedEffect(Unit) {
+//        while (true) {
+//            val allPermissionsGranted = hasAllPermissions(context)
+//            if (!allPermissionsGranted) {
+//                navController.navigate("permission_screen") {
+//                    popUpTo("home_screen") { inclusive = true }
+//                }
+//            }
+//            delay(1000) // Check every second
+//        }
+//    }
 
     // Simulate loading on startup
     LaunchedEffect(Unit) {
@@ -178,24 +204,57 @@ fun QrisScreen(
             )
         },
         bottomBar = {
-            // Bottom Bar (Tombol Lanjut)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color.White)
                     .padding(16.dp)
-                    .navigationBarsPadding()  // Hindari tertutup oleh system bar
+                    .navigationBarsPadding()
             ) {
+//                Button(
+//                    onClick = {
+//                        if (ContextCompat.checkSelfPermission(
+//                                context,
+//                                android.Manifest.permission.READ_MEDIA_IMAGES
+//                            ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+//                        ) {
+//                            permissionLauncher.launch(android.Manifest.permission.READ_MEDIA_IMAGES)
+//                        }
+//                        else {
+//                            saveQRCode(context, qrisState)
+//                        }
+//
+//                    },
+//                    modifier = Modifier.fillMaxWidth()
+//                ) {
+//                    Text("Download")
+//                }
+
                 Button(
-                    onClick = { /* Aksi ketika tombol lanjut ditekan */ },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = isValidAmount,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isValidAmount) MaterialTheme.colorScheme.primary else Color.LightGray
-                    )
+                    onClick = {
+                        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            android.Manifest.permission.READ_MEDIA_IMAGES
+                        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                            android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                        } else {
+                            android.Manifest.permission.READ_EXTERNAL_STORAGE
+                        }
+
+                        if (ContextCompat.checkSelfPermission(
+                                context,
+                                permission
+                            ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+                        ) {
+                            permissionLauncher.launch(permission)
+                        } else {
+                            saveQRCode(context, qrisState)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Download")
                 }
+
             }
         }
     ) { innerPadding ->
@@ -346,6 +405,101 @@ fun QrisScreen(
                 }
             }
         )
+    }
+}
+
+//private fun saveQRCode(context: Context, qrisState: String?) {
+//    if (qrisState == null) {
+//        Toast.makeText(context, "QRIS tidak tersedia.", Toast.LENGTH_SHORT).show()
+//        return
+//    }
+//
+//    val bitmap = generateQRCode(qrisState)
+//    val contentValues = ContentValues().apply {
+//        put(MediaStore.Images.Media.DISPLAY_NAME, "QRIS_${System.currentTimeMillis()}.jpg")
+//        put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+//        put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/INPayment")
+//        put(MediaStore.Images.Media.IS_PENDING, 1)
+//    }
+//
+//    val resolver = context.contentResolver
+//    val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+//
+//    if (uri != null) {
+//        var outputStream: OutputStream? = null
+//        try {
+//            outputStream = resolver.openOutputStream(uri)
+//            if (outputStream != null) {
+//                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+//            }
+//            contentValues.clear()
+//            contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
+//            resolver.update(uri, contentValues, null, null)
+//            Toast.makeText(context, "QRIS berhasil disimpan ke galeri!", Toast.LENGTH_SHORT).show()
+//        } catch (e: Exception) {
+//            Toast.makeText(context, "Gagal menyimpan QRIS: ${e.message}", Toast.LENGTH_SHORT).show()
+//        } finally {
+//            outputStream?.close()
+//        }
+//    }
+//}
+
+private fun saveQRCode(context: Context, qrisState: String?) {
+    if (qrisState == null) {
+        Toast.makeText(context, "QRIS tidak tersedia.", Toast.LENGTH_SHORT).show()
+        return
+    }
+
+    // Generate QRIS Bitmap
+    val qrCodeBitmap = generateQRCode(qrisState)
+    val templateBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.template_qris)
+
+    // Tentukan ukuran QR Code yang proporsional dengan template
+    val qrCodeSize = (templateBitmap.width * 0.9).toInt() // 90% dari lebar template
+    val scaledQRCodeBitmap = Bitmap.createScaledBitmap(qrCodeBitmap, qrCodeSize, qrCodeSize, true)
+
+    // Gabungkan QRIS dan template
+    val combinedBitmap = Bitmap.createBitmap(
+        templateBitmap.width,
+        templateBitmap.height,
+        Bitmap.Config.ARGB_8888
+    )
+
+    val canvas = Canvas(combinedBitmap)
+    canvas.drawBitmap(templateBitmap, 0f, 0f, null)
+
+    // Hitung posisi QR Code agar berada di tengah template
+    val left = (templateBitmap.width - scaledQRCodeBitmap.width) / 2f
+    val top = (templateBitmap.height - scaledQRCodeBitmap.height) / 2f
+    canvas.drawBitmap(scaledQRCodeBitmap, left, top, null)
+
+    // Simpan bitmap yang sudah digabungkan ke galeri
+    val contentValues = ContentValues().apply {
+        put(MediaStore.Images.Media.DISPLAY_NAME, "QRIS_${System.currentTimeMillis()}.jpg")
+        put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+        put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/INPayment")
+        put(MediaStore.Images.Media.IS_PENDING, 1)
+    }
+
+    val resolver = context.contentResolver
+    val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+
+    if (uri != null) {
+        var outputStream: OutputStream? = null
+        try {
+            outputStream = resolver.openOutputStream(uri)
+            if (outputStream != null) {
+                combinedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+            }
+            contentValues.clear()
+            contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
+            resolver.update(uri, contentValues, null, null)
+            Toast.makeText(context, "QRIS berhasil disimpan ke galeri!", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(context, "Gagal menyimpan QRIS: ${e.message}", Toast.LENGTH_SHORT).show()
+        } finally {
+            outputStream?.close()
+        }
     }
 }
 
