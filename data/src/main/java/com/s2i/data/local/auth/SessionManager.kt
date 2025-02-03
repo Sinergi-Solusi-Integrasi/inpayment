@@ -8,11 +8,17 @@ import android.security.keystore.KeyProperties
 import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.s2i.domain.usecase.auth.TokenUseCase
 import com.securepreferences.SecurePreferences
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.text.SimpleDateFormat
 import java.util.*
 
-class SessionManager(context: Context) {
+class SessionManager(
+    context: Context
+): KoinComponent {
+    private val tokenUseCase: TokenUseCase by inject()
     private var pref: SharedPreferences = createPreferences(context)
     private var editor: SharedPreferences.Editor = pref.edit()
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.getDefault())
@@ -124,6 +130,30 @@ class SessionManager(context: Context) {
             .putString(KEY_ACCESS_TOKEN_EXPIRY, newExpiry)
             .apply()
         Log.d("SessionManager", "Updated AccessToken and Expiry.")
+    }
+
+    suspend fun checkAndHandleSessionExpired(): Boolean {
+        return if (isAccessTokenExpired()){
+            Log.d("SessionManager", "Access Token expired. Refershing token...")
+            val result = tokenUseCase.refreshAccessTokenIfNeeded()
+
+            if (result.isSuccess) {
+                Log.d("SessionManager", "Token refreshed successfully.")
+                false // Token berhasil diperbarui, jangan logout
+            } else {
+                Log.e("SessionManager", "Failed to refresh token. Checking refreshToken...")
+                // Jika refreshToken juga expired, baru logout
+                if (isRefreshTokenExpired()){
+                    Log.e("SessionManager", "RefreshToken also expired. Logging out user.")
+                    logout()
+                    true
+                } else {
+                    false // Masih bisa dicoba lagi nanti
+                }
+            }
+        } else {
+            false
+        }
     }
 
     // Logout user by clearing the session data

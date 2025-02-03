@@ -278,7 +278,11 @@ private fun KycCameraContent(
                                 // Convert the image to Bitmap and Base64
                                 val bitmap = BitmapFactory.decodeFile(photoFile.absolutePath)
                                 // Correct orientation
-                                val correctedBitmap = correctImageOrientation(photoFile.absolutePath, bitmap)
+                                val correctedBitmap = correctImageOrientation(context, photoFilePath)
+                                if (correctedBitmap == null) {
+                                    Log.e("ImageProcessing", "❌ Bitmap null, tidak bisa diproses")
+                                    return
+                                }
 
                                 capturedPhoto = correctedBitmap
 
@@ -339,91 +343,91 @@ private fun KycCameraContent(
             },
             modifier = Modifier.align(Alignment.BottomCenter)
         )
-            if (capturedPhoto != null) {
-                Log.d("ReusableBottomSheet", "Displaying bottom sheet with captured image")
-                ReusableBottomSheet(
-                    message = "Captured Image",
-                    sheetState = sheetState,
-                    onDismiss = {
-                        Log.d("ReusableBottomSheet", "Bottom sheet dismissed")
-                        coroutineScope.launch {
-                            if (!isLoading) {
-                                sheetState.hide()
-                                capturedPhoto = null
-                            } else {
-                                capturedPhoto = null
-                            }
-                        }
-                    }
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        capturedPhoto?.let { bitmap ->
-                            Image(
-                                bitmap = bitmap.asImageBitmap(),
-                                contentDescription = "Captured Photo",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .aspectRatio(16f / 9f)
-                                    .padding(8.dp),
-                                contentScale = ContentScale.Crop
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Button(
-                            onClick = {
-                                capturedPhoto?.let { bitmap ->
-                                    isLoading = true // Start loading when button is clicked
-                                    coroutineScope.launch {
-                                        delay(1000) // Simulating data processing/loading
-                                        val (base64Data, ext, mimeType) = bitmapToBase64WithFormat(
-                                            bitmap,
-                                            Bitmap.CompressFormat.JPEG
-                                        )
-
-                                        val safeDetectedText = detectedText.ifEmpty { "Unknown_NIK" }
-                                        val safeExtractedName = extractedName.ifEmpty { "Unknown_Name" }
-                                        delay(2000)
-                                        if (safeDetectedText.isNotEmpty() && safeExtractedName.isNotEmpty()) {
-                                            sheetState.hide()
-                                            if (bitmap != null && mimeType != null && ext != null) {
-                                                navController.navigate("register_screen/$safeDetectedText/$safeExtractedName?filePath=$photoFilePath")
-                                                Log.d("Navigation", "register_screen/$safeDetectedText/$safeExtractedName?filePath=$photoFilePath")
-                                            } else {
-                                                Log.e("NavigationError", "One or more parameters are invalid!")
-                                            }
-                                        } else {
-                                            Log.e("NavigationError", "One or more parameters are invalid!")
-                                        }
-                                        isLoading = false // Stop loading after data is processed
-                                    }
-                                } ?: Log.e("NavigationError", "Captured photo is null!")
-                            },
-                            enabled = !isLoading && !photoFilePath.isNullOrBlank()
-                        ) {
-                            if (isLoading) {
-                                CircularProgressIndicator(
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            } else {
-                                Text("Selanjutnya")
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Button(onClick = {
-                            coroutineScope.launch { sheetState.hide() }
+        if (capturedPhoto != null) {
+            Log.d("ReusableBottomSheet", "Displaying bottom sheet with captured image")
+            ReusableBottomSheet(
+                message = "Captured Image",
+                sheetState = sheetState,
+                onDismiss = {
+                    Log.d("ReusableBottomSheet", "Bottom sheet dismissed")
+                    coroutineScope.launch {
+                        if (!isLoading) {
+                            sheetState.hide()
                             capturedPhoto = null
-                        }) {
-                            Text("Foto Ulang")
+                        } else {
+                            capturedPhoto = null
                         }
                     }
                 }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    capturedPhoto?.let { bitmap ->
+                        Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = "Captured Photo",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(16f / 9f)
+                                .padding(8.dp),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = {
+                            capturedPhoto?.let { bitmap ->
+                                isLoading = true // Start loading when button is clicked
+                                coroutineScope.launch {
+                                    delay(1000) // Simulating data processing/loading
+                                    val (base64Data, ext, mimeType) = bitmapToBase64WithFormat(
+                                        bitmap,
+                                        Bitmap.CompressFormat.JPEG
+                                    )
+
+                                    val safeDetectedText = detectedText.ifEmpty { "Unknown_NIK" }
+                                    val safeExtractedName = extractedName.ifEmpty { "Unknown_Name" }
+                                    delay(2000)
+                                    if (safeDetectedText.isNotEmpty() && safeExtractedName.isNotEmpty()) {
+                                        sheetState.hide()
+                                        if (bitmap != null && mimeType != null && ext != null) {
+                                            navController.navigate("register_screen/$safeDetectedText/$safeExtractedName?filePath=$photoFilePath")
+                                            Log.d("Navigation", "register_screen/$safeDetectedText/$safeExtractedName?filePath=$photoFilePath")
+                                        } else {
+                                            Log.e("NavigationError", "One or more parameters are invalid!")
+                                        }
+                                    } else {
+                                        Log.e("NavigationError", "One or more parameters are invalid!")
+                                    }
+                                    isLoading = false // Stop loading after data is processed
+                                }
+                            } ?: Log.e("NavigationError", "Captured photo is null!")
+                        },
+                        enabled = !isLoading && !photoFilePath.isNullOrBlank()
+                    ) {
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        } else {
+                            Text("Selanjutnya")
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(onClick = {
+                        coroutineScope.launch { sheetState.hide() }
+                        capturedPhoto = null
+                    }) {
+                        Text("Foto Ulang")
+                    }
+                }
             }
+        }
     }
 }
 

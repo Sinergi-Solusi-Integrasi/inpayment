@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 data class VehicleModel(
     val vehicleId: String? = null,
     val statusVehiclesId: String? = null,
-    val ownserUserId: String? = null,
+    val ownerUserId: String? = null,
     val borrowerUserId: String? = null,
     val brand: String? = null,
     val model: String? = null,

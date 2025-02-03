@@ -14,10 +14,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -33,11 +35,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.s2i.inpayment.ui.components.ReusableBottomSheet
 import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
 import com.s2i.inpayment.ui.viewmodel.VehiclesViewModel
 import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VehiclesScreen(
     navController: NavController,
@@ -48,6 +52,8 @@ fun VehiclesScreen(
     val disableState = vehiclesViewModel.disableVehiclesState.collectAsState()
     val loading by vehiclesViewModel.loading.collectAsState()
     var isStartupLoading by remember { mutableStateOf(true) }
+    var selectedVehicleId by remember { mutableStateOf<String?>(null) }
+    var showBottomSheet by remember { mutableStateOf(false) }
     var isRefreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
@@ -65,6 +71,10 @@ fun VehiclesScreen(
             isStartupLoading = false
             vehiclesViewModel.fetchVehicles()
         }
+    }
+
+    LaunchedEffect(Unit){
+        vehiclesViewModel.fetchVehicles()
     }
 
     Box(
@@ -138,9 +148,22 @@ fun VehiclesScreen(
                     },
                     onActive = { vehicleId ->
                         vehiclesViewModel.enableVehicles(vehicleId) // Panggil enable
+                    },
+                    onShowDetail = { vehicleId ->
+                        selectedVehicleId = vehicleId
+                        showBottomSheet = true
                     }
                 )
             }
+        }
+    }
+
+    if (showBottomSheet && selectedVehicleId != null) {
+        ReusableBottomSheet(
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            onDismiss = { showBottomSheet = false }
+        ) {
+            DetailVehiclesScreen(navController, selectedVehicleId!!, vehiclesViewModel)
         }
     }
 }

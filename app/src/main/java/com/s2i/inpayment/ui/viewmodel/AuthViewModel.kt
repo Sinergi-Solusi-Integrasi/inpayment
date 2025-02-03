@@ -1,11 +1,15 @@
 package com.s2i.inpayment.ui.viewmodel
 
+import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.Log
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.s2i.common.utils.convert.ImageCompressor
 import com.s2i.common.utils.convert.bitmapToBase64WithFormat
 import com.s2i.data.local.auth.SessionManager
 import com.s2i.domain.entity.model.auth.AuthLogoutModel
@@ -16,11 +20,13 @@ import com.s2i.domain.entity.model.users.UsersModel
 import com.s2i.domain.usecase.auth.LoginUseCase
 import com.s2i.domain.usecase.auth.LogoutUseCase
 import com.s2i.domain.usecase.auth.RegisterUseCase
+import com.s2i.inpayment.utils.helper.workmanager.TokenWorkManagerUtil
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class AuthViewModel(
+    private val context: Context,
     private val loginUseCase: LoginUseCase,
     private val registerUseCase: RegisterUseCase,
     private val logoutUseCase: LogoutUseCase,
@@ -99,6 +105,8 @@ class AuthViewModel(
                         username = authModel.username,
                         userId = authModel.userId
                     )
+                    // Start WorkManager setelah login berhasil
+                    TokenWorkManagerUtil.startWorkManager(context)
                     Log.d("AuthViewModel", "Session updated. isLogin: ${sessionManager.isLogin}")
                 },
                 onFailure = { throwable ->

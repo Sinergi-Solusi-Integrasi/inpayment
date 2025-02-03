@@ -46,9 +46,14 @@ dependencies {
     implementation("io.insert-koin:koin-core-viewmodel")
 
 
+    implementation(libs.glide)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
+
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.exifinterface)
+    implementation(libs.volley)
     ksp(libs.androidx.room.compiler)  // KSP for Room annotation processing
     implementation(libs.androidx.room.paging)
     implementation(libs.androidx.room.ktx)

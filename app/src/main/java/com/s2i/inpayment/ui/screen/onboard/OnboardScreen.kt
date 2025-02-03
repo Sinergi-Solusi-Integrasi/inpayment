@@ -28,6 +28,7 @@ import androidx.navigation.NavController
 import com.s2i.inpayment.ui.components.onboardingPages
 import com.s2i.inpayment.ui.theme.DarkTeal21
 import com.s2i.inpayment.ui.theme.GreenTeal21
+import com.s2i.inpayment.ui.theme.GreenTeal40
 import kotlinx.coroutines.delay
 
 @Composable
@@ -56,7 +57,7 @@ fun OnboardScreen(navController: NavController) {
         Text(
             text = "Skip",
             fontSize = 18.sp,
-            color = GreenTeal21,
+            color = GreenTeal40,
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = 48.dp, end = 16.dp) // Moved down
@@ -141,7 +142,7 @@ fun OnboardScreen(navController: NavController) {
                     modifier = Modifier
                         .size(50.dp), // This will make the button circular with 56dp diameter
                     contentPadding = PaddingValues(0.dp), // Padding for spacing from the edge
-                    colors = ButtonDefaults.buttonColors(containerColor = GreenTeal21)
+                    colors = ButtonDefaults.buttonColors(containerColor = GreenTeal40)
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos, // Replace with the appropriate icon for "Next"

@@ -172,7 +172,7 @@ fun IntroAddVehiclesScreen(
                 leadingIcon = painterResource( id = R.drawable.ic_cars),
                 trailingImageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
                 onClick = { /* TODO: Navigasi untuk menambah kendaraan */
-                    navController.navigate("image_vehicle_screen") {
+                    navController.navigate("doc_camera_screen") {
                         popUpTo("intro_vehicle_screen") { inclusive = true }
                     }
                 },

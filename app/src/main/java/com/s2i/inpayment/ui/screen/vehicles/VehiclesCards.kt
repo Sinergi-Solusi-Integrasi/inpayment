@@ -81,7 +81,8 @@ import org.koin.compose.getKoin
 fun VehiclesCards(
     vehiclesState: VehicleModel?,
     onDisactive: (String) -> Unit,
-    onActive: (String) -> Unit
+    onActive: (String) -> Unit,
+    onShowDetail: (String) -> Unit // Tambahkan parameter untuk membuka detail kendaraan
 ) {
     val imageLoader: ImageLoader = getKoin().get()
     val swipeOffsetX = remember { mutableFloatStateOf(0f) }
@@ -193,7 +194,15 @@ fun VehiclesCards(
                             }
                         )
                     }
-                    .clickable { vehiclesState?.let { toggleVehicleStatus(it.vehicleId!!) } }
+                    .clickable {
+                        vehiclesState?.let {
+                            if (isPartialSwipe.value) {
+                                toggleVehicleStatus(it.vehicleId!!)
+                            } else {
+                                onShowDetail(it.vehicleId!!)
+                            }
+                        }
+                    }
                     .offset { IntOffset(swipeOffsetX.value.toInt(), 0) },
                 colors = CardDefaults.cardColors(
                     containerColor = if (vehiclesState?.status == "ACTIVE") Color(0xFF00579C) else Color.White

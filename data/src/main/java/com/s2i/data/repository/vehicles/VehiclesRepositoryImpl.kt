@@ -28,7 +28,7 @@ class VehiclesRepositoryImpl(
         val vehicles = responseData.map { vehicleData ->
             VehicleModel(
                 vehicleId = vehicleData.vehicleId,
-                ownserUserId = vehicleData.ownserUserId,
+                ownerUserId = vehicleData.ownerUserId,
                 borrowerUserId = vehicleData.borrowerUserId,
                 brand = vehicleData.brand,
                 model = vehicleData.model,
@@ -80,17 +80,17 @@ class VehiclesRepositoryImpl(
 
         // Document Image
         val documentImageData = BlobImageData(
-            data = "data:${documentImage.mimeType};base64,${documentImage.data}",
             ext = documentImage.ext,
-            mimeType = documentImage.mimeType
+            mimeType = documentImage.mimeType,
+            data = "data:${documentImage.mimeType};base64,${documentImage.data}"
         )
 
         // Vehicle Images
         val vehicleImageDataList = vehicleImages.map { vehicleImage ->
             BlobImageData(
-                data = "data:${vehicleImage.mimeType};base64,${vehicleImage.data}",
                 ext = vehicleImage.ext,
-                mimeType = vehicleImage.mimeType
+                mimeType = vehicleImage.mimeType,
+                data = "data:${vehicleImage.mimeType};base64,${vehicleImage.data}"
             )
         }
 

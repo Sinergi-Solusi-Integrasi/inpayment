@@ -10,6 +10,6 @@ val appModule = module {
     includes(
         viewModule,
         repoModule,
-        useCaseModule,
+        useCaseModule
     )
 }
