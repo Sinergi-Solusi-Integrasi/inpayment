@@ -257,7 +257,7 @@ fun PaymentScreen(
                                         )
 
                                         // Validasi jumlah
-                                        isValidAmount = inputAmount in BigInteger("100")..BigInteger("2000000000")
+                                        isValidAmount = inputAmount in BigInteger("1000000")..BigInteger("2000000000")
                                         errorMessage = if (isValidAmount) null else "Minimal Rp 10.000 dan Maksimal Rp 20.000.000"
                                     } else if (newValue.text.isEmpty()) { // Jika teks kosong
                                         rawAmount = ""
