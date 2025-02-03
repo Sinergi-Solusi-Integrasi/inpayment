@@ -31,7 +31,7 @@ class UsersProfileRepositoryImpl(
                 selectVehicle = responseData.selectVehicle?.let { vehicles ->
                     VehicleModel(
                         vehicleId = vehicles.vehicleId,
-                        ownserUserId = vehicles.ownserUserId,
+                        ownerUserId = vehicles.ownerUserId,
                         borrowerUserId = vehicles.borrowerUserId,
                         brand = vehicles.brand,
                         model = vehicles.model,
@@ -52,7 +52,7 @@ class UsersProfileRepositoryImpl(
                     )
                 } ?: VehicleModel(
                     vehicleId = "",
-                    ownserUserId = "",
+                    ownerUserId = "",
                     borrowerUserId = null,
                     brand = "",
                     model = "",

@@ -4,6 +4,7 @@ import com.s2i.data.model.balance.InOutBalanceData
 import com.s2i.data.remote.request.auth.LogoutRequest
 import com.s2i.data.remote.request.auth.RegisterRequest
 import com.s2i.data.remote.request.services.DevicesTokenRequest
+import com.s2i.data.remote.request.vehicle.VehiclesAddRequest
 import com.s2i.data.remote.request.wallet.TopupRequest
 import com.s2i.data.remote.response.auth.LoginResponse
 import com.s2i.data.remote.response.auth.LogoutResponse
@@ -19,6 +20,7 @@ import com.s2i.data.remote.response.notification.services.BindingAccountResponse
 import com.s2i.data.remote.response.notification.services.RegisterDevicesResponse
 import com.s2i.data.remote.response.users.ProfileResponse
 import com.s2i.data.remote.response.users.UsersResponse
+import com.s2i.data.remote.response.vehicles.AddVehiclesResponse
 import com.s2i.data.remote.response.vehicles.SelectedVehiclesResponse
 import com.s2i.data.remote.response.vehicles.VehiclesResponse
 import com.s2i.data.remote.response.wallet.TopupResponse
@@ -86,6 +88,22 @@ interface ApiServices {
     @PUT("vehicles/selected")
     suspend fun vehiclesSwitchSelected(
     ): VehiclesResponse
+
+    // Add new Vehicles
+    @POST("vehicles/register")
+    suspend fun addVehicles(
+        @Body vehiclesRegis: VehiclesAddRequest
+    ): AddVehiclesResponse
+
+    //vehicles lend
+    @POST("vehicles/lend/{vehicle_id}")
+    suspend fun vehiclesLend(
+        @Path("vehicle_id") vehicleId: String,
+        @Body vehiclesLend: VehiclesAddRequest
+    ) : VehiclesResponse
+
+    // Claims lend vehicles
+//    @POST("vehicles/lend/claim")
 
     // PUT Vehicles disable
     @PATCH("vehicles/{vehicle_id}/disable")

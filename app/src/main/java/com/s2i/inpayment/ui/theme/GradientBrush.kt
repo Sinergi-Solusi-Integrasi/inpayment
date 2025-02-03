@@ -14,6 +14,15 @@ fun gradientBrush(): Brush {
     )
 }
 
+// Gradient Brush Card Intro
+fun gradientBrushCards(): Brush {
+    return Brush.linearGradient(
+        colors = listOf(GreenTealLight20, GreenSkyLight21),
+        start = Offset(0f, 0f), // Koordinat awal
+        end = Offset(0f, 1000f) // Koordinat akhir untuk orientasi vertikal
+    )
+}
+
 // Gradient untuk Income (Hijau)
 fun inComeGradient(size: IntSize): Brush {
     val center = Offset(size.width / 2f, size.height / 2f)  // Menentukan pusat dari container

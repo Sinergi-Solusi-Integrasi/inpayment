@@ -73,6 +73,7 @@ import com.s2i.inpayment.ui.viewmodel.HomeViewModel
 import com.s2i.inpayment.ui.viewmodel.NotificationsViewModel
 import com.s2i.inpayment.ui.viewmodel.ServicesViewModel
 import com.s2i.inpayment.utils.NotificationManagerUtil
+import com.s2i.inpayment.utils.helper.workmanager.TokenWorkManagerUtil
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -93,7 +94,7 @@ fun HomeScreen(
     notificationViewModel: NotificationsViewModel = koinViewModel(),
     servicesViewModel: ServicesViewModel = koinViewModel(),
     username: String,
-    sessionManager: SessionManager
+    sessionManager: SessionManager,
 ) {
 
     var isStartupLoading by remember { mutableStateOf(true) }
@@ -153,9 +154,18 @@ fun HomeScreen(
     var isBalanceValid by remember { mutableStateOf(true) }
 
 
-    LaunchedEffect(sessionManager.isLogin) {
-        if (!sessionManager.isLogin) {
+    // WorkManager akan mulai hanya jika belum berjalan
+    LaunchedEffect(Unit) {
+        TokenWorkManagerUtil.startWorkManager(context)
+        Log.d("HomeScreen", "TokenWorkManger : ${TokenWorkManagerUtil.startWorkManager(context)}")
+    }
+
+
+    LaunchedEffect(Unit) {
+        val isSessionExpired = sessionManager.checkAndHandleSessionExpired()
+        if (isSessionExpired) {
             Log.d("HomeScreen", "User is not logged in. Redirecting to login_screen.")
+            TokenWorkManagerUtil.stopWorkManager(context) // Stop WorkManager jika user logout
             navController.navigate("login_screen") {
                 popUpTo("home_screen") { inclusive = true }
             }
@@ -172,17 +182,30 @@ fun HomeScreen(
             balanceViewModel.fetchInComeExpenses()
         }
     }
-//
+
+
 //    LaunchedEffect(Unit) {
-//        // Setelah token terkirim, lakukan bindAccount
-//        val deviceId = sessionManager.getFromPreference(SessionManager.KEY_DEVICE_ID)
-//        if (!deviceId.isNullOrBlank()) {
-//            Log.d("HomeScreen", "Device ID: $deviceId, proceeding to bind account.")
-//            servicesViewModel.bindAccount(deviceId)
+//        if (!sessionManager.isLogin || sessionManager.isAccessTokenExpired() && sessionManager.isRefreshTokenExpired()) {
+//            Log.d("HomeScreen", "User is not logged in. Redirecting to login_screen.")
+//            TokenWorkManagerUtil.stopWorkManager(context) // Stop WorkManager jika user logout
+//            sessionManager.logout()
+//            navController.navigate("login_screen") {
+//                popUpTo("home_screen") { inclusive = true }
+//            }
 //        } else {
-//            Log.e("HomeScreen", "Device ID not found after registration")
+//            val deviceId = sessionManager.getFromPreference(SessionManager.KEY_DEVICE_ID)
+//            if (!deviceId.isNullOrBlank()) {
+//                Log.d("HomeScreen", "Device ID: $deviceId, proceeding to bind account.")
+//                servicesViewModel.bindAccount(deviceId)
+//            } else {
+//                Log.e("HomeScreen", "Device ID not found after registration")
+//            }
+//            balanceViewModel.fetchBalance()
+//            balanceViewModel.fetchTriLastTransaction()
+//            balanceViewModel.fetchInComeExpenses()
 //        }
 //    }
+
 
     // Menangani hasil response BindingModel
     bindingState?.let { bindingModel ->

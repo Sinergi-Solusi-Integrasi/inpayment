@@ -10,6 +10,8 @@ import androidx.compose.ui.graphics.Color
 //val DarkTeal40 = Color(0xFF11526B)
 val DarkTeal40 = Color(0xFF064530)
 val GreenTeal40 = Color(0xFF007419)
+val GreenTealLight20 = Color(0xFF48BC13)
+val GreenSkyLight21 = Color(0xFF49A902)
 val Red500 = Color(0xFFf44336)
 val GreenTeal21 = Color(0xFF35FE24)
 val White40 = Color(0xFFE5E2E2)

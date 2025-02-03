@@ -74,7 +74,7 @@ dependencies {
     implementation(libs.accompanist.permissions)
 
     // CameraX core library using the camera2 implementation
-    val camerax_version = "1.5.0-alpha03"
+    val camerax_version = "1.5.0-alpha05"
     // The following line is optional, as the core library is included indirectly by camera-camera2
     implementation("androidx.camera:camera-core:${camerax_version}")
     implementation("androidx.camera:camera-camera2:${camerax_version}")
@@ -90,7 +90,7 @@ dependencies {
     implementation("androidx.camera:camera-extensions:${camerax_version}")
 
     // Import the Firebase BoM
-    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation(platform("com.google.firebase:firebase-bom:33.8.0"))
 
 
     // TODO: Add the dependencies for Firebase products you want to use
@@ -154,6 +154,10 @@ dependencies {
     implementation(libs.glide)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+
+    implementation("com.google.accompanist:accompanist-pager:0.30.1")
+    implementation("com.google.accompanist:accompanist-pager-indicators:0.30.1")
+
 
 
     // Optional - Included automatically by material, only add when you need

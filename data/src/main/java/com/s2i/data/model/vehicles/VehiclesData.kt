@@ -7,7 +7,7 @@ data class VehiclesData(
     @SerializedName("id")
     val vehicleId: String,
     @SerializedName("owner_user_id")
-    val ownserUserId: String,
+    val ownerUserId: String,
     @SerializedName("borrower_user_id")
     val borrowerUserId: String? = null,
     @SerializedName("brand")
@@ -16,6 +16,8 @@ data class VehiclesData(
     val model: String,
     @SerializedName("varian")
     val varian: String,
+    @SerializedName("name")
+    val nameVehicles: String? = null,
     @SerializedName("color")
     val color: String,
     @SerializedName("plate_number")

@@ -66,11 +66,8 @@ fun RegisterScreen(
     filePath: String? = null
 ) {
     // Collecting states from ViewModel
-    val base64s by authViewModel.base64Data.collectAsState()
-    val identityBitmap by authViewModel.identityBitmap.collectAsState()
+    val context = LocalContext.current
     val imageFormat by authViewModel.imageFormat.collectAsState()
-    val mimeType by authViewModel.mimeType.collectAsState()
-    val ext by authViewModel.ext.collectAsState()
     var capturedPhoto by remember { mutableStateOf<Bitmap?>(null) }
 
 
@@ -98,7 +95,7 @@ fun RegisterScreen(
 
     val corectedBitmap =
         if (bitmap != null) {
-            correctImageOrientation(filePath?: "", bitmap)
+            correctImageOrientation(context,filePath?: "")
         } else {
             Log.d("RegisterScreen", "Bitmap is null")
             null
@@ -126,8 +123,10 @@ fun RegisterScreen(
     var isValidEmail by remember { mutableStateOf(true) }
     var isValidPassword by remember { mutableStateOf(true) }
     var isPasswordsMatch by remember { mutableStateOf(true) }
+    var isUsernameValid by remember { mutableStateOf(true) }
     val isFormValid = email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty() &&
-            username.isNotEmpty() && isValidEmail && isValidPassword && isPasswordsMatch
+            username.isNotEmpty() && isValidEmail && isValidPassword && isPasswordsMatch && isUsernameValid
+
 
     LaunchedEffect(identityNumberState, nameState) {
         // Validasi Identity Number
@@ -292,8 +291,12 @@ fun RegisterScreen(
 
                         OutlinedTextField(
                             value = username,
-                            onValueChange = { username = it },
+                            onValueChange = {
+                                username = it
+                                isUsernameValid = it.length >= 6
+                            },
                             label = { Text("Username") },
+                            isError = !isUsernameValid,
                             modifier = Modifier.fillMaxWidth()
                         )
                         Spacer(modifier = Modifier.height(16.dp))

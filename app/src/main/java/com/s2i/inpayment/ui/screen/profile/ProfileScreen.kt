@@ -1,5 +1,8 @@
 package com.s2i.inpayment.ui.screen.profile
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,6 +25,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCarFilled
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -163,6 +167,8 @@ fun ProfileCard(
     scope: CoroutineScope,
     usersState: ProfileModel?
 ) {
+
+    val context = LocalContext.current
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -181,19 +187,37 @@ fun ProfileCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Hai, ${usersState?.name ?: "Guest"}",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = Color.Black
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Account Number Options",
+                            modifier = Modifier.clickable {
+                                val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                val clip = ClipData.newPlainText("Account Number", usersState?.accountNumber ?: "")
+                                clipboardManager.setPrimaryClip(clip)
+                            }
+                        )
+                    }
                     Text(
-                        text ="Hai, ${usersState?.name ?: "Guest"}",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        color = Color.Black
+                        text = "Account: ${usersState?.accountNumber ?: "-"}",
+                        fontSize = 14.sp,
+                        color = Color.Gray
                     )
+
                     Text(
                         text = usersState?.mobileNumber ?: "No Phone Number",
                         fontSize = 14.sp,
                         color = Color.Gray
                     )
                     Text(
-                        text = "RFID: ${usersState?.selectVehicle?.rfid ?: ""} " ,
+                        text = "RFID: ${usersState?.selectVehicle?.rfid ?: ""} ",
                         fontSize = 14.sp,
                         color = Color.Gray
                     )

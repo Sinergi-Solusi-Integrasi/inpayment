@@ -5,6 +5,7 @@ import android.graphics.ImageFormat
 import android.util.Log
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraControl
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -75,15 +76,22 @@ fun KycCameraPreview(
                     val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
                     // Bind Use Cases
-                    val camera = cameraProvider.bindToLifecycle(
-                        lifecycleOwner,
-                        cameraSelector,
-                        preview,
-                        imageCapture,
-                        imageAnalysis
-                    )
-                    onCameraControlAvailable(camera.cameraControl)
-                    onImageCaptureAvailable(imageCapture)
+                    try {
+                        cameraProvider.unbindAll()
+                        val camera = cameraProvider.bindToLifecycle(
+                            lifecycleOwner,
+                            cameraSelector,
+                            preview,
+                            imageCapture,
+                            imageAnalysis
+                        )
+                        onCameraControlAvailable(camera.cameraControl)
+                        onImageCaptureAvailable(imageCapture)
+                    } catch (exc: IllegalStateException) {
+                        Log.e("CameraX", "IllegalStateException when binding use cases: ${exc.message}")
+                    } catch (exc: Exception) {
+                        Log.e("CameraX", "Unexpected error: ${exc.message}")
+                    }
                 } catch (exc: Exception) {
                     Log.e("CameraX", "Failed to bind camera use cases", exc)
                 }
