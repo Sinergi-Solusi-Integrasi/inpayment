@@ -4,6 +4,9 @@ import com.s2i.data.model.balance.InOutBalanceData
 import com.s2i.data.remote.request.auth.LogoutRequest
 import com.s2i.data.remote.request.auth.RegisterRequest
 import com.s2i.data.remote.request.services.DevicesTokenRequest
+import com.s2i.data.remote.request.vehicle.ChangeVehiclesRequest
+import com.s2i.data.remote.request.vehicle.LendVehiclesRequest
+import com.s2i.data.remote.request.vehicle.LoansVehiclesRequest
 import com.s2i.data.remote.request.vehicle.VehiclesAddRequest
 import com.s2i.data.remote.request.wallet.TopupRequest
 import com.s2i.data.remote.response.auth.LoginResponse
@@ -21,6 +24,9 @@ import com.s2i.data.remote.response.notification.services.RegisterDevicesRespons
 import com.s2i.data.remote.response.users.ProfileResponse
 import com.s2i.data.remote.response.users.UsersResponse
 import com.s2i.data.remote.response.vehicles.AddVehiclesResponse
+import com.s2i.data.remote.response.vehicles.ChangeVehiclesResponse
+import com.s2i.data.remote.response.vehicles.LendVehiclesResponse
+import com.s2i.data.remote.response.vehicles.LoansVehiclesResponse
 import com.s2i.data.remote.response.vehicles.SelectedVehiclesResponse
 import com.s2i.data.remote.response.vehicles.VehiclesResponse
 import com.s2i.data.remote.response.wallet.TopupResponse
@@ -87,7 +93,15 @@ interface ApiServices {
     // Get Vehicles selected
     @PUT("vehicles/selected")
     suspend fun vehiclesSwitchSelected(
-    ): VehiclesResponse
+        @Body vehiclesId: ChangeVehiclesRequest
+    ): ChangeVehiclesResponse
+
+
+    // Pull Loans
+    @DELETE("vehicles/lend/{vehicle_id}/pull")
+    suspend fun pullLoans(
+        @Path("vehicle_id") vehicleId: String
+    ): LoansVehiclesResponse
 
     // Add new Vehicles
     @POST("vehicles/register")
@@ -99,11 +113,14 @@ interface ApiServices {
     @POST("vehicles/lend/{vehicle_id}")
     suspend fun vehiclesLend(
         @Path("vehicle_id") vehicleId: String,
-        @Body vehiclesLend: VehiclesAddRequest
-    ) : VehiclesResponse
+        @Body vehiclesLend: LendVehiclesRequest
+    ) : LendVehiclesResponse
 
     // Claims lend vehicles
-//    @POST("vehicles/lend/claim")
+    @POST("vehicles/lend/claim")
+    suspend fun loansVehicles(
+        @Body token: LoansVehiclesRequest
+    ) : LoansVehiclesResponse
 
     // PUT Vehicles disable
     @PATCH("vehicles/{vehicle_id}/disable")

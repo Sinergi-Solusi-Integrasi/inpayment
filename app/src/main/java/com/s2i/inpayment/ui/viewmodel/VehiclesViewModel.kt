@@ -10,13 +10,20 @@ import com.s2i.common.utils.convert.bitmapToBase64
 import com.s2i.common.utils.convert.bitmapToBase64WithFormat
 import com.s2i.common.utils.convert.compressBitmap
 import com.s2i.domain.entity.model.users.BlobImageModel
+import com.s2i.domain.entity.model.vehicle.ChangeVehiclesModel
 import com.s2i.domain.entity.model.vehicle.GetVehiclesModel
+import com.s2i.domain.entity.model.vehicle.LendVehiclesModel
+import com.s2i.domain.entity.model.vehicle.LoansVehiclesModel
 import com.s2i.domain.entity.model.vehicle.RegisVehiclesModel
 import com.s2i.domain.entity.model.vehicle.SelectedVehicleModel
 import com.s2i.domain.entity.model.vehicle.VehicleModel
+import com.s2i.domain.usecase.vehicles.ChangeVehiclesUseCase
 import com.s2i.domain.usecase.vehicles.EnableStatusUseCase
 import com.s2i.domain.usecase.vehicles.GetDisableStatusUseCase
 import com.s2i.domain.usecase.vehicles.GetVehiclesUseCase
+import com.s2i.domain.usecase.vehicles.LendVehiclesUseCase
+import com.s2i.domain.usecase.vehicles.LoansVehiclesUseCase
+import com.s2i.domain.usecase.vehicles.PullLoansVehiclesUseCase
 import com.s2i.domain.usecase.vehicles.RegistVehiclesUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,7 +34,12 @@ class VehiclesViewModel(
     private val vehiclesUseCase: GetVehiclesUseCase,
     private val enableUseCase: EnableStatusUseCase,
     private val disableUseCase: GetDisableStatusUseCase,
-) : ViewModel() {
+    private val changeUseCase: ChangeVehiclesUseCase,
+    private val lendUseCase: LendVehiclesUseCase,
+    private val loansUseCase: LoansVehiclesUseCase,
+    private val pullUseCase: PullLoansVehiclesUseCase
+
+    ) : ViewModel() {
 
     private val _getVehiclesState = MutableStateFlow<List<VehicleModel>>(emptyList())
     val getVehiclesState: MutableStateFlow<List<VehicleModel>> = _getVehiclesState
@@ -40,6 +52,15 @@ class VehiclesViewModel(
 
     private val _disableVehiclesState = MutableStateFlow<SelectedVehicleModel?>(null)
     val disableVehiclesState: MutableStateFlow<SelectedVehicleModel?> = _disableVehiclesState
+
+    private val _changeVehiclesState = MutableStateFlow<ChangeVehiclesModel?>(null)
+    val changeVehiclesState: MutableStateFlow<ChangeVehiclesModel?> = _changeVehiclesState
+
+    private val _lendVehiclesState = MutableStateFlow<LendVehiclesModel?>(null)
+    val lendVehiclesState: MutableStateFlow<LendVehiclesModel?> = _lendVehiclesState
+
+    private val _loansVehiclesState = MutableStateFlow<LoansVehiclesModel?>(null)
+    val loansVehiclesState: MutableStateFlow<LoansVehiclesModel?> = _loansVehiclesState
 
     private val _docImageVehiclesState = MutableStateFlow<BlobImageModel?>(null)
     val docImageVehiclesState: MutableStateFlow<BlobImageModel?> = _docImageVehiclesState
@@ -250,6 +271,24 @@ class VehiclesViewModel(
     }
 
 
+    // Change Vehicles
+
+    fun changeVehicles(
+        vehicleId: String
+    ) {
+        viewModelScope.launch {
+            _loading.value = true
+            try {
+                val result = changeUseCase(vehicleId)
+                _changeVehiclesState.value = result
+            } catch (e: Exception) {
+                _error.value = e.message
+                Log.e("VehiclesViewModel", "Error Changes vehicles: ${e.message}")
+            } finally {
+                _loading.value = false
+            }
+        }
+    }
 
     // Update status kendaraan setelah berhasil enable/disable
     private fun updateVehicleStatus(vehicleId: String, status: String) {

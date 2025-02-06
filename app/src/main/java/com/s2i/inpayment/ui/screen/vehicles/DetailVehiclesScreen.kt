@@ -1,12 +1,8 @@
 package com.s2i.inpayment.ui.screen.vehicles
 
-import android.graphics.Bitmap
-import android.net.Uri
-import android.provider.MediaStore
 import android.util.Log
-import androidx.compose.foundation.Image
+import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,29 +18,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Key
+import androidx.compose.material.icons.filled.SwapVerticalCircle
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -52,7 +40,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -64,19 +51,11 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.google.accompanist.pager.HorizontalPagerIndicator
-import com.s2i.common.utils.convert.bitmapToBase64WithFormat
-import com.s2i.common.utils.convert.correctImageOrientation
-import com.s2i.common.utils.convert.decodeBase64ToBitmap
-import com.s2i.common.utils.convert.saveBitmapToMediaStore
-import com.s2i.domain.entity.model.users.BlobImageModel
 import com.s2i.inpayment.ui.components.ReusableBottomSheet
-import com.s2i.inpayment.ui.components.button.SplitReceiptBottomBar
+import com.s2i.inpayment.ui.components.button.SplitButton
 import com.s2i.inpayment.ui.viewmodel.VehiclesViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.koin.compose.getKoin
 import org.koin.compose.viewmodel.koinViewModel
-import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,6 +66,7 @@ fun DetailVehiclesScreen(
 ) {
     val context = LocalContext.current
     val vehiclesState by vehiclesViewModel.getVehiclesState.collectAsState()
+    val isLoading by vehiclesViewModel.loading.collectAsState()
     val imageLoader: ImageLoader = getKoin().get()
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -102,7 +82,7 @@ fun DetailVehiclesScreen(
 
     Log.d("VehicleImages", "Gambar yang ditampilkan: $displayedImages") // Debugging
 
-    val pagerState = rememberPagerState(pageCount = {displayedImages.size})
+    val pagerState = rememberPagerState(pageCount = { displayedImages.size })
     val currentUserId = selectedVehicle?.ownerUserId // Mendapatkan ID user saat ini
 
     Box(
@@ -114,7 +94,7 @@ fun DetailVehiclesScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.Start
         ) {
             Row(
                 modifier = Modifier
@@ -122,15 +102,6 @@ fun DetailVehiclesScreen(
                     .padding(top = 24.dp, bottom = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = {
-                    navController.navigateUp() }
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
-                        contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Detail Vehicle",
@@ -175,20 +146,31 @@ fun DetailVehiclesScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Column(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)) {
                 DetailItem(label = "Brand", value = selectedVehicle?.brand ?: "-")
                 DetailItem(label = "Model", value = selectedVehicle?.model ?: "-")
                 DetailItem(label = "Varian", value = selectedVehicle?.varian ?: "-")
                 DetailItem(label = "Color", value = selectedVehicle?.color ?: "-")
                 DetailItem(label = "Plate Number", value = selectedVehicle?.plateNumber ?: "-")
                 DetailItem(label = "Status", value = selectedVehicle?.status ?: "-")
-                DetailItem(label = "Is Owner", value = if (selectedVehicle?.isOwner == true) "Yes" else "No")
+                DetailItem(
+                    label = "Is Owner",
+                    value = if (selectedVehicle?.isOwner == true) "Yes" else "No"
+                )
 
                 if (selectedVehicle?.isLoaned == true) {
                     DetailItem(label = "Is Loaned", value = "Yes")
                     DetailItem(label = "Loaned At", value = selectedVehicle.loanedAt ?: "-")
-                    DetailItem(label = "Loan Expired At", value = selectedVehicle.loanExpiredAt ?: "-")
-                    DetailItem(label = "Borrower User ID", value = selectedVehicle.borrowerUserId ?: "-")
+                    DetailItem(
+                        label = "Loan Expired At",
+                        value = selectedVehicle.loanExpiredAt ?: "-"
+                    )
+                    DetailItem(
+                        label = "Borrower User ID",
+                        value = selectedVehicle.borrowerUserId ?: "-"
+                    )
                 } else {
                     DetailItem(label = "Is Loaned", value = "No")
                 }
@@ -196,13 +178,61 @@ fun DetailVehiclesScreen(
         }
 
         // Mengganti BottomAppBar dengan Box
-        Box(
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .navigationBarsPadding() // Menambahkan padding untuk navigasi bar
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 8.dp,
+            shape = RoundedCornerShape(16.dp)
         ) {
-            SplitReceiptBottomBar() // Menempatkan komponen di bagian bawah
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    if(isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    } else {
+                        SplitButton(
+                            icon = Icons.Filled.DirectionsCar,
+                            label = "Switch Vehicles",
+                            isSelected = false,
+                            onClick = {
+                                vehiclesViewModel.changeVehicles(vehicleId)
+                                Toast.makeText(context, "Switch Vehicles...", Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+                        )
+                    }
+                }
+
+                Box(modifier = Modifier.weight(1f)) {
+                    SplitButton(
+                        icon = Icons.Filled.Key,
+                        label = "Lend Vehicles",
+                        isSelected = false,
+                        onClick = {}
+                    )
+                }
+
+                Box(modifier = Modifier.weight(1f)) {
+                    SplitButton(
+                        icon = Icons.Filled.SwapVerticalCircle,
+                        label = "Pull Loan",
+                        isSelected = false,
+                        onClick = {}
+                    )
+                }
+            }
         }
     }
 

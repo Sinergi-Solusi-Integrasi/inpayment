@@ -88,7 +88,7 @@ fun VehiclesInputSheet(
             Toast.makeText(context, "Vehicle Registered Successfully!", Toast.LENGTH_SHORT).show()
             vehiclesViewModel.clearVehicleData()  // Membersihkan data lama
             navController.navigate("vehicles_screen") {
-                popUpTo("vehicles_input_screen") { inclusive = true }
+                popUpTo("profile_screen") { inclusive = true }
                 launchSingleTop = true
             }
         }
@@ -124,25 +124,38 @@ fun VehiclesInputSheet(
                             .fillMaxWidth()
                             .padding(vertical = 8.dp)
                     )
-                }
-                // Form Input dengan ScrollView
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f), // Agar form memenuhi layar dan tetap bisa di-scroll
-                    verticalArrangement = Arrangement.Top
-                ) {
-                    item {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        VehicleInputFields(
-                            brand = brand, onBrandChange = { brand = it }, isBrandValid = isBrandValid,
-                            model = model, onModelChange = { model = it }, isModelValid = isModelValid,
-                            variant = variant, onVariantChange = { variant = it }, isVariantValid = isVariantValid,
-                            color = color, onColorChange = { color = it }, isColorValid = isColorValid,
-                            type = type, onTypeChange = { type = it }, isTypeValid = isTypeValid,
-                            plateNumber = plateNumber, onPlateChange = { plateNumber = it }, isPlateValid = isPlateValid
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
+                } else {
+                    // Form Input dengan ScrollView
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f), // Agar form memenuhi layar dan tetap bisa di-scroll
+                        verticalArrangement = Arrangement.Top
+                    ) {
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            VehicleInputFields(
+                                brand = brand,
+                                onBrandChange = { brand = it },
+                                isBrandValid = isBrandValid,
+                                model = model,
+                                onModelChange = { model = it },
+                                isModelValid = isModelValid,
+                                variant = variant,
+                                onVariantChange = { variant = it },
+                                isVariantValid = isVariantValid,
+                                color = color,
+                                onColorChange = { color = it },
+                                isColorValid = isColorValid,
+                                type = type,
+                                onTypeChange = { type = it },
+                                isTypeValid = isTypeValid,
+                                plateNumber = plateNumber,
+                                onPlateChange = { plateNumber = it },
+                                isPlateValid = isPlateValid
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
                     }
                 }
 

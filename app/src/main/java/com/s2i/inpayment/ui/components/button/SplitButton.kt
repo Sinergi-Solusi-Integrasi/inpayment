@@ -2,11 +2,14 @@ package com.s2i.inpayment.ui.components.button
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -36,41 +40,49 @@ fun SplitReceiptBottomBar() {
     BottomAppBar(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(4.dp)
+            .navigationBarsPadding()
             .background(Color(0xFF1C1C1E)), // Warna latar belakang dark
         containerColor = Color.Transparent
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            SplitButton(
-                icon = Icons.Default.ChangeCircle, // Gunakan ikon yang sesuai
-                label = "Switch Vehicles",
-                isSelected = false, // Highlight tombol pertama
-                onClick = { /* TODO: Handle split by amount */ }
-            )
+            Box(modifier = Modifier.weight(1f).padding(4.dp)) {
+                SplitButton(
+                    icon = Icons.Default.ChangeCircle,
+                    label = "Switch Vehicles",
+                    isSelected = false,
+                    onClick = { /* Handle Switch Vehicles */ }
+                )
+            }
 
-            SplitButton(
-                icon = Icons.Default.Key,
-                label = "Lend Vehicles",
-                isSelected = false,
-                onClick = { /* TODO: Handle split by scanning */ }
-            )
+            Box(modifier = Modifier.weight(1f).padding(4.dp)) {
+                SplitButton(
+                    icon = Icons.Default.Key,
+                    label = "Lend Vehicles",
+                    isSelected = false,
+                    onClick = { /* TODO: Handle split by scanning */ }
+                )
+            }
 
-            SplitButton(
-                icon = Icons.Default.SwapVerticalCircle,
-                label = "Pull Loan",
-                isSelected = false,
-                onClick = { /* TODO: Handle share receipt */ }
-            )
+            Box(modifier = Modifier.weight(1f).padding(4.dp)) {
+                SplitButton(
+                    icon = Icons.Default.SwapVerticalCircle,
+                    label = "Pull Loan",
+                    isSelected = false,
+                    onClick = { /* TODO: Handle share receipt */ }
+                )
+            }
         }
     }
 }
 
 
 @Composable
-fun SplitButton(icon: ImageVector, label: String, isSelected: Boolean, onClick: () -> Unit) {
+fun SplitButton(icon: ImageVector? = null, painter: Painter? = null, label: String, isSelected: Boolean, onClick: () -> Unit) {
     val backgroundColor = if (isSelected) Color(0xFF263238) else Color(0xFF1C1C1E)
     val textColor = if (isSelected) Color.White else Color.Gray
 
@@ -80,20 +92,31 @@ fun SplitButton(icon: ImageVector, label: String, isSelected: Boolean, onClick: 
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .padding(4.dp)
+            .height(80.dp) // Menambah tinggi tombol
     ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                imageVector = icon,
-                contentDescription = label,
-                tint = textColor,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            when {
+                icon != null -> Icon(
+                    imageVector = icon,
+                    contentDescription = label,
+                    tint = textColor,
+                    modifier = Modifier.size(24.dp)
+                )
+                painter != null -> Icon(
+                    painter = painter,
+                    contentDescription = label,
+                    tint = textColor,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodySmall,
-                color = textColor
+                color = textColor,
             )
         }
     }

@@ -20,6 +20,10 @@ import com.s2i.domain.usecase.vehicles.GetDisableStatusUseCase
 import com.s2i.domain.usecase.wallet.CreateQrisUseCase
 import com.s2i.domain.usecase.wallet.OrderQueryQrisUseCase
 import com.s2i.domain.usecase.wallet.TopupQrisUseCase
+import com.s2i.domain.usecase.vehicles.ChangeVehiclesUseCase
+import com.s2i.domain.usecase.vehicles.LendVehiclesUseCase
+import com.s2i.domain.usecase.vehicles.LoansVehiclesUseCase
+import com.s2i.domain.usecase.vehicles.PullLoansVehiclesUseCase
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
 
@@ -45,6 +49,11 @@ val useCaseModule = module {
     factoryOf(::CreateQrisUseCase)
     factoryOf(::OrderQueryQrisUseCase)
     factoryOf(::TopupQrisUseCase)
+    factoryOf(::ChangeVehiclesUseCase)
+    factoryOf(::LendVehiclesUseCase)
+    factoryOf(::LoansVehiclesUseCase)
+    factoryOf(::PullLoansVehiclesUseCase)
+
 
 
 }

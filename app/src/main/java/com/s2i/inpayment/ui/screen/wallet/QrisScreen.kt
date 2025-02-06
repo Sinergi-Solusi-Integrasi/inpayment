@@ -52,6 +52,7 @@ import org.koin.androidx.compose.koinViewModel
 import java.io.OutputStream
 import androidx.compose.ui.draw.clip
 import com.s2i.inpayment.ui.components.permission.hasAllPermissions
+import com.s2i.inpayment.ui.theme.GreenTeal40
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -335,8 +336,8 @@ fun QrisScreen(
                                 orderQrisState?.let { orderState ->
                                     Spacer(modifier = Modifier.height(16.dp))
                                     val statusColor = when (orderState.rCode) {
-                                        "00" -> Color.Green  // Success
-                                        "99" -> Color.Yellow // Pending
+                                        "00" -> GreenTeal40  // Success
+                                        "99" -> Color.Black // Pending
                                         else -> Color.Red    // Error
                                     }
                                     Text(

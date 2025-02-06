@@ -12,6 +12,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -28,6 +29,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -45,6 +47,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
 import com.s2i.common.utils.convert.correctImageOrientation
 import com.s2i.common.utils.convert.decodeBase64ToBitmap
 import com.s2i.inpayment.R
@@ -67,6 +71,8 @@ fun RegisterScreen(
 ) {
     // Collecting states from ViewModel
     val context = LocalContext.current
+//    val focusManager  = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val imageFormat by authViewModel.imageFormat.collectAsState()
     var capturedPhoto by remember { mutableStateOf<Bitmap?>(null) }
 
@@ -247,7 +253,15 @@ fun RegisterScreen(
                             label = { Text("KTP/SIM/PASSPORT Number") },
                             modifier = Modifier.fillMaxWidth(),
                             isError = identityError != null,
-                            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                imeAction = ImeAction.Next,
+                                keyboardType = KeyboardType.Number
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onNext = {
+                                    focusManager.moveFocus(FocusDirection.Down)
+                                }
+                            )
                         )
                         identityError?.let {
                             Text(
@@ -276,7 +290,16 @@ fun RegisterScreen(
                             },
                             label = { Text("Full Name") },
                             modifier = Modifier.fillMaxWidth(),
-                            isError = nameError != null
+                            isError = nameError != null,
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Next, // Fokus berpindah ke TextField berikutnya
+                                keyboardType = KeyboardType.Text
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onNext = {
+                                    focusManager.moveFocus(FocusDirection.Down)
+                                }
+                            )
                         )
                         nameError?.let {
                             Text(
@@ -297,8 +320,29 @@ fun RegisterScreen(
                             },
                             label = { Text("Username") },
                             isError = !isUsernameValid,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            trailingIcon = if (!isUsernameValid && username.isNotEmpty()) {
+                                {
+                                    Icon(
+                                        Icons.Default.Error,
+                                        contentDescription = null,
+                                        tint = Color.Red
+                                    )
+                                }
+                            } else null,
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Next, // Fokus berpindah ke TextField berikutnya
+                                keyboardType = KeyboardType.Text
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onNext = {
+                                    focusManager.moveFocus(FocusDirection.Down)
+                                }
+                            )
                         )
+                        if (!isUsernameValid && username.isNotEmpty()) {
+                            Text("Username must be at least 6 characters", color = Color.Red, fontSize = 12.sp)
+                        }
                         Spacer(modifier = Modifier.height(16.dp))
 
                         OutlinedTextField(
@@ -318,10 +362,19 @@ fun RegisterScreen(
                                         tint = Color.Red
                                     )
                                 }
-                            } else null
+                            } else null,
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Next, // Fokus berpindah ke TextField berikutnya
+                                keyboardType = KeyboardType.Text
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onNext = {
+                                    focusManager.moveFocus(FocusDirection.Down)
+                                }
+                            )
                         )
                         if (!isValidEmail && email.isNotEmpty()) {
-                            Text("Please enter a valid email", color = Color.Red, fontSize = 12.sp)
+                            Text("Please enter a valid email example@mail.com", color = Color.Red, fontSize = 12.sp)
                         }
                         Spacer(modifier = Modifier.height(16.dp))
 
@@ -330,7 +383,15 @@ fun RegisterScreen(
                             onValueChange = { phoneNumber = it },
                             label = { Text("Mobile Phone") },
                             modifier = Modifier.fillMaxWidth(),
-                            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                imeAction = ImeAction.Next,
+                                keyboardType = KeyboardType.Number
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onNext = {
+                                    focusManager.moveFocus(FocusDirection.Down)
+                                }
+                            )
                         )
                         Spacer(modifier = Modifier.height(16.dp))
 
@@ -338,7 +399,16 @@ fun RegisterScreen(
                             value = address,
                             onValueChange = { address = it },
                             label = { Text("Address") },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Next, // Fokus berpindah ke TextField berikutnya
+                                keyboardType = KeyboardType.Text
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onNext = {
+                                    focusManager.moveFocus(FocusDirection.Down)
+                                }
+                            )
                         )
                         Spacer(modifier = Modifier.height(16.dp))
 
@@ -360,7 +430,16 @@ fun RegisterScreen(
                                     Icon(imageVector = image, contentDescription = null)
                                 }
                             },
-                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation()
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Next, // Fokus berpindah ke TextField berikutnya
+                                keyboardType = KeyboardType.Password
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onNext = {
+                                    focusManager.moveFocus(FocusDirection.Down)
+                                }
+                            )
                         )
                         if (!isValidPassword && password.isNotEmpty()) {
                             Text(
@@ -390,7 +469,16 @@ fun RegisterScreen(
                                     Icon(imageVector = image, contentDescription = null)
                                 }
                             },
-                            visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation()
+                            visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Done, // Fokus berpindah ke TextField berikutnya
+                                keyboardType = KeyboardType.Password
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onDone = {
+                                    keyboardController?.hide()
+                                }
+                            )
                         )
                         if (!isPasswordsMatch && confirmPassword.isNotEmpty()) {
                             Text("Passwords do not match", color = Color.Red, fontSize = 12.sp)

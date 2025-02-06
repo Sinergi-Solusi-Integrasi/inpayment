@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Visibility
@@ -32,9 +34,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -64,6 +71,8 @@ fun LoginScreen(
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val focusManager  = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val loginState by authViewModel.loginState.collectAsState()
     val loadingState by authViewModel.loadingState.collectAsState()
     val isLoggedIn = authViewModel.isLoggedIn()
@@ -209,6 +218,15 @@ fun LoginScreen(
             label = { Text("Username") },
             isError = !isValidUsername,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next,
+                keyboardType = KeyboardType.Text
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = {
+                    focusManager.moveFocus(FocusDirection.Down)
+                }
+            ),
             trailingIcon = if (!isValidUsername && username.isNotEmpty()) {
                 { Icon(Icons.Default.Error, contentDescription = null, tint = Color.Red) }
             } else null
@@ -228,6 +246,15 @@ fun LoginScreen(
             label = { Text("Password") },
             isError = !isValidPassword,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Done,
+                keyboardType = KeyboardType.Password
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    keyboardController?.hide()
+                }
+            ),
             trailingIcon = {
                 val image =
                     if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
