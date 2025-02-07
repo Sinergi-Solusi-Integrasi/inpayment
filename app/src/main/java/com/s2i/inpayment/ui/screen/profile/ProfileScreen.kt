@@ -20,12 +20,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DirectionsCarFilled
-import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -55,14 +52,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.s2i.data.local.auth.SessionManager
-import com.s2i.domain.entity.model.balance.BalanceModel
 import com.s2i.domain.entity.model.users.ProfileModel
-import com.s2i.domain.entity.model.users.UsersProfileModel
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
 import com.s2i.inpayment.ui.theme.DarkTeal21
@@ -89,7 +83,7 @@ fun ProfileScreen(
     var isRefreshing by remember { mutableStateOf(false) }
     val error by usersViewModel.error.collectAsState()
 
-    LaunchedEffect(Unit){
+    LaunchedEffect(Unit) {
         if (loading && isStartupLoading) {
             isStartupLoading = true
         } else if (!loading) {
@@ -187,30 +181,34 @@ fun ProfileCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
+                    Text(
+                        text = "Hai, ${usersState?.name ?: "Guest"}",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = Color.Black
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "Hai, ${usersState?.name ?: "Guest"}",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp,
-                            color = Color.Black
+                            text = "Account: ${usersState?.accountNumber ?: "-"}",
+                            fontSize = 14.sp,
+                            color = Color.Gray
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Icon(
-                            imageVector = Icons.Default.MoreVert,
+                            imageVector = Icons.Default.ContentCopy,
                             contentDescription = "Account Number Options",
                             modifier = Modifier.clickable {
-                                val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                val clip = ClipData.newPlainText("Account Number", usersState?.accountNumber ?: "")
+                                val clipboardManager =
+                                    context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                val clip = ClipData.newPlainText(
+                                    "Account Number",
+                                    usersState?.accountNumber ?: ""
+                                )
                                 clipboardManager.setPrimaryClip(clip)
                             }
                         )
                     }
-                    Text(
-                        text = "Account: ${usersState?.accountNumber ?: "-"}",
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
-
                     Text(
                         text = usersState?.mobileNumber ?: "No Phone Number",
                         fontSize = 14.sp,
@@ -269,11 +267,15 @@ fun ProfileMenu(
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
-        ProfileMenuItem(icon = Icons.Default.DirectionsCarFilled, title = "Vehicles", onClick = {// Navigasi ke HomeScreen (atau layar yang sesuai)
-            navController.navigate("vehicles_screen") {
-                // Pop up semua screen yang ada di atas HomeScreen (termasuk profile_screen)
-                popUpTo("profile_screen") { inclusive = false }
-            }})
+        ProfileMenuItem(
+            icon = Icons.Default.DirectionsCarFilled,
+            title = "Vehicles",
+            onClick = {// Navigasi ke HomeScreen (atau layar yang sesuai)
+                navController.navigate("vehicles_screen") {
+                    // Pop up semua screen yang ada di atas HomeScreen (termasuk profile_screen)
+                    popUpTo("profile_screen") { inclusive = false }
+                }
+            })
         ProfileMenuItem(icon = R.drawable.ic_riwayat, title = "All Transactions", onClick = {})
         ProfileMenuItem(icon = R.drawable.ic_help, title = "Help and Support", onClick = {})
     }
@@ -337,6 +339,7 @@ fun ProfileMenuItem(
                     tint = Color.Gray
                 )
             }
+
             is Int -> {
                 Icon(
                     painter = painterResource(id = icon),

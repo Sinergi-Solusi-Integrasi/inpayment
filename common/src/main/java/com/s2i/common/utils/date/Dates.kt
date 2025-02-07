@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 
 object Dates {
 
-    private fun iso8601Format(): SimpleDateFormat {
+    fun iso8601Format(): SimpleDateFormat {
         return SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.getDefault()).apply {
             timeZone = TimeZone.getTimeZone("UTC")
         }

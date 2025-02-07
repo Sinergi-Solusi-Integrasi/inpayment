@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,17 +42,23 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.KYCOptions
+import com.s2i.inpayment.ui.components.ReusableBottomSheet
 import com.s2i.inpayment.ui.theme.gradientBrushCards
+import com.s2i.inpayment.ui.viewmodel.VehiclesViewModel
+import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun IntroAddVehiclesScreen(
-    navController: NavController
+    navController: NavController,
+    vehiclesViewModel: VehiclesViewModel = koinViewModel()
 ){
 
-    val bottomeSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showBottomSheet by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
+
 
     Box(
         modifier = Modifier
@@ -141,12 +148,12 @@ fun IntroAddVehiclesScreen(
 
                         // Text under the icon
                         // Teks di bawah Box Hijau
-                        Text(
-                            text = "BABLAS",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            color = Color.White,
-                            modifier = Modifier.padding(top = 140.dp) // Geser teks ke bawah sesuai tinggi box hitam
-                        )
+//                        Text(
+//                            text = "BABLAS",
+//                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+//                            color = Color.White,
+//                            modifier = Modifier.padding(top = 140.dp) // Geser teks ke bawah sesuai tinggi box hitam
+//                        )
                     }
                 }
             }
@@ -182,10 +189,14 @@ fun IntroAddVehiclesScreen(
 
             KYCOptions(
                 title = "Loans Vehicles",
-                descriptions = "Loan vehicles or lend your vehicle",
+                descriptions = "Loan vehicles from your friends or families",
                 leadingIcon = painterResource( id = R.drawable.ic_loans),
                 trailingImageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                onClick = { /* TODO: Navigasi untuk menambah kendaraan */ },
+                onClick = { /* TODO: Navigasi untuk menambah kendaraan */
+                    coroutineScope.launch {
+                        showBottomSheet = true
+                    }
+                },
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -198,6 +209,30 @@ fun IntroAddVehiclesScreen(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(vertical = 16.dp)
             )
+        }
+    }
+
+    if (showBottomSheet) {
+        ReusableBottomSheet(
+            imageRes = R.drawable.ic_loans_intro,
+            message = "Loan vehicles from your friends or families ",
+            sheetState = bottomSheetState,
+            onDismiss = {
+                coroutineScope.launch { bottomSheetState.hide() }
+                showBottomSheet = false
+            }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                LoansVehiclesScreen(
+                    navController,
+                    vehiclesViewModel
+                )
+            }
         }
     }
 }

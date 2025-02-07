@@ -16,7 +16,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "1.5.4"
+        versionName = "1.5.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -37,9 +37,9 @@ android {
             )
         }
     }
-//    composeOptions {
-//        kotlinCompilerExtensionVersion = "1.5.15"
-//    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.15"
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -65,29 +65,46 @@ dependencies {
 
     // koin annotation
     implementation("io.insert-koin:koin-annotations:2.0.0-Beta2")
+    implementation(libs.material)
     ksp("io.insert-koin:koin-ksp-compiler:2.0.0-Beta2")
 
     //qrcode
     implementation("com.google.zxing:core:3.5.2")
 
+    //dialog
+    val dialogVersion = "1.3.0"
+    implementation("com.maxkeppeler.sheets-compose-dialogs:state:1.3.0")
+    implementation("com.maxkeppeler.sheets-compose-dialogs:core:${dialogVersion}")
+    // CALENDAR
+    implementation("com.maxkeppeler.sheets-compose-dialogs:calendar:${dialogVersion}")
+
+    // CLOCK
+    implementation("com.maxkeppeler.sheets-compose-dialogs:clock:${dialogVersion}")
+
+    // DATE TIME
+    implementation("com.maxkeppeler.sheets-compose-dialogs:date-time:1.3.0")
+
+    // DURATION
+    implementation("com.maxkeppeler.sheets-compose-dialogs:duration:${dialogVersion}")
+
     //accompanist
     implementation(libs.accompanist.permissions)
 
     // CameraX core library using the camera2 implementation
-    val camerax_version = "1.5.0-alpha05"
+    val cameraXVersion = "1.5.0-alpha05"
     // The following line is optional, as the core library is included indirectly by camera-camera2
-    implementation("androidx.camera:camera-core:${camerax_version}")
-    implementation("androidx.camera:camera-camera2:${camerax_version}")
+    implementation("androidx.camera:camera-core:${cameraXVersion}")
+    implementation("androidx.camera:camera-camera2:${cameraXVersion}")
     // If you want to additionally use the CameraX Lifecycle library
-    implementation("androidx.camera:camera-lifecycle:${camerax_version}")
+    implementation("androidx.camera:camera-lifecycle:${cameraXVersion}")
     // If you want to additionally use the CameraX VideoCapture library
-    implementation("androidx.camera:camera-video:${camerax_version}")
+    implementation("androidx.camera:camera-video:${cameraXVersion}")
     // If you want to additionally use the CameraX View class
-    implementation("androidx.camera:camera-view:${camerax_version}")
+    implementation("androidx.camera:camera-view:${cameraXVersion}")
     // If you want to additionally add CameraX ML Kit Vision Integration
-    implementation("androidx.camera:camera-mlkit-vision:${camerax_version}")
+    implementation("androidx.camera:camera-mlkit-vision:${cameraXVersion}")
     // If you want to additionally use the CameraX Extensions library
-    implementation("androidx.camera:camera-extensions:${camerax_version}")
+    implementation("androidx.camera:camera-extensions:${cameraXVersion}")
 
     // Import the Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:33.8.0"))

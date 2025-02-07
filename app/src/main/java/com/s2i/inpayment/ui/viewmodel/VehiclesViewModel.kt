@@ -62,6 +62,9 @@ class VehiclesViewModel(
     private val _loansVehiclesState = MutableStateFlow<LoansVehiclesModel?>(null)
     val loansVehiclesState: MutableStateFlow<LoansVehiclesModel?> = _loansVehiclesState
 
+    private val _pullLoansVehiclesState = MutableStateFlow<LoansVehiclesModel?>(null)
+    val pullLoansVehiclesState: MutableStateFlow<LoansVehiclesModel?> = _pullLoansVehiclesState
+
     private val _docImageVehiclesState = MutableStateFlow<BlobImageModel?>(null)
     val docImageVehiclesState: MutableStateFlow<BlobImageModel?> = _docImageVehiclesState
 
@@ -270,9 +273,74 @@ class VehiclesViewModel(
         }
     }
 
+    //Lend Vehicles
+    fun lendVehicles(
+        vehicleId: String,
+        toAccountNumber: String,
+        expiredAt: String
+    ) {
+        viewModelScope.launch {
+            _loading.value = true
+            try {
+                val result = lendUseCase(
+                    vehicleId = vehicleId,
+                    toAccountNumber = toAccountNumber,
+                    expiredAt = expiredAt
+                )
+                Log.d("VehiclesViewModel", "Lend vehicles success: ${result.message}")
+                _lendVehiclesState.value = result
+            } catch (e: Exception) {
+                Log.e("VehiclesViewModel", "Error lend vehicles: ${e.message}")
+                _error.value = e.message
+            } finally {
+                _loading.value = false
+            }
+        }
+    }
+
+    // loans vehicles
+    fun loansVehicles(
+        token: String
+    ) {
+        viewModelScope.launch{
+            _loading.value = true
+            try {
+                val result = loansUseCase(
+                    token = token
+                )
+                Log.d("VehiclesViewModel", "Loans vehicles success: ${result.message}")
+                _loansVehiclesState.value = result
+            } catch (e: Exception) {
+                Log.e("VehiclesViewModel", "Error loans vehicles: ${e.message}")
+                _error.value = e.message
+            } finally {
+                _loading.value = false
+            }
+        }
+    }
+
+    // return loans
+    fun returnsLoans(
+        vehicleId: String
+    ) {
+        viewModelScope.launch {
+            _loading.value = true
+            try {
+                val result = pullUseCase(
+                    vehicleId = vehicleId
+                )
+                Log.d("VehiclesViewModel", "Return loans success: ${result.message}")
+                _pullLoansVehiclesState.value = result
+            } catch (e: Exception) {
+                Log.e("VehiclesViewModel", "Error return loans: ${e.message}")
+                _error.value = e.message
+            } finally {
+                _loading.value = false
+            }
+        }
+    }
 
     // Change Vehicles
-
     fun changeVehicles(
         vehicleId: String
     ) {
@@ -281,6 +349,7 @@ class VehiclesViewModel(
             try {
                 val result = changeUseCase(vehicleId)
                 _changeVehiclesState.value = result
+                Log.d("VehiclesViewModel", "Vehicle: $result changed successfully")
             } catch (e: Exception) {
                 _error.value = e.message
                 Log.e("VehiclesViewModel", "Error Changes vehicles: ${e.message}")

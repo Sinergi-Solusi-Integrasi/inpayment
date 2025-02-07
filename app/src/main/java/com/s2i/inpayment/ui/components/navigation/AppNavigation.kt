@@ -2,7 +2,9 @@
 package com.s2i.inpayment.ui.components.navigation
 
 import android.content.Context
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,6 +42,7 @@ import com.s2i.inpayment.ui.screen.splash.SplashScreen
 import com.s2i.inpayment.ui.screen.vehicles.DocImageVehiclesScreen
 import com.s2i.inpayment.ui.screen.vehicles.ImageVehiclesScreen
 import com.s2i.inpayment.ui.screen.vehicles.IntroAddVehiclesScreen
+import com.s2i.inpayment.ui.screen.vehicles.LendVehiclesScreen
 import com.s2i.inpayment.ui.screen.vehicles.VehiclesInputSheet
 import com.s2i.inpayment.ui.screen.vehicles.VehiclesScreen
 import com.s2i.inpayment.ui.screen.wallet.DetailTransactionScreen
@@ -56,6 +59,7 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation(
@@ -143,6 +147,15 @@ fun AppNavigation(
 
         composable("camera_screen") {
             CameraScreen(navController = navController, vehiclesViewModel = vehiclesViewModel)
+        }
+
+        composable("lend_vehicles/{vehicleId}") { backStackEntry ->
+            val vehicleId = backStackEntry.arguments?.getString("vehicleId") ?: ""
+            LendVehiclesScreen(
+                navController = navController,
+                vehicleId = vehicleId,
+                vehiclesViewModel = vehiclesViewModel
+            )
         }
 
         composable("vehicles_screen") {

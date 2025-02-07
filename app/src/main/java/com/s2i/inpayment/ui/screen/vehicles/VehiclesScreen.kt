@@ -1,5 +1,8 @@
 package com.s2i.inpayment.ui.screen.vehicles
 
+import android.os.Build
+import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,12 +38,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.maxkeppeker.sheets.core.models.base.rememberUseCaseState
+import com.maxkeppeler.sheets.date_time.DateTimeDialog
+import com.maxkeppeler.sheets.date_time.models.DateTimeConfig
+import com.maxkeppeler.sheets.date_time.models.DateTimeSelection
 import com.s2i.inpayment.ui.components.ReusableBottomSheet
 import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
 import com.s2i.inpayment.ui.viewmodel.VehiclesViewModel
 import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VehiclesScreen(
@@ -132,6 +140,8 @@ fun VehiclesScreen(
                 )
             }
 
+//            TestDateTimeDialog()
+
             // Memastikan vehiclesState tidak null dan mengakses data kendaraan
             vehiclesState.value.let { vehicles ->
                 // Mengirimkan List<VehicleModel> ke VehiclesItem
@@ -167,6 +177,21 @@ fun VehiclesScreen(
         }
     }
 }
+
+@Composable
+fun TestDateTimeDialog() {
+    val context = LocalContext.current
+    val dialogState = rememberUseCaseState(visible = true)
+
+    DateTimeDialog(
+        state = dialogState,
+        selection = DateTimeSelection.DateTime { newDateTime ->
+            Toast.makeText(context, "Selected: $newDateTime", Toast.LENGTH_SHORT).show()
+        },
+        config = DateTimeConfig()
+    )
+}
+
 
 @Preview(showBackground = true)
 @Composable

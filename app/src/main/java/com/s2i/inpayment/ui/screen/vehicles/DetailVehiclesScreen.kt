@@ -1,11 +1,14 @@
 package com.s2i.inpayment.ui.screen.vehicles
 
+import android.os.Build
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -14,16 +17,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.ChangeCircle
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.SwapVerticalCircle
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -39,7 +41,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -54,9 +55,12 @@ import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.s2i.inpayment.ui.components.ReusableBottomSheet
 import com.s2i.inpayment.ui.components.button.SplitButton
 import com.s2i.inpayment.ui.viewmodel.VehiclesViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.compose.getKoin
 import org.koin.compose.viewmodel.koinViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailVehiclesScreen(
@@ -90,89 +94,86 @@ fun DetailVehiclesScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            horizontalAlignment = Alignment.Start
+            horizontalAlignment = Alignment.Start,
+            contentPadding = PaddingValues(bottom = 100.dp) // Tambahkan padding bawah untuk menghindari overlap dengan tombol
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 24.dp, bottom = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Detail Vehicle",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            if (displayedImages.isNotEmpty()) {
-                HorizontalPager(
-                    state = pagerState,
+            item {
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(16f / 9f)
-                        .clip(RoundedCornerShape(16.dp))
-                ) { page ->
-                    val imageUrl = displayedImages[page]
-                    AsyncImage(
-                        model = ImageRequest.Builder(context)
-                            .data(imageUrl)
-                            .diskCachePolicy(CachePolicy.ENABLED)
-                            .crossfade(true)
-                            .build(),
-                        imageLoader = imageLoader,
-                        contentDescription = "Vehicle Image",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
+                        .padding(top = 24.dp, bottom = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Detail Vehicle",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.primary
                     )
-
-                    Log.d("ImageLoader", "Memuat gambar: $imageUrl")
-
                 }
 
-                HorizontalPagerIndicator(
-                    pagerState = pagerState,
-                    pageCount = vehicleImages.size,
+                if (displayedImages.isNotEmpty()) {
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(16f / 9f)
+                            .clip(RoundedCornerShape(16.dp))
+                    ) { page ->
+                        val imageUrl = displayedImages[page]
+                        AsyncImage(
+                            model = ImageRequest.Builder(context)
+                                .data(imageUrl)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .crossfade(true)
+                                .build(),
+                            imageLoader = imageLoader,
+                            contentDescription = "Vehicle Image",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+
+                    HorizontalPagerIndicator(
+                        pagerState = pagerState,
+                        pageCount = vehicleImages.size,
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .align(Alignment.Center)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Menampilkan detail kendaraan
+                Column(
                     modifier = Modifier
-                        .padding(16.dp)
-                        .align(Alignment.CenterHorizontally)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Column(modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)) {
-                DetailItem(label = "Brand", value = selectedVehicle?.brand ?: "-")
-                DetailItem(label = "Model", value = selectedVehicle?.model ?: "-")
-                DetailItem(label = "Varian", value = selectedVehicle?.varian ?: "-")
-                DetailItem(label = "Color", value = selectedVehicle?.color ?: "-")
-                DetailItem(label = "Plate Number", value = selectedVehicle?.plateNumber ?: "-")
-                DetailItem(label = "Status", value = selectedVehicle?.status ?: "-")
-                DetailItem(
-                    label = "Is Owner",
-                    value = if (selectedVehicle?.isOwner == true) "Yes" else "No"
-                )
-
-                if (selectedVehicle?.isLoaned == true) {
-                    DetailItem(label = "Is Loaned", value = "Yes")
-                    DetailItem(label = "Loaned At", value = selectedVehicle.loanedAt ?: "-")
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    DetailItem(label = "Brand", value = selectedVehicle?.brand ?: "-")
+                    DetailItem(label = "Model", value = selectedVehicle?.model ?: "-")
+                    DetailItem(label = "Varian", value = selectedVehicle?.varian ?: "-")
+                    DetailItem(label = "Color", value = selectedVehicle?.color ?: "-")
+                    DetailItem(label = "Plate Number", value = selectedVehicle?.plateNumber ?: "-")
+                    DetailItem(label = "Status", value = selectedVehicle?.status ?: "-")
                     DetailItem(
-                        label = "Loan Expired At",
-                        value = selectedVehicle.loanExpiredAt ?: "-"
+                        label = "Is Owner",
+                        value = if (selectedVehicle?.isOwner == true) "Yes" else "No"
                     )
-                    DetailItem(
-                        label = "Borrower User ID",
-                        value = selectedVehicle.borrowerUserId ?: "-"
-                    )
-                } else {
-                    DetailItem(label = "Is Loaned", value = "No")
+
+                    if (selectedVehicle?.isLoaned == true) {
+                        DetailItem(label = "Is Loaned", value = "Yes")
+                        DetailItem(label = "Loaned At", value = selectedVehicle.loanedAt ?: "-")
+                        DetailItem(label = "Loan Expired At", value = selectedVehicle.loanExpiredAt ?: "-")
+                        DetailItem(label = "Borrower User ID", value = selectedVehicle.borrowerUserId ?: "-")
+                    } else {
+                        DetailItem(label = "Is Loaned", value = "No")
+                    }
                 }
             }
         }
@@ -195,51 +196,79 @@ fun DetailVehiclesScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
                 Box(modifier = Modifier.weight(1f)) {
-                    if(isLoading) {
-                        CircularProgressIndicator(
-                            color = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    } else {
-                        SplitButton(
-                            icon = Icons.Filled.DirectionsCar,
-                            label = "Switch Vehicles",
-                            isSelected = false,
-                            onClick = {
+                    SplitButton(
+                        icon = Icons.Filled.ChangeCircle,
+                        label = "Switch Vehicles",
+                        isLoading = isLoading,
+                        isSelected = false,
+                        onClick = {
+                            coroutineScope.launch {
+                                delay(500)
                                 vehiclesViewModel.changeVehicles(vehicleId)
-                                Toast.makeText(context, "Switch Vehicles...", Toast.LENGTH_SHORT)
+                                Toast.makeText(
+                                    context,
+                                    "Switch Vehicles...",
+                                    Toast.LENGTH_SHORT
+                                )
                                     .show()
                             }
-                        )
-                    }
+                        }
+                    )
                 }
 
                 Box(modifier = Modifier.weight(1f)) {
                     SplitButton(
                         icon = Icons.Filled.Key,
                         label = "Lend Vehicles",
+                        isLoading = isLoading,
                         isSelected = false,
-                        onClick = {}
+                        onClick = {
+//                            coroutineScope.launch {
+//                                delay(500)
+//                                navController.navigate("lend_vehicles/$vehicleId") {
+//                                    popUpTo("vehicles_screen") { inclusive = true }
+//                                }
+//                            }
+                            showBottomSheet = true
+                        }
                     )
                 }
-
-                Box(modifier = Modifier.weight(1f)) {
-                    SplitButton(
-                        icon = Icons.Filled.SwapVerticalCircle,
-                        label = "Pull Loan",
-                        isSelected = false,
-                        onClick = {}
-                    )
+                if (selectedVehicle?.isLoaned == true) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        SplitButton(
+                            icon = Icons.Filled.SwapVerticalCircle,
+                            label = "Pull Loan",
+                            isSelected = false,
+                            onClick = {
+                                coroutineScope.launch {
+                                    delay(500)
+                                    vehiclesViewModel.returnsLoans(vehicleId)
+                                    Toast.makeText(
+                                        context,
+                                        "Pull Loan...",
+                                        Toast.LENGTH_SHORT,
+                                    )
+                                        .show()
+                                    showBottomSheet = false
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }
     }
 
     if (showBottomSheet) {
-        ReusableBottomSheet(sheetState = sheetState) {
-            VehiclesInputSheet(
+        ReusableBottomSheet(
+            sheetState = sheetState,
+            onDismiss = { showBottomSheet = false }
+        ) {
+            LendVehiclesScreen(
                 navController = navController,
+                vehicleId = vehicleId,
                 vehiclesViewModel = vehiclesViewModel
             )
         }
