@@ -22,10 +22,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.s2i.inpayment" />
+                  <option name="mobileSdkAppId" value="1:834461408209:android:fc3b3a35accbfe1ed71ef0" />
+                  <option name="projectId" value="inpayment" />
+                  <option name="projectNumber" value="834461408209" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

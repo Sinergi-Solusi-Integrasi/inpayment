@@ -1,28 +1,60 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
 }
 
+// Baca local.properties dari root project
+val localProperties = Properties()  // Menggunakan import java.util.Properties
+val localPropertiesFile = rootProject.file("local.properties")
+
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+
+// Ambil QRIS_URL dan BASE_URL dari local.properties
+val qrisUrl = localProperties["QRIS_URL"] ?: "https://default.qris.url/"
+val baseUrl = localProperties["BASE_URL"] ?: "https://default.base.url/"
+val mid = localProperties["MID"] ?: "default_mid"
+val tid = localProperties["TID"] ?: "default_tid"
+val clientId = localProperties["CLIENT_ID"] ?: "default_client_id"
+val clientSecret = localProperties["CLIENT_SECRETE"] ?: "default_client_secrete"
 android {
     namespace = "com.s2i.data"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 24
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "BASE_URL", "\"https://inpayment.app-intracs.co.id/\"")
+        buildConfigField("String", "QRIS_URL", "\"$qrisUrl\"")
+        buildConfigField("String", "MID", "\"$mid\"")
+        buildConfigField("String", "TID", "\"$tid\"")
+        buildConfigField("String", "CLIENT_ID", "\"$clientId\"")
+        buildConfigField("String", "CLIENT_SECRETE", "\"$clientSecret\"")
         consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
+//        debug {
+//            isMinifyEnabled = false
+//            proguardFiles(
+//                getDefaultProguardFile("proguard-android-optimize.txt"),
+//                "proguard-rules.pro"
+//            )
+//        }
+
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -30,6 +62,11 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
+    }
+
+    buildFeatures {
+        compose = true
+        buildConfig = true
     }
 }
 
@@ -39,31 +76,45 @@ dependencies {
     implementation("io.insert-koin:koin-core:4.0.0")
 
     // Room for database
-    implementation("androidx.room:room-runtime:2.6.1")
-    ksp("androidx.room:room-compiler:2.6.1")  // KSP for Room annotation processing
-    implementation("androidx.room:room-paging:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.security.crypto.ktx)
+    implementation(project(":common"))
+    ksp(libs.androidx.room.compiler)  // KSP for Room annotation processing
+    implementation(libs.androidx.room.paging)
+    implementation(libs.androidx.room.ktx)
+
+    implementation("androidx.compose.runtime:runtime")
+//    implementation("androidx.compose.runtime:runtime-livedata:1.7.4")
+    // Optional - Integration with LiveData
+    implementation("androidx.compose.runtime:runtime-livedata")
+    implementation(libs.androidx.activity.compose)
+    implementation(platform(libs.androidx.compose.bom))
 
     // Retrofit for network requests
-    implementation("com.squareup.retrofit2:retrofit:2.11.0")
-    implementation("com.squareup.retrofit2:retrofit:2.11.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.11.0")  // Gson Converter for Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.retrofit)
+    implementation(libs.logging.interceptor)
+    implementation(libs.converter.gson)  // Gson Converter for Retrofit
+
+    implementation(libs.kotlin.stdlib)
 
 
     // DataStore for local data storage
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation(libs.androidx.datastore.preferences)
 
     // Gson for JSON parsing
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation(libs.gson)
 
     // Kotlinx Serialization for JSON serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation(libs.kotlinx.serialization.json)
 
     //module domain
     implementation(project(":domain"))
 
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
+    implementation(libs.secure.preferences.lib)
     implementation(libs.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

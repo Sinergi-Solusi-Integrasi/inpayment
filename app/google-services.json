@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "834461408209",
+    "project_id": "inpayment",
+    "storage_bucket": "inpayment.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:834461408209:android:044ca237223af679d71ef0",
+        "android_client_info": {
+          "package_name": "co.id.app.intracs.inpayment"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7LQtFtEe0MdJW64g9fQC_XRQ8xZOqeyY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:834461408209:android:fc3b3a35accbfe1ed71ef0",
+        "android_client_info": {
+          "package_name": "com.s2i.inpayment"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7LQtFtEe0MdJW64g9fQC_XRQ8xZOqeyY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
