@@ -89,8 +89,8 @@ fun RegisterScreen(
     // Use LaunchedEffect to control startup loading and fetch identityBitmap
     LaunchedEffect(Unit) {
         // Simulate fetching bitmap
-            delay(500) // Optional delay to keep the loading indicator visible for a short time
-            isStartupLoading = false
+        delay(500) // Optional delay to keep the loading indicator visible for a short time
+        isStartupLoading = false
     }
 
     val bitmap = remember(filePath) {
@@ -227,13 +227,13 @@ fun RegisterScreen(
                     )
                 } else {
                     Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .nestedScroll(nestedScrollConnection)
-                        .fillMaxHeight(0.89f)
-                        .padding(16.dp)
-                        .verticalScroll(scrollState)
-                ) {
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .nestedScroll(nestedScrollConnection)
+                            .fillMaxHeight(0.89f)
+                            .padding(16.dp)
+                            .verticalScroll(scrollState)
+                    ) {
                         OutlinedTextField(
                             value = identityNumberState,
                             onValueChange = { newValue ->
@@ -588,3 +588,4 @@ fun PreviewRegisterScreen(){
         name = "John Doe",
     )
 }
+

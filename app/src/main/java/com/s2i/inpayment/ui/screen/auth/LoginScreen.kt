@@ -3,13 +3,17 @@ package com.s2i.inpayment.ui.screen.auth
 import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -23,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,9 +49,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.google.firebase.messaging.FirebaseMessaging
 import com.s2i.data.local.auth.SessionManager
 import com.s2i.inpayment.R
@@ -67,7 +74,8 @@ fun LoginScreen(
     authViewModel: AuthViewModel = koinViewModel(),
     notificationViewModel: NotificationsViewModel = koinViewModel(),
     servicesViewModel: ServicesViewModel = koinViewModel(),
-    sessionManager: SessionManager
+    sessionManager: SessionManager,
+    showExtraInfo: Boolean = true
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -174,12 +182,12 @@ fun LoginScreen(
                     }
                 }
             }.onFailure { error ->
-               handleLoginFailer(
-                   error = error,
-                   showErrorSheet = showErrorSheet,
-                   setShowErrorSheet = { showErrorSheet = it },
-                   setErrorMessage = { errorMessage = it }
-               )
+                handleLoginFailer(
+                    error = error,
+                    showErrorSheet = showErrorSheet,
+                    setShowErrorSheet = { showErrorSheet = it },
+                    setErrorMessage = { errorMessage = it }
+                )
                 authViewModel.resetLoginState()
                 Log.d("onFailure", "Login failed. Showing error sheet: ${authViewModel.resetLoginState()}")
             }
@@ -187,112 +195,146 @@ fun LoginScreen(
         }
     }
 
-
-    Column(
+    Box(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
-        Spacer(modifier = Modifier.height(32.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(32.dp))
 
-        if (loadingState) {
-            CircularProgressIndicator()
+            if (loadingState) {
+                CircularProgressIndicator()
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            Image(
+                painter = painterResource(id = R.drawable.logo),
+                contentDescription = null,
+                modifier = Modifier.size(80.dp)
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            OutlinedTextField(
+                value = username,
+                onValueChange = {
+                    username = it
+                    isValidUsername = usernamePatterns.matches(it)
+                },
+                label = { Text("Username") },
+                isError = !isValidUsername,
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Next,
+                    keyboardType = KeyboardType.Text
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    }
+                ),
+                trailingIcon = if (!isValidUsername && username.isNotEmpty()) {
+                    { Icon(Icons.Default.Error, contentDescription = null, tint = Color.Red) }
+                } else null
+            )
+            if (!isValidUsername && username.isNotEmpty()) {
+                Text("Username minimal 4 karakter", color = Color.Red, fontSize = 12.sp)
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
-        }
 
-        Image(
-            painter = painterResource(id = R.drawable.logo),
-            contentDescription = null,
-            modifier = Modifier.size(150.dp)
-        )
+            OutlinedTextField(
+                value = password,
+                onValueChange = {
+                    password = it
+                    isValidPassword = it.length >= 6
+                },
+                label = { Text("Password") },
+                isError = !isValidPassword,
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Done,
+                    keyboardType = KeyboardType.Password
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        keyboardController?.hide()
+                    }
+                ),
+                trailingIcon = {
+                    val image =
+                        if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(imageVector = image, contentDescription = null)
+                    }
+                },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation()
+            )
+            if (!isValidPassword && password.isNotEmpty()) {
+                Text("Password minimal 8 karakter", color = Color.Red, fontSize = 12.sp)
+            }
 
-        Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        OutlinedTextField(
-            value = username,
-            onValueChange = {
-                username = it
-                isValidUsername = usernamePatterns.matches(it)
-            },
-            label = { Text("Username") },
-            isError = !isValidUsername,
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Next,
-                keyboardType = KeyboardType.Text
-            ),
-            keyboardActions = KeyboardActions(
-                onNext = {
-                    focusManager.moveFocus(FocusDirection.Down)
-                }
-            ),
-            trailingIcon = if (!isValidUsername && username.isNotEmpty()) {
-                { Icon(Icons.Default.Error, contentDescription = null, tint = Color.Red) }
-            } else null
-        )
-        if (!isValidUsername && username.isNotEmpty()) {
-            Text("Username minimal 4 karakter", color = Color.Red, fontSize = 12.sp)
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = {
-                password = it
-                isValidPassword = it.length >= 6
-            },
-            label = { Text("Password") },
-            isError = !isValidPassword,
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Done,
-                keyboardType = KeyboardType.Password
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    keyboardController?.hide()
-                }
-            ),
-            trailingIcon = {
-                val image =
-                    if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
-                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Icon(imageVector = image, contentDescription = null)
-                }
-            },
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation()
-        )
-        if (!isValidPassword && password.isNotEmpty()) {
-            Text("Password minimal 8 karakter", color = Color.Red, fontSize = 12.sp)
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = {
+            Button(
+                onClick = {
                     authViewModel.login(username, password)
-            },
-            enabled = !loadingState && isFormValid,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Login")
-        }
+                },
+                enabled = !loadingState && isFormValid,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Login")
+            }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = {
-                navController.navigate("kyc_intro_screen") {
-                    popUpTo("login_screen") { inclusive = false }
-                    launchSingleTop = true
+            //Forgot Password
+            TextButton(
+                onClick = {
+
                 }
-            },
-            enabled = !loadingState,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Oops, belum punya akun? Daftar sekarang")
+            ) {
+                Text(
+                    "Forgotten Password ?",
+                    color = Color.Blue,
+                    fontSize = 14.sp
+                )
+            }
+            Spacer(modifier = Modifier.height(32.dp))
+            Button(
+                onClick = {
+                    navController.navigate("kyc_intro_screen") {
+                        popUpTo("login_screen") { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
+                enabled = !loadingState,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Create new account")
+            }
+            if (showExtraInfo) {
+                Spacer(modifier = Modifier.height(32.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Powered by", fontSize = 16.sp, color = Color.Gray)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Image(
+                        painter = painterResource(id = R.drawable.intracts_logo), // Ganti dengan logo yang sesuai
+                        contentDescription = "Intracs Logo",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
         }
     }
 
@@ -313,8 +355,12 @@ fun LoginScreen(
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewLoginScreen(){
-//    LoginScreen()
-//}
+@Preview(showBackground = true)
+@Composable
+fun PreviewLoginScreen(
+){
+    val navController = rememberNavController()
+    val sessionManager = SessionManager(LocalContext.current)
+    LoginScreen(navController = navController, sessionManager = sessionManager)
+}
+
