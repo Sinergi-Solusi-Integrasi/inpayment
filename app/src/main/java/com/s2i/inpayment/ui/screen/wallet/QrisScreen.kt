@@ -187,9 +187,6 @@ fun QrisScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = {
-//                        navController.navigate("home_screen") {
-//                            popUpTo("qris_screen") { inclusive = true }
-//                        }
                         showBottomSheet = true
                     }) {
                         Icon(

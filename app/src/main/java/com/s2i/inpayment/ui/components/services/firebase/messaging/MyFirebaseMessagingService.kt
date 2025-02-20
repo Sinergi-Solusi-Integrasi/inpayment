@@ -44,7 +44,9 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             val title = it.title ?: "Default Title"
             val body = it.body ?: "Default Body"
             Log.d("FCM", "Notification received - Title: $title, Body: $body")
-            showNotification(title, body)
+            showNotification(title, body, null)
+
+
         }
 
         // Tangani Data Payload
@@ -58,7 +60,9 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
             Log.d("FCM", "Data Payload - Title: $title, Body: $body, Transaction ID: $transactionId")
 
-            showNotification(title, body) // Panggil fungsi manual
+            showNotification(title, body, transactionId) // Panggil fungsi manual
+            Log.d("FCM", "📩 Incoming Notification Data: $remoteMessage")
+            Log.d("FCM", "🔎 Extracted transactionId = $transactionId")
         }
     }
 
@@ -88,14 +92,23 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
 
-    private fun showNotification(title: String, body: String) {
+    private fun showNotification(title: String, body: String, transactionId: String?) {
         val channelId = "transaction_updates_channel"
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
+
+        // Cek apakah notifikasiid null atau tidak
+        if (transactionId.isNullOrBlank()){
+            Log.e("FCM", "Transaction ID is null or blank")
+            return
+        }
         // Intent untuk membuka aktivitas saat notifikasi diklik
-        val intent = Intent(this, MainActivity::class.java)
+        val intent = Intent(this, MainActivity::class.java).apply{
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra("transaction_id", transactionId)
+        }
         val pendingIntent = PendingIntent.getActivity(
-            this, 0, intent, PendingIntent.FLAG_IMMUTABLE
+            this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         // Buat Notification Channel untuk Android 8.0+
