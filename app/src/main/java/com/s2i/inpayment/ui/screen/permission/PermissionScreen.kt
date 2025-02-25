@@ -6,6 +6,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CircleNotifications
@@ -83,18 +84,17 @@ fun PermissionScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(20.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 72.dp), // Ensure spacing for button alignment
+                .padding(bottom = 72.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
 
             Image(
-                painter = painterResource(id = R.drawable.permission_icon),
+                painter = painterResource(id = R.drawable.permission_icon1),
                 contentDescription = "Permission Illustration",
                 modifier = Modifier
                     .fillMaxWidth(0.6f) // More compact size
@@ -165,9 +165,11 @@ fun PermissionScreen(
             },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .width(300.dp)
+                .height(55.dp),
+            shape = RoundedCornerShape(10.dp)
         ) {
-            Text("Izinkan")
+            Text("Allow")
         }
     }
 
@@ -193,7 +195,9 @@ fun PermissionScreen(
                             multiplePermissionsState.launchMultiplePermissionRequest()
                         }
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp)
                 ) {
                     Text(text = "Grant Permissions")
                 }

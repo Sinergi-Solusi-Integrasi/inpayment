@@ -109,7 +109,7 @@ fun KYCIntroScreen(
             Spacer(modifier = Modifier.height(16.dp))
             // Illustration
             Image(
-                painter = painterResource(id = R.drawable.ic_kyc_placeholder), // Replace with your image
+                painter = painterResource(id = R.drawable.ic_kyc_placeholder1), // Replace with your image
                 contentDescription = "KYC Illustration",
                 modifier = Modifier
                     .fillMaxWidth()

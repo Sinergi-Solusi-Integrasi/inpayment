@@ -83,7 +83,6 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 // In HomeScreen.kt
-
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(
@@ -183,30 +182,6 @@ fun HomeScreen(
         }
     }
 
-
-//    LaunchedEffect(Unit) {
-//        if (!sessionManager.isLogin || sessionManager.isAccessTokenExpired() && sessionManager.isRefreshTokenExpired()) {
-//            Log.d("HomeScreen", "User is not logged in. Redirecting to login_screen.")
-//            TokenWorkManagerUtil.stopWorkManager(context) // Stop WorkManager jika user logout
-//            sessionManager.logout()
-//            navController.navigate("login_screen") {
-//                popUpTo("home_screen") { inclusive = true }
-//            }
-//        } else {
-//            val deviceId = sessionManager.getFromPreference(SessionManager.KEY_DEVICE_ID)
-//            if (!deviceId.isNullOrBlank()) {
-//                Log.d("HomeScreen", "Device ID: $deviceId, proceeding to bind account.")
-//                servicesViewModel.bindAccount(deviceId)
-//            } else {
-//                Log.e("HomeScreen", "Device ID not found after registration")
-//            }
-//            balanceViewModel.fetchBalance()
-//            balanceViewModel.fetchTriLastTransaction()
-//            balanceViewModel.fetchInComeExpenses()
-//        }
-//    }
-
-
     // Menangani hasil response BindingModel
     bindingState?.let { bindingModel ->
         Log.d("HomeScreen", "Binding Successful: ${bindingModel.message}")
@@ -268,15 +243,6 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.SpaceBetween, // Menjaga jarak antara logo dan profil
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Logo on the left
-                    Image(
-                        painter = painterResource(id = R.drawable.logo),
-                        contentDescription = "Logo",
-                        modifier = Modifier
-                            .size(60.dp)  // Sesuaikan ukuran logo
-                            .align(Alignment.CenterVertically)  // Pastikan logo tetap di tengah secara vertikal
-                    )
-
                     Spacer(modifier = Modifier.weight(1f))
 
                     // Notification icon in the center

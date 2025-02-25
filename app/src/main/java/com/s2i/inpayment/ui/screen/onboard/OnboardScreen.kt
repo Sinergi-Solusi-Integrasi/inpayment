@@ -29,6 +29,7 @@ import com.s2i.inpayment.ui.components.onboardingPages
 import com.s2i.inpayment.ui.theme.DarkTeal21
 import com.s2i.inpayment.ui.theme.GreenTeal21
 import com.s2i.inpayment.ui.theme.GreenTeal40
+import com.s2i.inpayment.ui.theme.VeryDarkBlue
 import kotlinx.coroutines.delay
 
 @Composable
@@ -57,7 +58,7 @@ fun OnboardScreen(navController: NavController) {
         Text(
             text = "Skip",
             fontSize = 18.sp,
-            color = GreenTeal40,
+            color = VeryDarkBlue,
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = 48.dp, end = 16.dp) // Moved down
@@ -100,7 +101,7 @@ fun OnboardScreen(navController: NavController) {
             Text(
                 text = pages[currentPage].desc,
                 fontSize = 16.sp,
-                color = GreenTeal21,
+                color = VeryDarkBlue,
                 modifier = Modifier.padding(top = 4.dp, bottom = 8.dp) // Adjusted spacing
             )
 
@@ -142,7 +143,7 @@ fun OnboardScreen(navController: NavController) {
                     modifier = Modifier
                         .size(50.dp), // This will make the button circular with 56dp diameter
                     contentPadding = PaddingValues(0.dp), // Padding for spacing from the edge
-                    colors = ButtonDefaults.buttonColors(containerColor = GreenTeal40)
+                    colors = ButtonDefaults.buttonColors(containerColor = VeryDarkBlue)
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos, // Replace with the appropriate icon for "Next"
@@ -163,7 +164,7 @@ fun RectIndicator(isSelected: Boolean) {
         modifier = Modifier
             .size(width = if (isSelected) 20.dp else 10.dp, height = 6.dp)
             .background(
-                if (isSelected) GreenTeal21 else Color.Gray,
+                if (isSelected) VeryDarkBlue else Color.Gray,
                 shape = RoundedCornerShape(3.dp)
             )
     )

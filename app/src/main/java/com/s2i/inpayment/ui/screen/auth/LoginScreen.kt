@@ -2,18 +2,21 @@ package com.s2i.inpayment.ui.screen.auth
 
 import android.os.Build
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -21,6 +24,7 @@ import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -63,7 +67,6 @@ import com.s2i.inpayment.ui.viewmodel.AuthViewModel
 import com.s2i.inpayment.ui.viewmodel.NotificationsViewModel
 import com.s2i.inpayment.ui.viewmodel.ServicesViewModel
 import com.s2i.inpayment.utils.helper.handleLoginFailer
-import com.s2i.inpayment.utils.helper.handleSessionLogout
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -197,16 +200,19 @@ fun LoginScreen(
 
     Box(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .fillMaxHeight(),
         contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .fillMaxSize()
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.weight(1f))
 
             if (loadingState) {
                 CircularProgressIndicator()
@@ -215,11 +221,11 @@ fun LoginScreen(
 
             Image(
                 painter = painterResource(id = R.drawable.logo),
-                contentDescription = null,
-                modifier = Modifier.size(80.dp)
+                contentDescription = "logo",
+                modifier = Modifier
+                    .size(80.dp)
             )
-
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.weight(1f))
 
             OutlinedTextField(
                 value = username,
@@ -241,13 +247,12 @@ fun LoginScreen(
                 ),
                 trailingIcon = if (!isValidUsername && username.isNotEmpty()) {
                     { Icon(Icons.Default.Error, contentDescription = null, tint = Color.Red) }
-                } else null
+                } else null,
+                shape = RoundedCornerShape(10.dp)
             )
             if (!isValidUsername && username.isNotEmpty()) {
                 Text("Username minimal 4 karakter", color = Color.Red, fontSize = 12.sp)
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
                 value = password,
@@ -274,25 +279,31 @@ fun LoginScreen(
                         Icon(imageVector = image, contentDescription = null)
                     }
                 },
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation()
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                shape = RoundedCornerShape(10.dp)
             )
             if (!isValidPassword && password.isNotEmpty()) {
                 Text("Password minimal 8 karakter", color = Color.Red, fontSize = 12.sp)
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(25.dp))
 
             Button(
                 onClick = {
                     authViewModel.login(username, password)
                 },
                 enabled = !loadingState && isFormValid,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .width(300.dp)
+                    .height(55.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF0E526B)
+                ),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp)
             ) {
-                Text("Login")
+                Text("Log in")
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             //Forgot Password
             TextButton(
@@ -301,12 +312,13 @@ fun LoginScreen(
                 }
             ) {
                 Text(
-                    "Forgotten Password ?",
-                    color = Color.Blue,
+                    "Forget password?",
+                    color = Color.Black,
                     fontSize = 14.sp
                 )
             }
-            Spacer(modifier = Modifier.height(32.dp))
+
+            Spacer(modifier = Modifier.height(20.dp))
             Button(
                 onClick = {
                     navController.navigate("kyc_intro_screen") {
@@ -315,26 +327,16 @@ fun LoginScreen(
                     }
                 },
                 enabled = !loadingState,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(10.dp),
+                border = BorderStroke(1.dp, Color(0xFF0E526B)),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White
+                )
             ) {
-                Text("Create new account")
+                Text("Create new account", color = Color(0xFF0E526B))
             }
-            if (showExtraInfo) {
-                Spacer(modifier = Modifier.height(32.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Powered by", fontSize = 16.sp, color = Color.Gray)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Image(
-                        painter = painterResource(id = R.drawable.intracts_logo), // Ganti dengan logo yang sesuai
-                        contentDescription = "Intracs Logo",
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
+            Spacer(modifier = Modifier.weight(1f))
         }
     }
 

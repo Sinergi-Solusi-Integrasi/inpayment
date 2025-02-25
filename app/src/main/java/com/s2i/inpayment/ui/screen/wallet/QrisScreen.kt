@@ -251,7 +251,10 @@ fun QrisScreen(
                             saveQRCode(context, qrisState)
                         }
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .size(width = 300.dp, height = 55.dp),
+                    shape = RoundedCornerShape(10.dp)
                 ) {
                     Text("Download")
                 }

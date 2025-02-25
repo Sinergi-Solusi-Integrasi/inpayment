@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -101,7 +102,7 @@ fun SplashScreen(
             contentAlignment = Alignment.TopStart
         ) {
             Image(
-                painter = painterResource(id = R.drawable.rectangle_top_left),
+                painter = painterResource(id = R.drawable.rectangle_top_left1),
                 contentDescription = "rectagle top left",
                 contentScale = ContentScale.FillWidth,
                 modifier = Modifier
@@ -116,7 +117,7 @@ fun SplashScreen(
             contentAlignment = Alignment.BottomStart
         ) {
             Image(
-                painter = painterResource(id = R.drawable.circle_down_left),
+                painter = painterResource(id = R.drawable.circle_down_lef1),
                 contentDescription = "rectagle bottom right",
                 contentScale = ContentScale.Fit,
                 modifier = Modifier.size(100.dp),
@@ -129,7 +130,7 @@ fun SplashScreen(
             contentAlignment = Alignment.TopEnd
         ) {
             Image(
-                painter = painterResource(id = R.drawable.circle),
+                painter = painterResource(id = R.drawable.circle1),
                 contentDescription = "rectagle bottom right",
                 contentScale = ContentScale.FillBounds,
                 modifier = Modifier.size(100.dp),
@@ -147,7 +148,9 @@ fun SplashScreen(
             painter = painterResource(id = R.drawable.logo),
             contentDescription = "logo",
             contentScale = ContentScale.Fit,
-            modifier = Modifier.size(200.dp)
+            modifier = Modifier
+                .width(100.dp)
+                .height(92.dp)
         )
     }
 
