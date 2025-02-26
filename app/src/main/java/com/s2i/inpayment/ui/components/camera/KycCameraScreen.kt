@@ -415,7 +415,7 @@ private fun KycCameraContent(
                                 modifier = Modifier.size(20.dp)
                             )
                         } else {
-                            Text("Selanjutnya")
+                            Text("Continue")
                         }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
@@ -423,7 +423,7 @@ private fun KycCameraContent(
                         coroutineScope.launch { sheetState.hide() }
                         capturedPhoto = null
                     }) {
-                        Text("Foto Ulang")
+                        Text("Retake Photo")
                     }
                 }
             }

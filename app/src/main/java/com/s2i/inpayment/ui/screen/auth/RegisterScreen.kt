@@ -12,6 +12,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -49,6 +50,7 @@ import androidx.navigation.NavController
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import com.s2i.common.utils.convert.correctImageOrientation
 import com.s2i.common.utils.convert.decodeBase64ToBitmap
 import com.s2i.inpayment.R
@@ -252,6 +254,7 @@ fun RegisterScreen(
                             },
                             label = { Text("KTP/SIM/PASSPORT Number") },
                             modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp),
                             isError = identityError != null,
                             keyboardOptions = KeyboardOptions.Default.copy(
                                 imeAction = ImeAction.Next,
@@ -290,6 +293,7 @@ fun RegisterScreen(
                             },
                             label = { Text("Full Name") },
                             modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp),
                             isError = nameError != null,
                             keyboardOptions = KeyboardOptions(
                                 imeAction = ImeAction.Next, // Fokus berpindah ke TextField berikutnya
@@ -321,6 +325,7 @@ fun RegisterScreen(
                             label = { Text("Username") },
                             isError = !isUsernameValid,
                             modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp),
                             trailingIcon = if (!isUsernameValid && username.isNotEmpty()) {
                                 {
                                     Icon(
@@ -352,6 +357,7 @@ fun RegisterScreen(
                                 isValidEmail = Patterns.EMAIL_ADDRESS.matcher(it).matches()
                             },
                             label = { Text("Email Address") },
+                            shape = RoundedCornerShape(10.dp),
                             isError = !isValidEmail,
                             modifier = Modifier.fillMaxWidth(),
                             trailingIcon = if (!isValidEmail && email.isNotEmpty()) {
@@ -383,6 +389,7 @@ fun RegisterScreen(
                             onValueChange = { phoneNumber = it },
                             label = { Text("Mobile Phone") },
                             modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp),
                             keyboardOptions = KeyboardOptions.Default.copy(
                                 imeAction = ImeAction.Next,
                                 keyboardType = KeyboardType.Number
@@ -400,6 +407,7 @@ fun RegisterScreen(
                             onValueChange = { address = it },
                             label = { Text("Address") },
                             modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp),
                             keyboardOptions = KeyboardOptions(
                                 imeAction = ImeAction.Next, // Fokus berpindah ke TextField berikutnya
                                 keyboardType = KeyboardType.Text
@@ -422,6 +430,7 @@ fun RegisterScreen(
                             label = { Text("Create Password") },
                             isError = !isValidPassword,
                             modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp),
                             trailingIcon = {
                                 val image = if (passwordVisible)
                                     Icons.Default.Visibility
@@ -459,6 +468,7 @@ fun RegisterScreen(
                             label = { Text("Repeat Password") },
                             isError = !isPasswordsMatch,
                             modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp),
                             trailingIcon = {
                                 val image = if (confirmPasswordVisible)
                                     Icons.Default.Visibility
@@ -506,10 +516,13 @@ fun RegisterScreen(
                             },
                             enabled = isFormValid,
                             modifier = Modifier
-                                .fillMaxWidth()
+                                .width(300.dp)
+                                .height(55.dp)
+                                .align(Alignment.CenterHorizontally)
                                 .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 16.dp),
+                            shape = RoundedCornerShape(10.dp),
                         ) {
-                            Text("Create Account")
+                            Text("Create account")
                         }
                     }
                 }
@@ -519,9 +532,12 @@ fun RegisterScreen(
                     modifier = Modifier.offset { IntOffset(0, animatedOffset.toInt()) },
                     title = {
                         Text(
-                            "Add your card or account to the wallet",
+                            "Register Data",
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            textAlign = TextAlign.Center
                         )
                     },
                     navigationIcon = {
