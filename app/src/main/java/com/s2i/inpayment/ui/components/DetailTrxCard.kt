@@ -163,34 +163,34 @@ fun DetailTrxCard(
                     )
 
                     // Detail Penerima
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(bottom = 24.dp)
-                    ) {
-                        detail.tollPayment?.vehicleCaptures?.firstOrNull()?.let { imageUrl ->
-                            Log.d("ImageDebug", "URL: $imageUrl")
-                            val sizeResolver = rememberConstraintsSizeResolver()
-                            val painter = rememberAsyncImagePainter(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(imageUrl)
-                                    // Menambahkan header Authorization
-                                    .diskCachePolicy(CachePolicy.ENABLED)
-                                    .crossfade(true) // Opsional: crossfade untuk transisi yang mulus
-//                                .placeholder(R.drawable.placeholder) // Placeholder saat gambar belum dimuat
-//                                .error(R.drawable.error_image) // Gambar fallback jika terjadi error
-                                    .build(),
-                                imageLoader = imageLoader,
-                            )
-                            Image(
-                                painter = painter,
-                                contentDescription = "Vehicle Image",
-                                modifier = Modifier
-                                    .size(56.dp)
-                                    .clip(RoundedCornerShape(10)) // Membuat gambar berbentuk lingkaran
-                                    .background(Color.Gray)
-                            )
-                        }?: Log.e("ImageDebug", "Image URL is null or empty")
-                    }
+//                    Row(
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        modifier = Modifier.padding(bottom = 24.dp)
+//                    ) {
+//                        detail.tollPayment?.vehicleCaptures?.firstOrNull()?.let { imageUrl ->
+//                            Log.d("ImageDebug", "URL: $imageUrl")
+//                            val sizeResolver = rememberConstraintsSizeResolver()
+//                            val painter = rememberAsyncImagePainter(
+//                                model = ImageRequest.Builder(LocalContext.current)
+//                                    .data(imageUrl)
+//                                    // Menambahkan header Authorization
+//                                    .diskCachePolicy(CachePolicy.ENABLED)
+//                                    .crossfade(true) // Opsional: crossfade untuk transisi yang mulus
+////                                .placeholder(R.drawable.placeholder) // Placeholder saat gambar belum dimuat
+////                                .error(R.drawable.error_image) // Gambar fallback jika terjadi error
+//                                    .build(),
+//                                imageLoader = imageLoader,
+//                            )
+//                            Image(
+//                                painter = painter,
+//                                contentDescription = "Vehicle Image",
+//                                modifier = Modifier
+//                                    .size(56.dp)
+//                                    .clip(RoundedCornerShape(10)) // Membuat gambar berbentuk lingkaran
+//                                    .background(Color.Gray)
+//                            )
+//                        }?: Log.e("ImageDebug", "Image URL is null or empty")
+//                    }
 
                     // Detail Transaksi
                     Column(
@@ -243,6 +243,30 @@ fun DetailTrxCard(
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
+
+                    detail.tollPayment?.vehicleCaptures?.firstOrNull()?.let { imageUrl ->
+                        Log.d("ImageDebug", "URL: $imageUrl")
+                        val sizeResolver = rememberConstraintsSizeResolver()
+                        val painter = rememberAsyncImagePainter(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(imageUrl)
+                                // Menambahkan header Authorization
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .crossfade(true) // Opsional: crossfade untuk transisi yang mulus
+//                                .placeholder(R.drawable.placeholder) // Placeholder saat gambar belum dimuat
+//                                .error(R.drawable.error_image) // Gambar fallback jika terjadi error
+                                .build(),
+                            imageLoader = imageLoader,
+                        )
+                        Image(
+                            painter = painter,
+                            contentDescription = "Vehicle Image",
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(RoundedCornerShape(10)) // Membuat gambar berbentuk lingkaran
+                                .background(Color.Gray)
+                        )
+                    }?: Log.e("ImageDebug", "Image URL is null or empty")
                 }
             }
 
