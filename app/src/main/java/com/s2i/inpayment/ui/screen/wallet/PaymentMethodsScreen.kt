@@ -7,6 +7,7 @@ import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
@@ -43,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
@@ -60,6 +63,7 @@ import com.s2i.inpayment.ui.components.DetailTrxCard
 import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
 import com.s2i.inpayment.ui.components.saveBitmapToFile
 import com.s2i.inpayment.ui.components.shareScreenshot
+import com.s2i.inpayment.ui.theme.White
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -125,9 +129,18 @@ fun PaymentMethodsScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize())
+    {
         Spacer(modifier = Modifier.width(32.dp))
         // Header di posisi atas tetap
+
+        Image(
+            painter = painterResource(id = R.drawable.background1),
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.matchParentSize()
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -148,15 +161,15 @@ fun PaymentMethodsScreen(
                     },
                     modifier = Modifier
                         .size(16.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.onSecondary,
-                            shape = CircleShape
-                        )
+//                        .background(
+//                            color = MaterialTheme.colorScheme.onSecondary,
+//                            shape = CircleShape
+//                        )
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Close,
+                        imageVector = Icons.Filled.ArrowBackIos,
                         contentDescription = "Close",
-                        tint = MaterialTheme.colorScheme.onBackground
+                        tint = Color.White
                     )
                 }
                 Spacer(modifier = Modifier.width(24.dp))
@@ -167,7 +180,8 @@ fun PaymentMethodsScreen(
                     fontWeight = FontWeight.Bold,
                     fontSize = MaterialTheme.typography.titleLarge.fontSize,
                     modifier = Modifier
-                        .padding(vertical = 8.dp)
+                        .padding(vertical = 8.dp),
+                    color = White
                 )
 
             }
@@ -185,7 +199,8 @@ fun PaymentMethodsScreen(
                 Text(
                     text = "Payment Methods",
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    color = White
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -194,12 +209,13 @@ fun PaymentMethodsScreen(
                 Text(
                     text = "QRIS",
                     fontSize = 14.sp,
-                    color = Color.Gray
+                    color = White
                 )
 
                 PaymentMethodItem(
                     imageRes = R.drawable.qris_logo,
                     title = "QRIS",
+                    titleColor = Color.White,
                     onClick = {
                         // Aksi untuk QRIS
                         navController.navigate("payment_screen") {
@@ -258,29 +274,32 @@ fun PaymentMethodsScreen(
 fun PaymentMethodItem(
     imageRes: Int,
     title: String,
+    titleColor: Color,
     onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
             .padding(vertical = 8.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFF5F5F5))
             .clickable { onClick() }
-            .padding(16.dp),
+            .border(2.dp, Color.LightGray, shape = RoundedCornerShape(10.dp)),
         verticalAlignment = Alignment.CenterVertically
-    ) {
+    )
+    {
+        Spacer(modifier = Modifier.width(8.dp))
         Image(
             painter = painterResource(id = imageRes),
             contentDescription = title,
             modifier = Modifier
-                .size(60.dp)
-                .padding(end = 16.dp)
+                .size(80.dp)
+                .padding(16.dp)
         )
         Text(
             text = title,
             fontSize = 16.sp,
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Medium,
+            color = titleColor
         )
     }
 }

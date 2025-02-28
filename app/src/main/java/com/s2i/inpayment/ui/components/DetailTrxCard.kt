@@ -68,6 +68,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.s2i.common.utils.convert.RupiahFormatter
 import com.s2i.common.utils.date.Dates
 import com.s2i.domain.entity.model.balance.HistoryBalanceModel
+import com.s2i.inpayment.ui.theme.GreenTea
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.getKoin
@@ -114,8 +115,8 @@ fun DetailTrxCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                shape = MaterialTheme.shapes.large,
-                elevation = CardDefaults.elevatedCardElevation(8.dp)
+                shape = RoundedCornerShape(10.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
                 Column(
                     modifier = Modifier
@@ -132,7 +133,7 @@ fun DetailTrxCard(
                     Icon(
                         imageVector = iconImageVector,
                         contentDescription = statusMessage,
-                        tint = iconColor,
+                        tint = GreenTea,
                         modifier = Modifier
                             .size(64.dp)
                             .padding(bottom = 16.dp)

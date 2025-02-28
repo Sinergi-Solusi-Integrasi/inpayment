@@ -1,5 +1,6 @@
 package com.s2i.inpayment.ui.screen.wallet
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
@@ -36,14 +38,18 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.HistoryCard
 import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
 import com.s2i.inpayment.ui.components.custome.LogoIndicator
+import com.s2i.inpayment.ui.theme.White
 import com.s2i.inpayment.ui.theme.White30
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import kotlinx.coroutines.delay
@@ -104,6 +110,14 @@ fun WalletHistoryScreen(
                     .padding(vertical = 8.dp)
             )
         }
+
+        Image(
+            painter = painterResource(id = R.drawable.background1),
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.matchParentSize()
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -132,15 +146,15 @@ fun WalletHistoryScreen(
                     },
                     modifier = Modifier
                         .size(16.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.onSecondary,
-                            shape = CircleShape
-                        )
+//                        .background(
+//                            color = MaterialTheme.colorScheme.onSecondary,
+//                            shape = CircleShape
+//                        )
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Close,
+                        imageVector = Icons.Filled.ArrowBackIos,
                         contentDescription = "Close",
-                        tint = MaterialTheme.colorScheme.onBackground
+                        tint = White
                     )
                 }
                 Spacer(modifier = Modifier.width(24.dp))
@@ -151,7 +165,8 @@ fun WalletHistoryScreen(
                     fontWeight = FontWeight.Bold,
                     fontSize = MaterialTheme.typography.titleLarge.fontSize,
                     modifier = Modifier
-                        .padding(vertical = 8.dp)
+                        .padding(vertical = 8.dp),
+                    color = White
                 )
 
             }
@@ -160,7 +175,7 @@ fun WalletHistoryScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ){
                 groupedTransaction.forEach { (dateLabel, transactions) ->
                     item {

@@ -2,7 +2,6 @@ package com.s2i.inpayment.ui.screen.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
@@ -14,7 +13,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -23,9 +21,6 @@ import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.BottomNavigationBar
 import com.s2i.inpayment.ui.navigation.bottomNavItems
 import com.s2i.inpayment.ui.screen.history.HistoryScreen
-import com.s2i.inpayment.ui.screen.profile.ProfileScreen
-import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
-import org.koin.androidx.compose.koinViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -5,8 +5,10 @@ import android.content.ClipboardManager
 import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,9 +22,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DirectionsCarFilled
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -49,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -61,6 +66,8 @@ import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
 import com.s2i.inpayment.ui.theme.DarkTeal21
 import com.s2i.inpayment.ui.theme.DarkTeal40
+import com.s2i.inpayment.ui.theme.VeryDarkBlue
+import com.s2i.inpayment.ui.theme.White
 import com.s2i.inpayment.ui.viewmodel.AuthViewModel
 import com.s2i.inpayment.ui.viewmodel.UsersViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -75,7 +82,8 @@ fun ProfileScreen(
     sessionManager: SessionManager,
     authViewModel: AuthViewModel = koinViewModel(),
     usersViewModel: UsersViewModel = koinViewModel()
-) {
+)
+ {
     val scope = rememberCoroutineScope()
     val usersState by usersViewModel.users.collectAsState()
     var isStartupLoading by remember { mutableStateOf(true) }
@@ -105,54 +113,73 @@ fun ProfileScreen(
         }
     )
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Profile") },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        /* Handle back navigation */
-                        navController.navigateUp()
-                    }
-                    ) {
-                        Icon(imageVector = Icons.Filled.Close, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = DarkTeal40,
-                    navigationIconContentColor = DarkTeal21
-                ),
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(paddingValues)
-                .padding(16.dp)
-        ) {
-            if (isStartupLoading) {
-                CustomLinearProgressIndicator(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                )
-            }
-            // Pastikan usersState tidak null sebelum menampilkan profile card
-            if (usersState != null) {
-                ProfileCard(navController, sessionManager, scope, usersState)
-            } else {
-                Text("User data is loading...")
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            ProfileMenu(navController)
-            Spacer(modifier = Modifier.height(16.dp))
-            ProfileFooter(navController, authViewModel, sessionManager, scope)
-        }
-    }
+     Box(
+         modifier = Modifier
+             .fillMaxSize()
+     ) {
+         Image(
+             painter = painterResource(id = R.drawable.background1),
+             contentDescription = null,
+             contentScale = ContentScale.FillBounds,
+             modifier = Modifier.matchParentSize()
+         )
+
+         Scaffold(
+             topBar = {
+                 TopAppBar(
+                     title = { Text("Profile") },
+                     navigationIcon = {
+                         IconButton(onClick = { navController.navigateUp() }) {
+                             Icon(
+                                 imageVector = Icons.Filled.ArrowBackIos,
+                                 contentDescription = "Back",
+                                 tint = Color.White
+                             )
+                         }
+                     },
+                     colors = TopAppBarDefaults.topAppBarColors(
+                         containerColor = Color.Transparent,
+                         titleContentColor = White,
+                         navigationIconContentColor = DarkTeal21
+                     ),
+                 )
+             },
+             modifier = Modifier.fillMaxSize(),
+             containerColor = Color.Transparent // Supaya background dari Box tetap terlihat
+         ) { paddingValues ->
+             Column(
+                 modifier = Modifier
+                     .fillMaxSize()
+                     .padding(paddingValues),
+                 horizontalAlignment = Alignment.CenterHorizontally
+             ) {
+                 ProfileCard(
+                     navController = navController,
+                     sessionManager = sessionManager,
+                     scope = scope,
+                     usersState = usersState
+                 )
+                 ProfileMenu(navController = navController)
+                 ProfileFooter(
+                     navController = navController,
+                     authViewModel = authViewModel,
+                     sessionManager = sessionManager,
+                     scope = scope
+                 )
+
+//                 ProfileMenuItem(
+//                     icon = Icons.Default.Settings,
+//                     title = "Settings",
+//                     onClick = {},
+//                     modifier = Modifier.padding(end = 16.dp)
+//                 )
+//                 Spacer(modifier = Modifier.height(16.dp))
+             }
+         }
+     }
+
 }
+
 
 @Composable
 fun ProfileCard(
@@ -160,16 +187,19 @@ fun ProfileCard(
     sessionManager: SessionManager,
     scope: CoroutineScope,
     usersState: ProfileModel?
-) {
-
+)
+ {
     val context = LocalContext.current
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.elevatedCardElevation(4.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .border(2.dp, Color.LightGray, shape = RoundedCornerShape(10.dp)),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .padding(16.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
@@ -185,18 +215,19 @@ fun ProfileCard(
                         text = "Hai, ${usersState?.name ?: "Guest"}",
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
-                        color = Color.Black
+                        color = Color.White
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = "Account: ${usersState?.accountNumber ?: "-"}",
                             fontSize = 14.sp,
-                            color = Color.Gray
+                            color = Color.White
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Icon(
                             imageVector = Icons.Default.ContentCopy,
+                            tint = Color.White,
                             contentDescription = "Account Number Options",
                             modifier = Modifier.clickable {
                                 val clipboardManager =
@@ -212,12 +243,12 @@ fun ProfileCard(
                     Text(
                         text = usersState?.mobileNumber ?: "No Phone Number",
                         fontSize = 14.sp,
-                        color = Color.Gray
+                        color = Color.White
                     )
                     Text(
                         text = "RFID: ${usersState?.selectVehicle?.rfid ?: ""} ",
                         fontSize = 14.sp,
-                        color = Color.Gray
+                        color = Color.White
                     )
                 }
                 Spacer(modifier = Modifier.weight(1f))
@@ -233,7 +264,7 @@ fun ProfileCard(
                         text = "Brand: ${vehicle.brand} Model: ${vehicle.model}   ${vehicle.group}   Plate Number: ${vehicle.plateNumber}",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        color = Color.White
                     )
                 }
             }
@@ -243,29 +274,37 @@ fun ProfileCard(
             ) {
                 Button(
                     onClick = { /* Handle edit profile */ },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00796B))
+                    modifier = Modifier
+                        .weight(1f)
+                        .border(2.dp, Color.LightGray, shape = RoundedCornerShape(10.dp)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                 ) {
-                    Text("Edit Profile")
+                    Text("Edit profile")
                 }
                 Button(
                     onClick = { /* Handle data account */ },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00796B))
+                    modifier = Modifier
+                        .weight(1f)
+                        .border(2.dp, Color.LightGray, shape = RoundedCornerShape(10.dp)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                 ) {
-                    Text("Data Account")
+                    Text("Data account")
                 }
             }
         }
     }
 }
 
+///
 @Composable
 fun ProfileMenu(
     navController: NavController
-) {
+)
+ {
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
     ) {
         ProfileMenuItem(
             icon = Icons.Default.DirectionsCarFilled,
@@ -276,8 +315,15 @@ fun ProfileMenu(
                     popUpTo("profile_screen") { inclusive = false }
                 }
             })
-        ProfileMenuItem(icon = R.drawable.ic_riwayat, title = "All Transactions", onClick = {})
-        ProfileMenuItem(icon = R.drawable.ic_help, title = "Help and Support", onClick = {})
+        ProfileMenuItem(
+            icon = R.drawable.ic_riwayat,
+            title = "All Transactions",
+            onClick = {}
+        )
+        ProfileMenuItem(icon = R.drawable.ic_help,
+            title = "Help and Support",
+            onClick = {}
+        )
     }
 }
 
@@ -287,15 +333,33 @@ fun ProfileFooter(
     authViewModel: AuthViewModel,
     sessionManager: SessionManager,
     scope: CoroutineScope
-) {
+)
+ {
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
     ) {
-        ProfileMenuItem(icon = R.drawable.ic_about, title = "About Us", {})
-        ProfileMenuItem(icon = R.drawable.ic_terms, title = "Terms and Conditions", {})
-        ProfileMenuItem(icon = R.drawable.ic_feedback, title = "Feedback", {})
+        ProfileMenuItem(icon = R.drawable.ic_about,
+            title = "About Us",
+            onClick =  {
+
+            }
+        )
+        ProfileMenuItem(icon = R.drawable.ic_terms,
+            title = "Terms and Conditions",
+            onClick =  {
+
+            }
+        )
+        ProfileMenuItem(icon = R.drawable.ic_feedback,
+            title = "Feedback",
+            onClick =  {
+
+            }
+        )
+
         // Tombol Logout
-        Spacer(modifier = Modifier.height(16.dp))
         ProfileMenuItem(
             icon = R.drawable.ic_logout, // Icon logout
             title = "Logout",
@@ -321,8 +385,10 @@ fun ProfileFooter(
 fun ProfileMenuItem(
     icon: Any,
     title: String,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
-) {
+)
+ {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -336,7 +402,7 @@ fun ProfileMenuItem(
                     imageVector = icon,
                     contentDescription = title,
                     modifier = Modifier.size(24.dp),
-                    tint = Color.Gray
+                    tint = Color.White
                 )
             }
 
@@ -345,7 +411,7 @@ fun ProfileMenuItem(
                     painter = painterResource(id = icon),
                     contentDescription = title,
                     modifier = Modifier.size(24.dp),
-                    tint = Color.Gray
+                    tint = Color.White
                 )
             }
         }
@@ -353,14 +419,8 @@ fun ProfileMenuItem(
         Text(
             text = title,
             fontSize = 16.sp,
-            color = Color.Gray
+            color = Color.White
         )
         Spacer(modifier = Modifier.weight(1f))
     }
 }
-
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewProfileScreen() {
-//    ProfileScreen(navController = NavController(LocalContext.current), authViewModel = AuthViewModel(LocalContext.current))
-//}

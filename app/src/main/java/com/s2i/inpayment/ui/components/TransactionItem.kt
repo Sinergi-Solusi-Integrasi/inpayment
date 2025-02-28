@@ -12,7 +12,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.s2i.inpayment.ui.theme.GreenTea
 import com.s2i.inpayment.ui.theme.GreenTeal40
+import com.s2i.inpayment.ui.theme.White
 
 @Composable
 fun TransactionItem(
@@ -45,26 +47,26 @@ fun TransactionItem(
                 Text(
                     text = title.ifEmpty { "Transaksi Tanpa Judul" },
                     style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp), // Menyesuaikan font
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = White
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp), // Menyesuaikan font
-                    color = Color.Gray
+                    color = Color.White
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text( // Menambahkan tampilan waktu transaksi
                     text = dateTime,
                     style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp), // Menyesuaikan font
-                    color = Color.Gray
+                    color = Color.White
                 )
             }
 
             // Amount Text
             Text(
                 text = amount,
-                color = if (isNegative) Color.Red else GreenTeal40,
+                color = if (isNegative) Color.Red else GreenTea,
                 style = MaterialTheme.typography.titleMedium.copy(fontSize = 14.sp),
                 textAlign = TextAlign.End,
                 modifier = Modifier.padding(start = 8.dp)
@@ -87,7 +89,7 @@ fun PreviewTransactionItem() {
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .background(Color.White)
+            .background(Color.Black)
     ) {
         // Preview for negative cash flow transaction
         TransactionItem(

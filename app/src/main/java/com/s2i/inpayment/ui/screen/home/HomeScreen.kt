@@ -1,12 +1,11 @@
 package com.s2i.inpayment.ui.screen.home
 
-import android.os.Build
 import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,13 +15,7 @@ import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Receipt
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.*
@@ -37,19 +30,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Red
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
-import com.google.firebase.messaging.FirebaseMessaging
 import com.s2i.common.utils.convert.RupiahFormatter
 import com.s2i.common.utils.date.Dates
 import com.s2i.data.local.auth.SessionManager
@@ -57,29 +48,22 @@ import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.TransactionItem
 import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
 import com.s2i.inpayment.ui.components.custome.LogoIndicator
-import com.s2i.inpayment.ui.components.custome.LogoWithBeam
 import com.s2i.inpayment.ui.components.permission.hasAllPermissions
-import com.s2i.inpayment.ui.screen.splash.SplashScreen
 import com.s2i.inpayment.ui.screen.wallet.BalanceCard
-import com.s2i.inpayment.ui.theme.DarkTeal21
-import com.s2i.inpayment.ui.theme.DarkTeal40
+import com.s2i.inpayment.ui.theme.BrightCerulean21
+import com.s2i.inpayment.ui.theme.GreenTea
 import com.s2i.inpayment.ui.theme.GreenTeal40
+import com.s2i.inpayment.ui.theme.White
 import com.s2i.inpayment.ui.theme.exComeGradient
-import com.s2i.inpayment.ui.theme.gradientBrush
 import com.s2i.inpayment.ui.theme.inComeGradient
-import com.s2i.inpayment.ui.theme.triGradientBrush
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import com.s2i.inpayment.ui.viewmodel.HomeViewModel
 import com.s2i.inpayment.ui.viewmodel.NotificationsViewModel
 import com.s2i.inpayment.ui.viewmodel.ServicesViewModel
-import com.s2i.inpayment.utils.NotificationManagerUtil
 import com.s2i.inpayment.utils.helper.workmanager.TokenWorkManagerUtil
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import kotlin.math.roundToInt
 
 // In HomeScreen.kt
@@ -95,14 +79,12 @@ fun HomeScreen(
     username: String,
     sessionManager: SessionManager,
 ) {
-
     var isStartupLoading by remember { mutableStateOf(true) }
     val loading by balanceViewModel.loading.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
     var isTokenRegistered by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     // Set `isStartupLoading` only based on the ViewModel's loading state during initial load
-
     // Handle initial loading
     LaunchedEffect(loading) {
         if (loading && isStartupLoading) {
@@ -218,11 +200,18 @@ fun HomeScreen(
                 }, label = "cardRotation"
             )
 
+            Image(
+                painter = painterResource(id = R.drawable.background1),
+                contentDescription = null,
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier.matchParentSize()
+            )
+
             // Section for the top part with the balance card
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White) // Background color from your example) // The color from your example
+//                    .background(Color.White) // Background color from your example) // The color from your example
                     .padding(horizontal = 16.dp, vertical = 24.dp)
             ) {
 
@@ -253,7 +242,7 @@ fun HomeScreen(
                             Icon(
                                 Icons.Default.Notifications,
                                 contentDescription = "Notifications",
-                                tint = Color.Gray
+                                tint = Color.White
                             )
                         }
 
@@ -261,12 +250,12 @@ fun HomeScreen(
 
                         // Profile picture on the right
                         Image(
-                            painter = painterResource(id = R.drawable.ic_people), // Replace with the correct profile image
+                            painter = painterResource(id = R.drawable.profile), // Replace with the correct profile image
                             contentDescription = "Profile",
                             modifier = Modifier
                                 .size(32.dp) // Ukuran avatar diubah menjadi 32.dp
                                 .clip(CircleShape) // Bentuk lingkaran
-                                .background(Color.Gray, shape = CircleShape) // Background lingkaran
+                                //.background(Color.Gray, shape = CircleShape) // Background lingkaran
                                 .clickable {
                                     // Aksi ketika di klik
                                     navController.navigate("profile_screen") {
@@ -302,98 +291,138 @@ fun HomeScreen(
 
                         // Top section with balance card
 //                    BalanceCard(balanceState, isBalanceVisible) { isBalanceVisible = !isBalanceVisible }
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(40.dp))
 
-                        // Section for Pemasukan and Pengeluaran
+ // Section for Pemasukan
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(8.dp),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            // Card for Pemasukan
                             Card(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .padding(end = 8.dp), // Space between the two cards
-                                elevation = CardDefaults.elevatedCardElevation(4.dp),
-                                shape = MaterialTheme.shapes.medium
+                                    .padding(end = 8.dp)
+                                    .border(2.dp, Color.LightGray, shape = RoundedCornerShape(10.dp)), // Space between the two cards
+                                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                             ) {
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .background(brush = inComeGradient(IntSize(1080, 1920)))
                                         .padding(16.dp),
                                     horizontalAlignment = Alignment.Start
                                 ) {
-                                    Text(text = "Pemasukan", style = MaterialTheme.typography.titleSmall)
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "Income",
+                                            color = White,
+                                            style = MaterialTheme.typography.titleLarge
+                                        )
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.income),
+                                            contentDescription = "Income Icon",
+                                            tint = GreenTea,
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .padding(start = 8.dp)
+                                        )
+                                    }
                                     Text(
                                         text = incomeExpense?.data?.incomeTrx?.amount?.let { RupiahFormatter.formatToRupiah(it) } ?: "Loading...",
                                         style = MaterialTheme.typography.bodyLarge,
-                                        color = GreenTeal40
+                                        color = GreenTea
                                     )
                                     Text(
                                         text = incomeExpense?.data?.incomeTrx?.title?.ifEmpty { "" } ?: " ",
-                                        style = MaterialTheme.typography.bodySmall
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = White
                                     )
                                 }
                             }
 
-                            // Card for Pengeluaran
+
+// Card for Pengeluaran
                             Card(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .padding(start = 8.dp), // Space between the two cards
-                                elevation = CardDefaults.elevatedCardElevation(4.dp),
-                                shape = MaterialTheme.shapes.medium
+                                    .padding(start = 8.dp) // Space between the two cards
+                                    .border(2.dp, Color.LightGray, shape = RoundedCornerShape(10.dp)),
+                                colors =  CardDefaults.cardColors(containerColor = Color.Transparent),
                             ) {
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .background(brush = exComeGradient(IntSize(1080, 1920)))
                                         .padding(16.dp),
                                     horizontalAlignment = Alignment.Start
                                 ) {
-                                    Text(text = "Pengeluaran", style = MaterialTheme.typography.titleSmall)
+                                    Row (
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ){
+                                        Text(
+                                            text = "Expenses",
+                                            color = White,
+                                            style = MaterialTheme.typography.titleLarge
+                                        )
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.expenses),
+                                            contentDescription = "Expenses Icon",
+                                            tint = Red,
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .padding(start = 8.dp)
+                                        )
+                                    }
                                     Text(
                                         text = incomeExpense?.data?.expenseTrx?.amount?.let { "-" + RupiahFormatter.formatToRupiah(it) } ?: "Loading...",
                                         style = MaterialTheme.typography.bodyLarge,
                                         color = Color.Red
                                     )
-                                    Text(text = incomeExpense?.data?.expenseTrx?.title ?: " ", style = MaterialTheme.typography.bodySmall)
+                                    Text(text = incomeExpense?.data?.expenseTrx?.title ?: " ",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = White
+                                    )
                                 }
                             }
                         }
-
-                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
-
             }
+
+
+
 
             // Section for transaction history with rounded corners at the top
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 420.dp) // Start this part below the top section
-                    .background(Color.White, shape = MaterialTheme.shapes.small.copy(all = CornerSize(10.dp))) // Rounded corner for the bottom section
-                    .padding(16.dp)
+                    .padding(top = 455.dp) // Start this part below the top section
+                    //.background(Color.White, shape = MaterialTheme.shapes.small.copy(all = CornerSize(10.dp))) // Rounded corner for the bottom section
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Transaction History Section
-                Text(text = "Riwayat Transaksi", style = MaterialTheme.typography.titleLarge)
+                Text(
+                    text = "Transaction History",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White
+                )
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(max = 450.dp), // Limit height for the transaction history
-                    elevation = CardDefaults.elevatedCardElevation(4.dp),
-                    shape = MaterialTheme.shapes.medium // Corner radius for the card
+                        .heightIn(max = 460.dp), // Limit height for the transaction history
+                    //.border(2.dp, Color.LightGray, shape = RoundedCornerShape(10.dp)),
+                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color.White)
+                           // .background(Color.White)
                             .padding(16.dp)
                     ) {
                         LazyColumn(
@@ -435,14 +464,13 @@ fun HomeScreen(
 
                         ) {
                             Text(
-                                text = "Lihat Riwayat",
+                                text = "View History",
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = GreenTeal40)
+                                color = BrightCerulean21
+                            )
                         }
                     }
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
             }
             LogoIndicator(isRefreshing, pullRefreshState)
         }
@@ -454,8 +482,7 @@ fun HomeScreen(
 }
 
 
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewHomeScreen(){
-//    HomeScreen(HomeViewModel(), sessionManager = sessionsManager)
-//}
+
+
+
+

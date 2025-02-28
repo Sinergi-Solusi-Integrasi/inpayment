@@ -94,8 +94,6 @@ import com.s2i.inpayment.ui.MyApp
 import com.s2i.inpayment.ui.components.NetworkContent
 import com.s2i.inpayment.ui.theme.InPaymentTheme
 import com.s2i.inpayment.ui.components.services.notifications.NotificationWorker
-import com.s2i.inpayment.ui.screen.home.HomeScreen1
-import com.s2i.inpayment.ui.screen.home.MainScreen
 import com.s2i.inpayment.ui.screen.wallet.BalanceCard
 
 class MainActivity : ComponentActivity() {

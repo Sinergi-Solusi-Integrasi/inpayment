@@ -5,7 +5,9 @@
     import android.graphics.Bitmap
     import android.os.Build
     import android.provider.Settings
+    import androidx.compose.foundation.Image
     import androidx.compose.foundation.background
+    import androidx.compose.foundation.border
     import androidx.compose.foundation.layout.Arrangement
     import androidx.compose.foundation.layout.Box
     import androidx.compose.foundation.layout.Column
@@ -20,15 +22,18 @@
     import androidx.compose.foundation.layout.width
     import androidx.compose.foundation.rememberScrollState
     import androidx.compose.foundation.shape.CircleShape
+    import androidx.compose.foundation.shape.RoundedCornerShape
     import androidx.compose.foundation.verticalScroll
     import androidx.compose.material.ExperimentalMaterialApi
     import androidx.compose.material.icons.Icons
+    import androidx.compose.material.icons.filled.ArrowBackIos
     import androidx.compose.material.icons.filled.CheckCircle
     import androidx.compose.material.icons.filled.Close
     import androidx.compose.material.icons.filled.Person
     import androidx.compose.material.pullrefresh.pullRefresh
     import androidx.compose.material.pullrefresh.rememberPullRefreshState
     import androidx.compose.material3.Button
+    import androidx.compose.material3.ButtonDefaults
     import androidx.compose.material3.Card
     import androidx.compose.material3.CardDefaults
     import androidx.compose.material3.Icon
@@ -46,9 +51,12 @@
     import androidx.compose.runtime.setValue
     import androidx.compose.ui.Alignment
     import androidx.compose.ui.Modifier
+    import androidx.compose.ui.graphics.Color
+    import androidx.compose.ui.layout.ContentScale
     import androidx.compose.ui.platform.LocalContext
     import androidx.compose.ui.platform.LocalDensity
     import androidx.compose.ui.platform.LocalView
+    import androidx.compose.ui.res.painterResource
     import androidx.compose.ui.text.font.FontWeight
     import androidx.compose.ui.tooling.preview.Preview
     import androidx.compose.ui.unit.dp
@@ -57,10 +65,12 @@
     import com.google.accompanist.permissions.ExperimentalPermissionsApi
     import com.google.accompanist.permissions.isGranted
     import com.google.accompanist.permissions.rememberPermissionState
+    import com.s2i.inpayment.R
     import com.s2i.inpayment.ui.components.DetailTrxCard
     import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
     import com.s2i.inpayment.ui.components.saveBitmapToFile
     import com.s2i.inpayment.ui.components.shareScreenshot
+    import com.s2i.inpayment.ui.theme.White
     import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
     import kotlinx.coroutines.delay
     import kotlinx.coroutines.launch
@@ -132,8 +142,17 @@
             }
         }
 
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
             Spacer(modifier = Modifier.width(32.dp))
+            Image(
+                painter = painterResource(id = R.drawable.background1),
+                contentDescription = null,
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier.matchParentSize()
+            )
             // Header di posisi atas tetap
             Column(
                 modifier = Modifier
@@ -155,15 +174,15 @@
                         },
                         modifier = Modifier
                             .size(16.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.onSecondary,
-                                shape = CircleShape
-                            )
+//                            .background(
+//                                color = MaterialTheme.colorScheme.onSecondary,
+//                                shape = CircleShape
+//                            )
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.Close,
+                            imageVector = Icons.Filled.ArrowBackIos,
                             contentDescription = "Close",
-                            tint = MaterialTheme.colorScheme.onBackground
+                            tint = White
                         )
                     }
                     Spacer(modifier = Modifier.width(24.dp))
@@ -174,7 +193,8 @@
                         fontWeight = FontWeight.Bold,
                         fontSize = MaterialTheme.typography.titleLarge.fontSize,
                         modifier = Modifier
-                            .padding(vertical = 8.dp)
+                            .padding(vertical = 8.dp),
+                        color = White
                     )
 
                 }
@@ -236,16 +256,19 @@
                     }
                 },
                 modifier = Modifier
-                    .align(Alignment.BottomCenter) // Posisi tombol di bawah
-                    .background(MaterialTheme.colorScheme.background)
+                    .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
-                    .padding(bottom = 16.dp) // Tambahkan jarak dari bawah
-                    .navigationBarsPadding() // Sesuaikan dengan navbar
+                    .padding(bottom = 16.dp)
+                    .navigationBarsPadding()
+                    .border(2.dp, Color.LightGray, shape = RoundedCornerShape(10.dp)),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = Color.White
+                )
             ) {
-                Text(text = "Share Receipt")
+                Text(text = "Share receipt")
             }
-
         }
     }
 

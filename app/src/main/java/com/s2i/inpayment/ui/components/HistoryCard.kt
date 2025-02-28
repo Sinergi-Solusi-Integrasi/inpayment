@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.s2i.common.utils.convert.RupiahFormatter
 import com.s2i.domain.entity.model.balance.HistoryBalanceModel
+import com.s2i.inpayment.ui.theme.BrightCerulean21
 
 @Composable
 fun HistoryCard(
@@ -38,7 +39,7 @@ fun HistoryCard(
         Text(
             text = dateLabel,
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onTertiary,
+            color = BrightCerulean21,
             modifier = Modifier.padding(vertical = 8.dp)
         )
 
@@ -47,15 +48,16 @@ fun HistoryCard(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .wrapContentHeight()
-                , // Limit height for the transaction history
-            elevation = CardDefaults.elevatedCardElevation(4.dp),
-            shape = MaterialTheme.shapes.medium
+                .wrapContentHeight(),
+                 // Limit height for the transaction history
+//            elevation = CardDefaults.elevatedCardElevation(4.dp),
+//            shape = MaterialTheme.shapes.medium
+            colors = CardDefaults.cardColors(containerColor = Color.Transparent)
         ){
             Column(
                 modifier = Modifier
-                    .background(Color.White, shape = MaterialTheme.shapes.small.copy(all = CornerSize(10.dp)))
-                    .padding(16.dp)
+                    //.background(Color.White, shape = MaterialTheme.shapes.small.copy(all = CornerSize(10.dp)))
+                    .padding(16.dp),
             ) {
 
                 transaction.forEach{ transaction ->
