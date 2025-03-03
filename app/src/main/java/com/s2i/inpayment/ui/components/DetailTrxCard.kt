@@ -13,6 +13,7 @@ import android.util.Log
 import android.view.View
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -40,8 +41,11 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,6 +58,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.FileProvider
 import coil3.ImageLoader
@@ -87,6 +92,10 @@ fun DetailTrxCard(
     val imageLoader: ImageLoader = getKoin().get()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+    var showImage by remember { mutableStateOf(false) }
+    var showPreview by remember { mutableStateOf(false) }
+    var selectedImageUri by remember { mutableStateOf<String?>(null) }
+
     val context = LocalContext.current
     val view = LocalView.current
     val density = LocalDensity.current
@@ -115,7 +124,8 @@ fun DetailTrxCard(
                     .fillMaxWidth()
                     .padding(16.dp),
                 shape = MaterialTheme.shapes.large,
-                elevation = CardDefaults.elevatedCardElevation(8.dp)
+                elevation = CardDefaults.elevatedCardElevation(8.dp),
+                colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background)
             ) {
                 Column(
                     modifier = Modifier
@@ -246,26 +256,41 @@ fun DetailTrxCard(
 
                     detail.tollPayment?.vehicleCaptures?.firstOrNull()?.let { imageUrl ->
                         Log.d("ImageDebug", "URL: $imageUrl")
-                        val sizeResolver = rememberConstraintsSizeResolver()
-                        val painter = rememberAsyncImagePainter(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(imageUrl)
-                                // Menambahkan header Authorization
-                                .diskCachePolicy(CachePolicy.ENABLED)
-                                .crossfade(true) // Opsional: crossfade untuk transisi yang mulus
+                        if (!showImage) {
+                            Button(
+                                onClick = {
+                                    showImage = true
+                                },
+                                modifier = Modifier.padding(top = 8.dp)
+                            ) {
+                                Text(text = "See More")
+                            }
+                        } else {
+                            val sizeResolver = rememberConstraintsSizeResolver()
+                            val painter = rememberAsyncImagePainter(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(imageUrl)
+                                    // Menambahkan header Authorization
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .crossfade(true) // Opsional: crossfade untuk transisi yang mulus
 //                                .placeholder(R.drawable.placeholder) // Placeholder saat gambar belum dimuat
 //                                .error(R.drawable.error_image) // Gambar fallback jika terjadi error
-                                .build(),
-                            imageLoader = imageLoader,
-                        )
-                        Image(
-                            painter = painter,
-                            contentDescription = "Vehicle Image",
-                            modifier = Modifier
-                                .size(56.dp)
-                                .clip(RoundedCornerShape(10)) // Membuat gambar berbentuk lingkaran
-                                .background(Color.Gray)
-                        )
+                                    .build(),
+                                imageLoader = imageLoader,
+                            )
+                            Image(
+                                painter = painter,
+                                contentDescription = "Vehicle Image",
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .clip(RoundedCornerShape(10)) // Membuat gambar berbentuk lingkaran
+                                    .background(Color.Gray)
+                                    .clickable {
+                                        selectedImageUri = imageUrl
+                                        showPreview = true
+                                    }
+                            )
+                        }
                     }?: Log.e("ImageDebug", "Image URL is null or empty")
                 }
             }
@@ -283,6 +308,13 @@ fun DetailTrxCard(
             modifier = Modifier.padding(16.dp),
             color = MaterialTheme.colorScheme.error
         )
+    }
+
+    // Dialog untuk pratinjau foto
+    if (showPreview && selectedImageUri != null) {
+        PreviewPhotoDialog(imageUrl = selectedImageUri!!) {
+            showPreview = false
+        }
     }
 }
 
@@ -405,5 +437,56 @@ fun TransactionDetailRow(label: String, value: String) {
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold
         )
+    }
+}
+
+@Composable
+fun PreviewPhotoDialog(imageUrl: String, onDismiss: () -> Unit) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.elevatedCardElevation(8.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                val imageLoader: ImageLoader = getKoin().get()
+                val painter = rememberAsyncImagePainter(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(imageUrl)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .crossfade(true)
+                        .build(),
+                    imageLoader = imageLoader
+                )
+
+                Text(
+                    text = "Vehicles Image",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                Image(
+                    painter = painter,
+                    contentDescription = "Vehicles Image",
+                    modifier = Modifier
+                        .size(300.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.Gray)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(onClick = onDismiss) {
+                    Text(text = "Close")
+                }
+            }
+        }
     }
 }
