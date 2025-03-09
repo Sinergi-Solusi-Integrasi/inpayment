@@ -209,25 +209,6 @@ fun QrisScreen(
                     .padding(16.dp)
                     .navigationBarsPadding()
             ) {
-//                Button(
-//                    onClick = {
-//                        if (ContextCompat.checkSelfPermission(
-//                                context,
-//                                android.Manifest.permission.READ_MEDIA_IMAGES
-//                            ) != android.content.pm.PackageManager.PERMISSION_GRANTED
-//                        ) {
-//                            permissionLauncher.launch(android.Manifest.permission.READ_MEDIA_IMAGES)
-//                        }
-//                        else {
-//                            saveQRCode(context, qrisState)
-//                        }
-//
-//                    },
-//                    modifier = Modifier.fillMaxWidth()
-//                ) {
-//                    Text("Download")
-//                }
-
                 Button(
                     onClick = {
                         val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -406,41 +387,6 @@ fun QrisScreen(
     }
 }
 
-//private fun saveQRCode(context: Context, qrisState: String?) {
-//    if (qrisState == null) {
-//        Toast.makeText(context, "QRIS tidak tersedia.", Toast.LENGTH_SHORT).show()
-//        return
-//    }
-//
-//    val bitmap = generateQRCode(qrisState)
-//    val contentValues = ContentValues().apply {
-//        put(MediaStore.Images.Media.DISPLAY_NAME, "QRIS_${System.currentTimeMillis()}.jpg")
-//        put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-//        put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/INPayment")
-//        put(MediaStore.Images.Media.IS_PENDING, 1)
-//    }
-//
-//    val resolver = context.contentResolver
-//    val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-//
-//    if (uri != null) {
-//        var outputStream: OutputStream? = null
-//        try {
-//            outputStream = resolver.openOutputStream(uri)
-//            if (outputStream != null) {
-//                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-//            }
-//            contentValues.clear()
-//            contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
-//            resolver.update(uri, contentValues, null, null)
-//            Toast.makeText(context, "QRIS berhasil disimpan ke galeri!", Toast.LENGTH_SHORT).show()
-//        } catch (e: Exception) {
-//            Toast.makeText(context, "Gagal menyimpan QRIS: ${e.message}", Toast.LENGTH_SHORT).show()
-//        } finally {
-//            outputStream?.close()
-//        }
-//    }
-//}
 
 private fun saveQRCode(context: Context, qrisState: String?) {
     if (qrisState == null) {

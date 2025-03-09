@@ -1,14 +1,18 @@
 package com.s2i.inpayment.ui.components
 
 import android.Manifest
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import androidx.compose.foundation.Image
@@ -50,6 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
@@ -60,6 +65,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import coil3.ImageLoader
 import coil3.compose.rememberAsyncImagePainter
@@ -83,11 +89,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
+import androidx.core.graphics.createBitmap
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun DetailTrxCard(
-    transactionDetail: HistoryBalanceModel?
+    transactionDetail: HistoryBalanceModel?,
 ) {
     val imageLoader: ImageLoader = getKoin().get()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -97,7 +104,6 @@ fun DetailTrxCard(
     var selectedImageUri by remember { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
-    val view = LocalView.current
     val density = LocalDensity.current
 
 
@@ -115,8 +121,8 @@ fun DetailTrxCard(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .layoutId("captureView")
                 .padding(top = 72.dp) // Beri padding agar tidak menimpa header
-                .verticalScroll(rememberScrollState()) // Membuat konten scrollable
         ) {
             // Card untuk Detail Transaksi
             Card(
@@ -171,36 +177,6 @@ fun DetailTrxCard(
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(bottom = 24.dp)
                     )
-
-                    // Detail Penerima
-//                    Row(
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        modifier = Modifier.padding(bottom = 24.dp)
-//                    ) {
-//                        detail.tollPayment?.vehicleCaptures?.firstOrNull()?.let { imageUrl ->
-//                            Log.d("ImageDebug", "URL: $imageUrl")
-//                            val sizeResolver = rememberConstraintsSizeResolver()
-//                            val painter = rememberAsyncImagePainter(
-//                                model = ImageRequest.Builder(LocalContext.current)
-//                                    .data(imageUrl)
-//                                    // Menambahkan header Authorization
-//                                    .diskCachePolicy(CachePolicy.ENABLED)
-//                                    .crossfade(true) // Opsional: crossfade untuk transisi yang mulus
-////                                .placeholder(R.drawable.placeholder) // Placeholder saat gambar belum dimuat
-////                                .error(R.drawable.error_image) // Gambar fallback jika terjadi error
-//                                    .build(),
-//                                imageLoader = imageLoader,
-//                            )
-//                            Image(
-//                                painter = painter,
-//                                contentDescription = "Vehicle Image",
-//                                modifier = Modifier
-//                                    .size(56.dp)
-//                                    .clip(RoundedCornerShape(10)) // Membuat gambar berbentuk lingkaran
-//                                    .background(Color.Gray)
-//                            )
-//                        }?: Log.e("ImageDebug", "Image URL is null or empty")
-//                    }
 
                     // Detail Transaksi
                     Column(
@@ -320,10 +296,10 @@ fun DetailTrxCard(
 
 // Fungsi untuk mengambil tangkapan layar dari tampilan
 fun captureView(view: View): Bitmap {
-    val width = view.width.takeIf { it > 0 } ?: 1080
-    val height = view.height.takeIf { it > 0 } ?: 1920
-    val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-    val canvas = android.graphics.Canvas(bitmap)
+    val width = view.width.takeIf { it > 0 } ?: 100
+    val height = view.height.takeIf { it > 0 } ?: 600
+    val bitmap = createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
     view.draw(canvas)
     return bitmap
 }
@@ -331,32 +307,68 @@ fun captureView(view: View): Bitmap {
 
 // Function to save the bitmap to file
 fun saveBitmapToFile(context: Context, bitmap: Bitmap): Uri? {
-    val directory = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "INPayment")
-    if (!directory.exists()) {
-        directory.mkdirs()
-    }
+    val fileName = "receipt_${System.currentTimeMillis()}.png"
 
-    val fileName = "receipt_${UUID.randomUUID()}.png"
-    val file = File(directory, fileName)
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        // ✅ API 29 (Android 10) ke atas: Gunakan MediaStore
+        val contentValues = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
+            put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+            put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/INPayment")
+            put(MediaStore.Images.Media.IS_PENDING, 1) // Tandai sedang disimpan
+        }
 
-    return try {
-        val outputStream = FileOutputStream(file)
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-        outputStream.flush()
-        outputStream.close()
+        val resolver = context.contentResolver
+        val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
 
-        MediaScannerConnection.scanFile(
-            context,
-            arrayOf(file.absolutePath),
-            arrayOf("image/png")
-        ) { _, _ -> }
+        if (uri != null) {
+            try {
+                resolver.openOutputStream(uri)?.use { outputStream ->
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                }
+                contentValues.clear()
+                contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
+                resolver.update(uri, contentValues, null, null)
 
-        FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
-    } catch (e: Exception) {
-        e.printStackTrace()
+                MediaScannerConnection.scanFile(context, arrayOf(uri.toString()), null, null)
+
+                return uri
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
         null
+    } else {
+        // ✅ API 28 (Android 9) ke bawah: Simpan manual ke penyimpanan eksternal
+        if (ContextCompat.checkSelfPermission(
+                context, Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return null // Harus meminta izin dulu
+        }
+
+        val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+        val saveDir = File(picturesDir, "INPayment")
+        if (!saveDir.exists()) saveDir.mkdirs()
+
+        val file = File(saveDir, fileName)
+        return try {
+            val outputStream = FileOutputStream(file)
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+            outputStream.flush()
+            outputStream.close()
+
+            MediaScannerConnection.scanFile(context, arrayOf(file.absolutePath), arrayOf("image/png"), null)
+
+            Uri.fromFile(file)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 }
+
 
 // Function to share a screenshot
 fun shareScreenshot(context: Context, fileUri: Uri) {

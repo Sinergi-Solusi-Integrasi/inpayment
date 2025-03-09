@@ -87,7 +87,7 @@ fun SplitButton(icon: ImageVector? = null, painter: Painter? = null, label: Stri
         colors = ButtonDefaults.buttonColors(containerColor = backgroundColor),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
-            .padding(8.dp)
+            .fillMaxWidth()
             .height(80.dp) // Menambah tinggi tombol
     ) {
         if(isLoading == true){
