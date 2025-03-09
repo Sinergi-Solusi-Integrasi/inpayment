@@ -97,6 +97,7 @@
         val transactionDetail by balanceViewModel.detailTrx.collectAsState()
 
         val transactionView = remember { mutableStateOf<ComposeView?>(null) }
+        var excludeImage by remember { mutableStateOf(false) }
 
 
         // Function to check if notifications are enabled (for Realme or other devices)
@@ -205,7 +206,7 @@
                                 ComposeView(context).apply {
                                     transactionView.value = this
                                     setContent {
-                                        DetailTrxCard(transactionDetail = transactionDetail?.data)
+                                        DetailTrxCard(transactionDetail = transactionDetail?.data, excludeImage = excludeImage)
                                     }
                                 }
 
@@ -219,9 +220,10 @@
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .navigationBarsPadding()
                         .background(MaterialTheme.colorScheme.background)
-                        .padding(horizontal = 16.dp, vertical = 16.dp)
+                        .align(Alignment.CenterHorizontally)
+                        .navigationBarsPadding()
+                        .padding(8.dp)
                 ) {
                     val buttons = listOf(
                         Pair(Icons.Filled.IosShare, "Share"),
@@ -262,9 +264,12 @@
                                         Log.d("SplitButton", "Clicked $label")
                                         when(label) {
                                             "Share" -> coroutineScope.launch {
+                                                excludeImage = true
+                                                delay(300)
                                                 transactionView.value?.let {
-                                                    val bitmap = captureView(it)
+                                                    val bitmap = captureView(it) { excludeImage = it }
                                                     val fileUri = saveBitmapToFile(context, bitmap)
+                                                    excludeImage = false
 
                                                     fileUri?.let {
                                                         shareScreenshot(context, it)
@@ -275,9 +280,13 @@
                                                 }
                                             }
                                             "Downloads" -> coroutineScope.launch {
+                                                excludeImage = true
+                                                delay(300)
                                                 transactionView.value?.let {
-                                                    val bitmap = captureView(it)
+                                                    val bitmap = captureView(it) { excludeImage = it }
                                                     val fileUri = saveBitmapToFile(context, bitmap)
+                                                    excludeImage = false
+
                                                     fileUri?.let {
                                                         Toast.makeText(context, "Receipt saved successfully", Toast.LENGTH_SHORT).show()
                                                         snackbarHostState.showSnackbar("Receipt saved successfully")

@@ -62,7 +62,10 @@ fun HistoryCard(
                     Log.d("HistoryCard", "Processing transaction with cashFlow: ${transaction.cashFlow}")
                     TransactionItem(
                         title = transaction.title.ifEmpty { " " },
-                        description = transaction.paymentMethod,
+                        description = when(transaction.paymentMethod) {
+                            "WALLET_CASH" -> "Balance"
+                            else -> transaction.paymentMethod
+                        },
                         amount = if (transaction.cashFlow == "MONEY_OUT") "-${ RupiahFormatter.formatToRupiah(transaction.amount)}" else "+${RupiahFormatter.formatToRupiah(transaction.amount)}",
                         isNegative = transaction.cashFlow == "MONEY_OUT",
                         dateTime = transaction.trxDate,

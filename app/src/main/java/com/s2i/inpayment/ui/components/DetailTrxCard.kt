@@ -95,6 +95,7 @@ import androidx.core.graphics.createBitmap
 @Composable
 fun DetailTrxCard(
     transactionDetail: HistoryBalanceModel?,
+    excludeImage: Boolean
 ) {
     val imageLoader: ImageLoader = getKoin().get()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -121,7 +122,6 @@ fun DetailTrxCard(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .layoutId("captureView")
                 .padding(top = 72.dp) // Beri padding agar tidak menimpa header
         ) {
             // Card untuk Detail Transaksi
@@ -189,7 +189,10 @@ fun DetailTrxCard(
                             value = if (detail.status.lowercase() == "failed") "Failed ❌" else "Completed ✅"
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        TransactionDetailRow("Payment Method", detail.paymentMethod)
+                        TransactionDetailRow("Payment Method", when(detail.paymentMethod) { "WALLET_CASH" ->
+                            "Balance"
+                            else -> detail.paymentMethod
+                        })
                         Spacer(modifier = Modifier.height(8.dp))
                         TransactionDetailRow("Time", formattedTime)
                         Spacer(modifier = Modifier.height(8.dp))
@@ -230,44 +233,46 @@ fun DetailTrxCard(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    detail.tollPayment?.vehicleCaptures?.firstOrNull()?.let { imageUrl ->
-                        Log.d("ImageDebug", "URL: $imageUrl")
-                        if (!showImage) {
-                            Button(
-                                onClick = {
-                                    showImage = true
-                                },
-                                modifier = Modifier.padding(top = 8.dp)
-                            ) {
-                                Text(text = "See More")
-                            }
-                        } else {
-                            val sizeResolver = rememberConstraintsSizeResolver()
-                            val painter = rememberAsyncImagePainter(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(imageUrl)
-                                    // Menambahkan header Authorization
-                                    .diskCachePolicy(CachePolicy.ENABLED)
-                                    .crossfade(true) // Opsional: crossfade untuk transisi yang mulus
+                    if(!excludeImage) {
+                        detail.tollPayment?.vehicleCaptures?.firstOrNull()?.let { imageUrl ->
+                            Log.d("ImageDebug", "URL: $imageUrl")
+                            if (!showImage) {
+                                Button(
+                                    onClick = {
+                                        showImage = true
+                                    },
+                                    modifier = Modifier.padding(top = 8.dp)
+                                ) {
+                                    Text(text = "See More")
+                                }
+                            } else {
+                                val sizeResolver = rememberConstraintsSizeResolver()
+                                val painter = rememberAsyncImagePainter(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(imageUrl)
+                                        // Menambahkan header Authorization
+                                        .diskCachePolicy(CachePolicy.ENABLED)
+                                        .crossfade(true) // Opsional: crossfade untuk transisi yang mulus
 //                                .placeholder(R.drawable.placeholder) // Placeholder saat gambar belum dimuat
 //                                .error(R.drawable.error_image) // Gambar fallback jika terjadi error
-                                    .build(),
-                                imageLoader = imageLoader,
-                            )
-                            Image(
-                                painter = painter,
-                                contentDescription = "Vehicle Image",
-                                modifier = Modifier
-                                    .size(56.dp)
-                                    .clip(RoundedCornerShape(10)) // Membuat gambar berbentuk lingkaran
-                                    .background(Color.Gray)
-                                    .clickable {
-                                        selectedImageUri = imageUrl
-                                        showPreview = true
-                                    }
-                            )
-                        }
-                    }?: Log.e("ImageDebug", "Image URL is null or empty")
+                                        .build(),
+                                    imageLoader = imageLoader,
+                                )
+                                Image(
+                                    painter = painter,
+                                    contentDescription = "Vehicle Image",
+                                    modifier = Modifier
+                                        .size(56.dp)
+                                        .clip(RoundedCornerShape(10)) // Membuat gambar berbentuk lingkaran
+                                        .background(Color.Gray)
+                                        .clickable {
+                                            selectedImageUri = imageUrl
+                                            showPreview = true
+                                        }
+                                )
+                            }
+                        } ?: Log.e("ImageDebug", "Image URL is null or empty")
+                    }
                 }
             }
 
@@ -295,19 +300,22 @@ fun DetailTrxCard(
 }
 
 // Fungsi untuk mengambil tangkapan layar dari tampilan
-fun captureView(view: View): Bitmap {
+fun captureView(view: View, excludeImage: (Boolean) -> Unit): Bitmap {
+    excludeImage(true)
     val width = view.width.takeIf { it > 0 } ?: 100
     val height = view.height.takeIf { it > 0 } ?: 600
     val bitmap = createBitmap(width, height, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
     view.draw(canvas)
-    return bitmap
+    excludeImage(false)
+    return bitmap.copy(Bitmap.Config.ARGB_8888, true)
 }
 
 
 // Function to save the bitmap to file
 fun saveBitmapToFile(context: Context, bitmap: Bitmap): Uri? {
     val fileName = "receipt_${System.currentTimeMillis()}.png"
+    val safeBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
 
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         // ✅ API 29 (Android 10) ke atas: Gunakan MediaStore
@@ -324,7 +332,7 @@ fun saveBitmapToFile(context: Context, bitmap: Bitmap): Uri? {
         if (uri != null) {
             try {
                 resolver.openOutputStream(uri)?.use { outputStream ->
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                    safeBitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
                 }
                 contentValues.clear()
                 contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
