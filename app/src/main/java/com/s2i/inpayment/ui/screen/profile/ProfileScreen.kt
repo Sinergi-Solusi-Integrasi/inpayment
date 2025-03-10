@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DirectionsCarFilled
+import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -165,6 +166,7 @@ fun ProfileCard(
     val context = LocalContext.current
     Card(
         modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.elevatedCardElevation(4.dp)
     ) {
@@ -238,24 +240,6 @@ fun ProfileCard(
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Button(
-                    onClick = { /* Handle edit profile */ },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00796B))
-                ) {
-                    Text("Edit Profile")
-                }
-                Button(
-                    onClick = { /* Handle data account */ },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00796B))
-                ) {
-                    Text("Data Account")
-                }
-            }
         }
     }
 }
@@ -276,7 +260,11 @@ fun ProfileMenu(
                     popUpTo("profile_screen") { inclusive = false }
                 }
             })
-        ProfileMenuItem(icon = R.drawable.ic_riwayat, title = "All Transactions", onClick = {})
+        ProfileMenuItem(icon = Icons.Default.Receipt, title = "All Transactions", onClick = {
+            navController.navigate("history_screen") {
+                popUpTo("profile_screen") { inclusive = false}
+            }
+        })
         ProfileMenuItem(icon = R.drawable.ic_help, title = "Help and Support", onClick = {})
     }
 }
