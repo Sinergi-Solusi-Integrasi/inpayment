@@ -239,11 +239,12 @@ fun DetailTrxCard(
                             if (!showImage) {
                                 Button(
                                     onClick = {
-                                        showImage = true
+                                        selectedImageUri = imageUrl
+                                        showPreview = true
                                     },
                                     modifier = Modifier.padding(top = 8.dp)
                                 ) {
-                                    Text(text = "See More")
+                                    Text(text = "Lihat Gambar")
                                 }
                             } else {
                                 val sizeResolver = rememberConstraintsSizeResolver()
@@ -265,10 +266,6 @@ fun DetailTrxCard(
                                         .size(56.dp)
                                         .clip(RoundedCornerShape(10)) // Membuat gambar berbentuk lingkaran
                                         .background(Color.Gray)
-                                        .clickable {
-                                            selectedImageUri = imageUrl
-                                            showPreview = true
-                                        }
                                 )
                             }
                         } ?: Log.e("ImageDebug", "Image URL is null or empty")
