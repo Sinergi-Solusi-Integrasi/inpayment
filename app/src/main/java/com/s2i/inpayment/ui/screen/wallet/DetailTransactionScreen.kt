@@ -143,7 +143,6 @@
         Box(
             modifier = Modifier
                 .fillMaxSize()
-
         ) {
             // Spacer to push the content down
             Spacer(modifier = Modifier.height(24.dp))
@@ -160,12 +159,16 @@
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 16.dp),
+                    ){
                         IconButton(
-                            onClick = { navController.navigateUp() },
+                            onClick = {
+                                navController.navigateUp()
+                            },
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(16.dp)
                                 .background(
                                     color = MaterialTheme.colorScheme.onSecondary,
                                     shape = CircleShape
@@ -177,12 +180,17 @@
                                 tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
-                        Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(modifier = Modifier.width(24.dp))
+
                         Text(
-                            text = "Transaction Detail",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
+                            text = "Transaction Details",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                            modifier = Modifier
+                                .padding(vertical = 8.dp)
                         )
+
                     }
                     if (isStartupLoading) {
                         CustomLinearProgressIndicator(
@@ -233,16 +241,10 @@
                     Row(
                         modifier = Modifier
                             .fillMaxWidth(),
-                        horizontalArrangement = if (buttons.size == 2) Arrangement.SpaceAround else Arrangement.SpaceEvenly, // Beri jarak antar tombol
+                        horizontalArrangement = Arrangement.Center, // Beri jarak antar tombol
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         buttons.forEach { (icon, label) ->
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(100.dp)
-                                    .padding(horizontal = if (buttons.size == 2) 8.dp else 0.dp)
-                            ) {
                                 SplitButton(
                                     onClick = {
                                         val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -300,7 +302,6 @@
                                     label = label,
                                     isSelected = false,
                                 )
-                            }
                         }
                     }
                 }

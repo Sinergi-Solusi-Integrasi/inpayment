@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChangeCircle
@@ -36,6 +37,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.s2i.inpayment.ui.theme.DarkTeal21
+import com.s2i.inpayment.ui.theme.DarkTeal40
+import com.s2i.inpayment.ui.theme.GreenSkyLight21
+import com.s2i.inpayment.ui.theme.GreenTealLight20
 
 @Composable
 fun SplitReceiptBottomBar() {
@@ -79,52 +84,61 @@ fun SplitReceiptBottomBar() {
 
 @Composable
 fun SplitButton(icon: ImageVector? = null, painter: Painter? = null, label: String, isLoading: Boolean? = null, isSelected: Boolean, onClick: () -> Unit) {
-    val backgroundColor = if (isSelected) Color(0xFF263238) else Color(0xFF1C1C1E)
-    val textColor = if (isSelected) Color.White else Color.Gray
+    val backgroundColor = if (isSelected) GreenSkyLight21 else DarkTeal40
+    val textColor = if (isSelected) Color.Black else Color.Gray
+    val iconColor = MaterialTheme.colorScheme.background
 
-    Button(
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(containerColor = backgroundColor),
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(80.dp) // Menambah tinggi tombol
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        if(isLoading == true){
-            CircularProgressIndicator(
-                color = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-        } else {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                when {
-                    icon != null -> Icon(
-                        imageVector = icon,
-                        contentDescription = label,
-                        tint = textColor,
-                        modifier = Modifier.size(24.dp)
-                    )
-
-                    painter != null -> Icon(
-                        painter = painter,
-                        contentDescription = label,
-                        tint = textColor,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = label,
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = textColor,
-//                    maxLines = 1
+        Button(
+            onClick = onClick,
+            colors = ButtonDefaults.buttonColors(containerColor = backgroundColor),
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .width(120.dp) // Lebar tombol dibuat lebih kecil agar sesuai dengan contoh
+                .height(35.dp) // Tinggi tombol lebih proporsional
+                .padding(horizontal = 4.dp)
+        ) {
+            if (isLoading == true) {
+                CircularProgressIndicator(
+                    color = Color.White,
+                    modifier = Modifier.size(16.dp)
                 )
+            } else {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    when {
+                        icon != null -> Icon(
+                            imageVector = icon,
+                            contentDescription = label,
+                            tint = iconColor,
+                            modifier = Modifier
+                                .size(20.dp)
+                        )
+
+                        painter != null -> Icon(
+                            painter = painter,
+                            contentDescription = label,
+                            tint = iconColor,
+                            modifier = Modifier
+                                .size(20.dp)
+                        )
+                    }
+                }
             }
         }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = label,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodySmall,
+            color = textColor,
+//                    maxLines = 1
+        )
     }
 }
 
