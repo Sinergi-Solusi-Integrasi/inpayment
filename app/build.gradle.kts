@@ -176,7 +176,6 @@ dependencies {
     implementation("com.google.accompanist:accompanist-pager-indicators:0.30.1")
 
 
-
     // Optional - Included automatically by material, only add when you need
     // the icons but not the material library (e.g. when using Material3 or a
     // custom design system based on Foundation)
@@ -234,20 +233,23 @@ dependencies {
 
 
     // JUnit 5
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
-
     // Mockito Core & JUnit 5 Extension
     testImplementation("org.mockito:mockito-core:5.3.1")
     testImplementation("org.mockito:mockito-junit-jupiter:5.3.1")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
-
     // Kotlin Coroutines Test
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
-
     // AndroidX Test (untuk pengujian Android)
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    testImplementation("org.robolectric:robolectric:4.10")
+    implementation("com.jakewharton.timber:timber:5.0.1")
+
 }
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+
