@@ -52,6 +52,7 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.google.accompanist.pager.HorizontalPagerIndicator
+import com.s2i.common.utils.date.Dates
 import com.s2i.inpayment.ui.components.ReusableBottomSheet
 import com.s2i.inpayment.ui.components.button.SplitButton
 import com.s2i.inpayment.ui.viewmodel.VehiclesViewModel
@@ -88,6 +89,12 @@ fun DetailVehiclesScreen(
 
     val pagerState = rememberPagerState(pageCount = { displayedImages.size })
     val currentUserId = selectedVehicle?.ownerUserId // Mendapatkan ID user saat ini
+
+    // Format dates
+    val loanedAtFormatted =
+        selectedVehicle?.loanedAt?.let { Dates.formatIso8601(Dates.parseIso8601(it)) } ?: "-"
+    val loandExpiredAtFormatted =
+        selectedVehicle?.loanExpiredAt?.let { Dates.formatIso8601(Dates.parseIso8601(it)) } ?: "-"
 
     Box(
         modifier = Modifier
@@ -168,9 +175,13 @@ fun DetailVehiclesScreen(
 
                     if (selectedVehicle?.isLoaned == true) {
                         DetailItem(label = "Is Loaned", value = "Yes")
-                        DetailItem(label = "Loaned At", value = selectedVehicle.loanedAt ?: "-")
-                        DetailItem(label = "Loan Expired At", value = selectedVehicle.loanExpiredAt ?: "-")
-                        DetailItem(label = "Borrower User ID", value = selectedVehicle.borrowerUserId ?: "-")
+                        DetailItem(label = "Loaned At", value = loanedAtFormatted)
+                        DetailItem(label = "Loan Expired At", value = loandExpiredAtFormatted)
+                        DetailItem(
+                            label = "Borrower User", value = (selectedVehicle.borrowerUserId?.take(
+                                10
+                            ) + "...") ?: "-"
+                        )
                     } else {
                         DetailItem(label = "Is Loaned", value = "No")
                     }
@@ -193,11 +204,11 @@ fun DetailVehiclesScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                Box(modifier = Modifier.weight(1f)) {
+                if (selectedVehicle?.isOwner == true) {
                     SplitButton(
                         icon = Icons.Filled.ChangeCircle,
                         label = "Switch Vehicles",
@@ -216,9 +227,6 @@ fun DetailVehiclesScreen(
                             }
                         }
                     )
-                }
-
-                Box(modifier = Modifier.weight(1f)) {
                     SplitButton(
                         icon = Icons.Filled.Key,
                         label = "Lend Vehicles",
@@ -234,28 +242,30 @@ fun DetailVehiclesScreen(
                             showBottomSheet = true
                         }
                     )
+
                 }
+
                 if (selectedVehicle?.isLoaned == true) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        SplitButton(
-                            icon = Icons.Filled.SwapVerticalCircle,
-                            label = "Pull Loan",
-                            isSelected = false,
-                            onClick = {
-                                coroutineScope.launch {
-                                    delay(500)
-                                    vehiclesViewModel.returnsLoans(vehicleId)
-                                    Toast.makeText(
-                                        context,
-                                        "Pull Loan...",
-                                        Toast.LENGTH_SHORT,
-                                    )
-                                        .show()
-                                    showBottomSheet = false
-                                }
+
+                    SplitButton(
+                        icon = Icons.Filled.SwapVerticalCircle,
+                        label = "Pull Loan",
+                        isSelected = false,
+                        onClick = {
+                            coroutineScope.launch {
+                                delay(500)
+                                vehiclesViewModel.returnsLoans(vehicleId)
+                                Toast.makeText(
+                                    context,
+                                    "Pull Loan...",
+                                    Toast.LENGTH_SHORT,
+                                )
+                                    .show()
+                                showBottomSheet = false
                             }
-                        )
-                    }
+                        }
+                    )
+
                 }
             }
         }
