@@ -60,6 +60,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
@@ -79,6 +80,8 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.security.crypto.ktx)
     implementation(project(":common"))
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.junit.jupiter)
     ksp(libs.androidx.room.compiler)  // KSP for Room annotation processing
     implementation(libs.androidx.room.paging)
     implementation(libs.androidx.room.ktx)
@@ -119,4 +122,22 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    // JUnit 5
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+
+    // Mockito Core & JUnit 5 Extension
+    testImplementation("org.mockito:mockito-core:5.3.1")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.3.1")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
+
+    // Kotlin Coroutines Test
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+
+    // AndroidX Test (untuk pengujian Android)
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+}
+tasks.withType<Test> {
+    useJUnitPlatform()
 }

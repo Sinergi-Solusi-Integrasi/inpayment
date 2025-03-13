@@ -231,4 +231,23 @@ dependencies {
     // UI Tests
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+
+    // JUnit 5
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+
+    // Mockito Core & JUnit 5 Extension
+    testImplementation("org.mockito:mockito-core:5.3.1")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.3.1")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
+
+    // Kotlin Coroutines Test
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+
+    // AndroidX Test (untuk pengujian Android)
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+}
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
