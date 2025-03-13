@@ -33,6 +33,7 @@ class AuthRepositoryImplTest {
 
     @Mock
     private lateinit var apiServices: ApiServices
+
     @Mock
     private lateinit var sessionManager: SessionManager
     private lateinit var authRepository: AuthRepositoryImpl
@@ -53,43 +54,43 @@ class AuthRepositoryImplTest {
     fun `login success`() {
         Mockito.mockStatic(Log::class.java).use {
             `when`(Log.d(any(), any())).thenReturn(0)
-        runTest {
-            val authData = AuthData(
-                userId = "123",
-                name = "John Doe",
-                username = "johndoe",
-                accessToken = "access_token_123",
-                refreshToken = "refresh_token_123",
-                accessTokenExpiredAt = "2024-10-29T21:09:02+07:00",
-                refreshTokenExpiredAt = "2024-11-05T18:09:02+07:00"
-            )
+            runTest {
+                val authData = AuthData(
+                    userId = "123",
+                    name = "John Doe",
+                    username = "johndoe",
+                    accessToken = "access_token_123",
+                    refreshToken = "refresh_token_123",
+                    accessTokenExpiredAt = "2024-10-29T21:09:02+07:00",
+                    refreshTokenExpiredAt = "2024-11-05T18:09:02+07:00"
+                )
 
-            val loginResponse = LoginResponse(
-                code = 200,
-                message = "Success",
-                data = authData
-            )
+                val loginResponse = LoginResponse(
+                    code = 200,
+                    message = "Success",
+                    data = authData
+                )
 
-            val mockCall: Call<LoginResponse> = mock()
-            whenever(apiServices.login(any())).doReturn(mockCall)
+                val mockCall: Call<LoginResponse> = mock()
+                whenever(apiServices.login(any())).doReturn(mockCall)
 
-            whenever(mockCall.enqueue(any())).thenAnswer {
-                val callback = it.getArgument<Callback<LoginResponse>>(0)
-                callback.onResponse(mockCall, Response.success(loginResponse))
+                whenever(mockCall.enqueue(any())).thenAnswer {
+                    val callback = it.getArgument<Callback<LoginResponse>>(0)
+                    callback.onResponse(mockCall, Response.success(loginResponse))
+                }
+
+                val result = authRepository.login("johndoe", "password123")
+
+                // Verifikasi hasil
+                assert(result.isSuccess)
+                val authModel = result.getOrNull()
+                assert(authModel != null)
+                assert(authModel?.username == "johndoe")
+                Mockito.verify(apiServices).login(any())
+                Mockito.verify(mockCall).enqueue(any())
+
             }
-
-            val result = authRepository.login("johndoe", "password123")
-
-            // Verifikasi hasil
-            assert(result.isSuccess)
-            val authModel = result.getOrNull()
-            assert(authModel != null)
-            assert(authModel?.username == "johndoe")
-            Mockito.verify(apiServices).login(any())
-            Mockito.verify(mockCall).enqueue(any())
-
         }
-            }
     }
 
 }
