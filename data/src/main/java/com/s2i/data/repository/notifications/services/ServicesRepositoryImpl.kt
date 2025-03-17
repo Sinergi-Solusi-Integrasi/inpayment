@@ -1,6 +1,5 @@
 package com.s2i.data.repository.notifications.services
 
-import android.util.Log
 import com.s2i.data.remote.client.ApiServices
 import com.s2i.data.remote.request.services.DevicesTokenRequest
 import com.s2i.domain.entity.model.notification.services.BindingAccountModel
@@ -8,6 +7,7 @@ import com.s2i.domain.entity.model.notification.services.BindingModel
 import com.s2i.domain.entity.model.notification.services.DevicesTokenModel
 import com.s2i.domain.entity.model.notification.services.RegisterDevicesTokenModel
 import com.s2i.domain.repository.notifications.services.ServicesRepository
+import timber.log.Timber
 
 class ServicesRepositoryImpl(
     private val apiServices: ApiServices,
@@ -35,10 +35,10 @@ class ServicesRepositoryImpl(
             val response = apiServices.sendTokenDevice(requestBody)
             if (response.code != 0) {
                 val errorMessage = response.message
-                Log.e("RegisterDevicesRepositoryImpl", "Registration failed: $errorMessage")
+                Timber.e("RegisterDevicesRepositoryImpl: Registration failed: $errorMessage")
                 throw Exception("Registration failed: $errorMessage")
             } else {
-                Log.d("RegisterDevicesRepositoryImpl", "Registration successful")
+                Timber.d("RegisterDevicesRepositoryImpl: Registration successful")
                 // Kembalikan DevicesTokenModel
                 DevicesTokenModel(
                     code = response.code,
@@ -57,7 +57,7 @@ class ServicesRepositoryImpl(
             // Pastikan response berisi data yang sesuai
         } catch (e: Exception) {
             // Tangani error dan kembalikan nilai default atau throw ulang exception
-            Log.e("RegisterDevicesRepositoryImpl", "Error while sending device token: ${e.message}")
+            Timber.e("RegisterDevicesRepositoryImpl: Error while sending device token: ${e.message}")
             throw Exception("Error while sending device token: ${e.message}")
         }
     }

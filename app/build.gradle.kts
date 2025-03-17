@@ -233,7 +233,6 @@ dependencies {
 
 
     // JUnit 5
-    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
     // Mockito Core & JUnit 5 Extension
     testImplementation("io.mockk:mockk:1.13.5")

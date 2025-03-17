@@ -83,6 +83,8 @@ dependencies {
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.junit.jupiter)
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.junit.jupiter)
     ksp(libs.androidx.room.compiler)  // KSP for Room annotation processing
     implementation(libs.androidx.room.paging)
     implementation(libs.androidx.room.ktx)
@@ -125,7 +127,6 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     // JUnit 5
-    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
     // Mockito Core & JUnit 5 Extension
     testImplementation("io.mockk:mockk:1.13.5")
