@@ -24,6 +24,7 @@ import com.s2i.domain.usecase.vehicles.ChangeVehiclesUseCase
 import com.s2i.domain.usecase.vehicles.LendVehiclesUseCase
 import com.s2i.domain.usecase.vehicles.LoansVehiclesUseCase
 import com.s2i.domain.usecase.vehicles.PullLoansVehiclesUseCase
+import com.s2i.domain.usecase.vehicles.ReturnLoansVehiclesUseCase
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
 
@@ -53,6 +54,7 @@ val useCaseModule = module {
     factoryOf(::LendVehiclesUseCase)
     factoryOf(::LoansVehiclesUseCase)
     factoryOf(::PullLoansVehiclesUseCase)
+    factoryOf(::ReturnLoansVehiclesUseCase)
 
 
 

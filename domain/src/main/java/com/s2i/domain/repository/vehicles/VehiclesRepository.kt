@@ -44,4 +44,6 @@ interface VehiclesRepository {
 
     // return vehicles loans
     suspend fun returnVehiclesLoans(vehicleId: String): LoansVehiclesModel
+
+    suspend fun pullVehiclesLoans(vehicleId: String): LoansVehiclesModel
 }

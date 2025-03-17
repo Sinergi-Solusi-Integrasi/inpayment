@@ -204,68 +204,81 @@ fun DetailVehiclesScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(4.dp),
-                horizontalArrangement = Arrangement.Center,
+                horizontalArrangement = Arrangement.SpaceEvenly, // Agar tombol rata dan seimbang
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
                 if (selectedVehicle?.isOwner == true) {
-                    SplitButton(
-                        icon = Icons.Filled.ChangeCircle,
-                        label = "Switch Vehicles",
-                        isLoading = isLoading,
-                        isSelected = false,
-                        onClick = {
-                            coroutineScope.launch {
-                                delay(500)
-                                vehiclesViewModel.changeVehicles(vehicleId)
-                                Toast.makeText(
-                                    context,
-                                    "Switch Vehicles...",
-                                    Toast.LENGTH_SHORT
-                                )
-                                    .show()
-                            }
-                        }
-                    )
-                    SplitButton(
-                        icon = Icons.Filled.Key,
-                        label = "Lend Vehicles",
-                        isLoading = isLoading,
-                        isSelected = false,
-                        onClick = {
-//                            coroutineScope.launch {
-//                                delay(500)
-//                                navController.navigate("lend_vehicles/$vehicleId") {
-//                                    popUpTo("vehicles_screen") { inclusive = true }
-//                                }
-//                            }
-                            showBottomSheet = true
-                        }
-                    )
+                    if (selectedVehicle.isLoaned == false) {
+                        // Jika kendaraan BELUM di-loan -> tampilkan 2 tombol
+                        SplitButton(
+                            icon = Icons.Filled.ChangeCircle,
+                            label = "Switch",
+                            isLoading = isLoading,
+                            isSelected = false,
+                            onClick = {
+                                coroutineScope.launch {
+                                    delay(500)
+                                    vehiclesViewModel.changeVehicles(vehicleId)
+                                    Toast.makeText(
+                                        context,
+                                        "Switching Vehicle...",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            },
+                        )
 
+                        SplitButton(
+                            icon = Icons.Filled.Key,
+                            label = "Lend",
+                            isLoading = isLoading,
+                            isSelected = false,
+                            onClick = {
+                                showBottomSheet = true
+                            },
+                        )
+                    } else {
+                        // Jika kendaraan SUDAH di-loan -> tampilkan hanya "Pull Loan"
+                        SplitButton(
+                            icon = Icons.Filled.SwapVerticalCircle,
+                            label = "Pull Loan",
+                            isSelected = false,
+                            onClick = {
+                                coroutineScope.launch {
+                                    delay(500)
+                                    vehiclesViewModel.pullsLoans(vehicleId)
+                                    Toast.makeText(context, "Pulling Loan...", Toast.LENGTH_SHORT)
+                                        .show()
+                                    showBottomSheet = false
+                                }
+                            },
+                        )
+                    }
                 }
 
-                if (selectedVehicle?.isLoaned == true) {
-
-                    SplitButton(
-                        icon = Icons.Filled.SwapVerticalCircle,
-                        label = "Pull Loan",
-                        isSelected = false,
-                        onClick = {
-                            coroutineScope.launch {
-                                delay(500)
-                                vehiclesViewModel.returnsLoans(vehicleId)
-                                Toast.makeText(
-                                    context,
-                                    "Pull Loan...",
-                                    Toast.LENGTH_SHORT,
-                                )
-                                    .show()
-                                showBottomSheet = false
+                if (selectedVehicle?.isOwner == false) {
+                    if (selectedVehicle?.isLoaned == true) {
+                        SplitButton(
+                            icon = Icons.Filled.SwapVerticalCircle,
+                            label = "Returns Loan",
+                            isSelected = false,
+                            onClick = {
+                                coroutineScope.launch {
+                                    delay(500)
+                                    vehiclesViewModel.returnsLoans(vehicleId)
+                                    Toast.makeText(
+                                        context,
+                                        "Pull Loan...",
+                                        Toast.LENGTH_SHORT,
+                                    )
+                                        .show()
+                                    showBottomSheet = false
+                                }
                             }
-                        }
-                    )
+                        )
 
+                    }
                 }
             }
         }

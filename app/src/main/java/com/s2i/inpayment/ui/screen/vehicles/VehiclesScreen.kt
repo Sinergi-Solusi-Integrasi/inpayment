@@ -15,8 +15,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,18 +49,17 @@ import com.s2i.inpayment.ui.components.ReusableBottomSheet
 import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
 import com.s2i.inpayment.ui.viewmodel.VehiclesViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun VehiclesScreen(
     navController: NavController,
     vehiclesViewModel: VehiclesViewModel = koinViewModel()
 ) {
     val vehiclesState = vehiclesViewModel.getVehiclesState.collectAsState()
-    val enableState = vehiclesViewModel.enableVehiclesState.collectAsState()
-    val disableState = vehiclesViewModel.disableVehiclesState.collectAsState()
     val loading by vehiclesViewModel.loading.collectAsState()
     var isStartupLoading by remember { mutableStateOf(true) }
     var selectedVehicleId by remember { mutableStateOf<String?>(null) }
@@ -81,6 +83,19 @@ fun VehiclesScreen(
         }
     }
 
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            scope.launch {
+                isStartupLoading = false
+                isRefreshing = true
+                vehiclesViewModel.fetchVehicles()
+                delay(2000) // simulate refresh delay
+                isRefreshing = false
+            }
+        }
+    )
+
     LaunchedEffect(Unit){
         vehiclesViewModel.fetchVehicles()
     }
@@ -88,6 +103,7 @@ fun VehiclesScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .pullRefresh(state = pullRefreshState)
 
     ) {
         Column(
@@ -143,28 +159,25 @@ fun VehiclesScreen(
 //            TestDateTimeDialog()
 
             // Memastikan vehiclesState tidak null dan mengakses data kendaraan
-            vehiclesState.value.let { vehicles ->
-                // Mengirimkan List<VehicleModel> ke VehiclesItem
-                VehiclesItem(
-                    vehiclesState = vehicles,  // Menggunakan List<VehicleModel> yang benar
-                    onAddVehicle = { /* aksi tambah kendaraan */
-                        navController.navigate("intro_vehicle_screen") {
-                            // Pop up semua screen yang ada di atas HomeScreen (termasuk profile_screen)
-                            popUpTo("vehicle_screen") { inclusive = false }
-                        }
-                    },
-                    onDisactive = { vehicleId ->
-                        vehiclesViewModel.disableVehicles(vehicleId) // Panggil disable
-                    },
-                    onActive = { vehicleId ->
-                        vehiclesViewModel.enableVehicles(vehicleId) // Panggil enable
-                    },
-                    onShowDetail = { vehicleId ->
-                        selectedVehicleId = vehicleId
-                        showBottomSheet = true
+            VehiclesItem(
+                vehiclesState = vehiclesState.value,  // Menggunakan List<VehicleModel> yang benar
+                onAddVehicle = { /* aksi tambah kendaraan */
+                    navController.navigate("intro_vehicle_screen") {
+                        // Pop up semua screen yang ada di atas HomeScreen (termasuk profile_screen)
+                        popUpTo("vehicle_screen") { inclusive = false }
                     }
-                )
-            }
+                },
+                onDisactive = { vehicleId ->
+                    vehiclesViewModel.disableVehicles(vehicleId) // Panggil disable
+                },
+                onActive = { vehicleId ->
+                    vehiclesViewModel.enableVehicles(vehicleId) // Panggil enable
+                },
+                onShowDetail = { vehicleId ->
+                    selectedVehicleId = vehicleId
+                    showBottomSheet = true
+                }
+            )
         }
     }
 
@@ -178,21 +191,8 @@ fun VehiclesScreen(
     }
 }
 
-@Composable
-fun TestDateTimeDialog() {
-    val context = LocalContext.current
-    val dialogState = rememberUseCaseState(visible = true)
 
-    DateTimeDialog(
-        state = dialogState,
-        selection = DateTimeSelection.DateTime { newDateTime ->
-            Toast.makeText(context, "Selected: $newDateTime", Toast.LENGTH_SHORT).show()
-        },
-        config = DateTimeConfig()
-    )
-}
-
-
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
 fun PreviewVehiclesScreen() {

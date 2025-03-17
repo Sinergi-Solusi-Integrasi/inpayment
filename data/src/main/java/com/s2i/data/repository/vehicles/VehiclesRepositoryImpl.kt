@@ -171,6 +171,42 @@ class VehiclesRepositoryImpl(
     }
 
     override suspend fun returnVehiclesLoans(vehicleId: String): LoansVehiclesModel {
+        val response = apiServices.returnLoans(vehicleId)
+        val responseData = response.data
+
+        return responseData.let {
+            val returnVehicles = VehicleModel(
+                vehicleId = responseData.vehicleId,
+                ownerUserId = responseData.ownerUserId,
+                borrowerUserId = responseData.borrowerUserId,
+                brand = responseData.brand,
+                model = responseData.model,
+                varian = responseData.varian,
+                color = responseData.color,
+                plateNumber = responseData.plateNumber,
+                group = responseData.group,
+                rfid = responseData.rfid,
+                priority = responseData.priority,
+                images = responseData.images,
+                certificateImage = responseData.certificateImage,
+                loanExpiredAt = responseData.loanExpiredAt,
+                loanedAt = responseData.loanedAt,
+                createdAt = responseData.createdAt,
+                updatedAt = responseData.updatedAt,
+                isOwner = responseData.isOwner,
+                isLoaned = responseData.isLoaned,
+                status = responseData.status,
+            )
+
+            LoansVehiclesModel(
+                code = response.code,
+                message = response.message,
+                data = returnVehicles
+            )
+        }
+    }
+
+    override suspend fun pullVehiclesLoans(vehicleId: String): LoansVehiclesModel {
         val response = apiServices.pullLoans(vehicleId)
         val responseData = response.data
 
