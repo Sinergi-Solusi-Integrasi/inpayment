@@ -64,7 +64,6 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.google.accompanist.pager.HorizontalPagerIndicator
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.s2i.common.utils.date.Dates
 import com.s2i.inpayment.ui.components.ReusableBottomSheet
 import com.s2i.inpayment.ui.components.button.SplitButton
