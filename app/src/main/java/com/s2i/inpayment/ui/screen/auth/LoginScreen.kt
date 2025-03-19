@@ -8,12 +8,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -213,6 +218,8 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
+            Spacer(modifier = Modifier.weight(1f))
+
             Image(
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = null,
@@ -306,7 +313,9 @@ fun LoginScreen(
                     fontSize = 14.sp
                 )
             }
-            Spacer(modifier = Modifier.height(32.dp))
+
+            Spacer(modifier = Modifier.weight(1f))
+
             Button(
                 onClick = {
                     navController.navigate("kyc_intro_screen") {
@@ -315,7 +324,10 @@ fun LoginScreen(
                     }
                 },
                 enabled = !loadingState,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding() // Hindari ketutupan navigation bar
+                    .imePadding() // Hindari ketutupan keyboard
             ) {
                 Text("Create new account")
             }
@@ -324,7 +336,9 @@ fun LoginScreen(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .windowInsetsPadding(WindowInsets.navigationBars)
                 ) {
                     Text("Powered by", fontSize = 16.sp, color = Color.Gray)
                     Spacer(modifier = Modifier.width(8.dp))

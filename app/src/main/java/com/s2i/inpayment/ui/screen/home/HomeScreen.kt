@@ -56,6 +56,7 @@ import com.s2i.data.local.auth.SessionManager
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.TransactionItem
 import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
+import com.s2i.inpayment.ui.components.custome.LinierPullRefreshProgressIndicator
 import com.s2i.inpayment.ui.components.custome.LogoIndicator
 import com.s2i.inpayment.ui.components.custome.LogoWithBeam
 import com.s2i.inpayment.ui.components.permission.hasAllPermissions
@@ -183,30 +184,6 @@ fun HomeScreen(
         }
     }
 
-
-//    LaunchedEffect(Unit) {
-//        if (!sessionManager.isLogin || sessionManager.isAccessTokenExpired() && sessionManager.isRefreshTokenExpired()) {
-//            Log.d("HomeScreen", "User is not logged in. Redirecting to login_screen.")
-//            TokenWorkManagerUtil.stopWorkManager(context) // Stop WorkManager jika user logout
-//            sessionManager.logout()
-//            navController.navigate("login_screen") {
-//                popUpTo("home_screen") { inclusive = true }
-//            }
-//        } else {
-//            val deviceId = sessionManager.getFromPreference(SessionManager.KEY_DEVICE_ID)
-//            if (!deviceId.isNullOrBlank()) {
-//                Log.d("HomeScreen", "Device ID: $deviceId, proceeding to bind account.")
-//                servicesViewModel.bindAccount(deviceId)
-//            } else {
-//                Log.e("HomeScreen", "Device ID not found after registration")
-//            }
-//            balanceViewModel.fetchBalance()
-//            balanceViewModel.fetchTriLastTransaction()
-//            balanceViewModel.fetchInComeExpenses()
-//        }
-//    }
-
-
     // Menangani hasil response BindingModel
     bindingState?.let { bindingModel ->
         Log.d("HomeScreen", "Binding Successful: ${bindingModel.message}")
@@ -235,14 +212,6 @@ fun HomeScreen(
                 }, label = "cardOffset"
             )
 
-            val cardRotation by animateFloatAsState(
-                targetValue = when {
-                    isRefreshing || pullRefreshState.progress > 1f -> 5f
-                    pullRefreshState.progress > 0f -> 5 * pullRefreshState.progress
-                    else -> 0f
-                }, label = "cardRotation"
-            )
-
             // Section for the top part with the balance card
             Column(
                 modifier = Modifier
@@ -255,10 +224,9 @@ fun HomeScreen(
                     CustomLinearProgressIndicator(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp)
+                            .padding(vertical = 8.dp),
                     )
                 }
-
                 // Header with Logo, Notification, and Profile
                 Row(
                     modifier = Modifier
@@ -325,7 +293,7 @@ fun HomeScreen(
                                 .zIndex((100 - index).toFloat())
                                 .fillMaxWidth()
                                 .graphicsLayer {
-                                    rotationZ = cardRotation * if (index % 2 == 0) 1 else -1
+//                                  rotationZ = cardRotation * if (index % 2 == 0) 1 else -1
                                     translationY = (cardOffset * ((5f - (index + 1)) / 5f)).dp
                                         .roundToPx()
                                         .toFloat()
@@ -335,7 +303,6 @@ fun HomeScreen(
                         }
 
                         // Top section with balance card
-//                    BalanceCard(balanceState, isBalanceVisible) { isBalanceVisible = !isBalanceVisible }
                         Spacer(modifier = Modifier.height(8.dp))
 
                         // Section for Pemasukan and Pengeluaran
@@ -408,7 +375,7 @@ fun HomeScreen(
             // Section for transaction history with rounded corners at the top
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .padding(top = 420.dp) // Start this part below the top section
                     .background(Color.White, shape = MaterialTheme.shapes.small.copy(all = CornerSize(10.dp))) // Rounded corner for the bottom section
                     .padding(16.dp)
@@ -444,7 +411,10 @@ fun HomeScreen(
                                 )
                                 TransactionItem(
                                     title = transaction.title.ifEmpty { " " },
-                                    description = transaction.paymentMethod,
+                                    description = when(transaction.paymentMethod) {
+                                        "WALLET_CASH" -> "Balance"
+                                        else -> transaction.paymentMethod
+                                    },
                                     amount = if (transaction.cashFlow == "MONEY_OUT") "-${ RupiahFormatter.formatToRupiah(transaction.amount)}" else "+${RupiahFormatter.formatToRupiah(transaction.amount)}",
                                     isNegative = transaction.cashFlow == "MONEY_OUT",
                                     dateTime = dateTimeFormatted,
@@ -475,10 +445,8 @@ fun HomeScreen(
                         }
                     }
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
             }
-            LogoIndicator(isRefreshing, pullRefreshState)
+            LinierPullRefreshProgressIndicator(isRefreshing, pullRefreshState)
         }
     } else {
         navController.navigate("login_screen") {

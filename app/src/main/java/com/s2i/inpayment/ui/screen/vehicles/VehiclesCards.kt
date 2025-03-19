@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.DismissDirection
@@ -70,7 +72,10 @@ import coil3.request.crossfade
 import com.s2i.data.local.auth.SessionManager
 import com.s2i.domain.entity.model.vehicle.VehicleModel
 import com.s2i.inpayment.R
+import com.s2i.inpayment.ui.theme.BrightYellow20
+import com.s2i.inpayment.ui.theme.DarkTeal40
 import com.s2i.inpayment.ui.theme.GreenTeal21
+import com.s2i.inpayment.ui.theme.Red500
 import kotlinx.coroutines.launch
 import org.koin.core.Koin
 import kotlin.math.roundToInt
@@ -205,7 +210,7 @@ fun VehiclesCards(
                     }
                     .offset { IntOffset(swipeOffsetX.value.toInt(), 0) },
                 colors = CardDefaults.cardColors(
-                    containerColor = if (vehiclesState?.status == "ACTIVE") Color(0xFF00579C) else Color.White
+                    containerColor = if (vehiclesState?.status == "ACTIVE") Color.White else Color.White
                 )
             ) {
                 Row(
@@ -245,24 +250,55 @@ fun VehiclesCards(
                     ) {
                         Text(
                             text = vehiclesState?.brand ?: "Unknown Brand",
-                            color = if (vehiclesState?.status == "ACTIVE") Color.White else Color.Black,
+                            color = if (vehiclesState?.status == "ACTIVE") Color.Black else Color.Black,
                             style = MaterialTheme.typography.titleMedium
                         )
                         Text(
                             text = vehiclesState?.varian ?: " ",
-                            color = if (vehiclesState?.status == "ACTIVE") Color.White else Color.Gray,
+                            color = if (vehiclesState?.status == "ACTIVE") Color.Black else Color.Gray,
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
                             text = vehiclesState?.plateNumber ?: "Unknown Plate",
-                            color = if (vehiclesState?.status == "ACTIVE") Color.White else Color.Gray,
+                            color = if (vehiclesState?.status == "ACTIVE") Color.Black else Color.Gray,
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
                             text = vehiclesState?.rfid ?: " ",
-                            color = if (vehiclesState?.status == "ACTIVE") Color.White else Color.Gray,
+                            color = if (vehiclesState?.status == "ACTIVE") Color.Black else Color.Gray,
                             style = MaterialTheme.typography.bodyMedium
                         )
+                        // Tambahkan Spacer untuk mendorong elemen di bawahnya
+                        Spacer(modifier = Modifier.weight(1f))
+
+                            Row(
+                                modifier = Modifier
+                                    .align(Alignment.End)
+                                    .padding(4.dp),
+                                horizontalArrangement = Arrangement.Start
+                            ) {
+                                val statusColor = when {
+                                    vehiclesState?.isLoaned == true -> Red500
+                                    vehiclesState?.status == "ACTIVE" -> DarkTeal40
+                                    else -> Color.Gray
+                                }
+                                Card(
+                                    modifier = Modifier
+                                        .padding(4.dp)
+                                        .width(85.dp),
+                                    colors = CardDefaults.cardColors(containerColor = statusColor)
+                                ) {
+                                    Text(
+                                        text = if (vehiclesState?.isLoaned == true) "Loans" else vehiclesState?.status
+                                            ?: "ACTIVE",
+                                        modifier = Modifier
+                                            .align(Alignment.CenterHorizontally)
+                                            .padding(4.dp),
+                                        color = Color.White
+                                    )
+                                }
+                            }
+
                     }
                 }
             }

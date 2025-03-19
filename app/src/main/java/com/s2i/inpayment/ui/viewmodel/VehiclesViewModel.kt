@@ -25,6 +25,7 @@ import com.s2i.domain.usecase.vehicles.LendVehiclesUseCase
 import com.s2i.domain.usecase.vehicles.LoansVehiclesUseCase
 import com.s2i.domain.usecase.vehicles.PullLoansVehiclesUseCase
 import com.s2i.domain.usecase.vehicles.RegistVehiclesUseCase
+import com.s2i.domain.usecase.vehicles.ReturnLoansVehiclesUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -37,7 +38,8 @@ class VehiclesViewModel(
     private val changeUseCase: ChangeVehiclesUseCase,
     private val lendUseCase: LendVehiclesUseCase,
     private val loansUseCase: LoansVehiclesUseCase,
-    private val pullUseCase: PullLoansVehiclesUseCase
+    private val pullUseCase: PullLoansVehiclesUseCase,
+    private val returnUseCase: ReturnLoansVehiclesUseCase
 
     ) : ViewModel() {
 
@@ -61,6 +63,9 @@ class VehiclesViewModel(
 
     private val _loansVehiclesState = MutableStateFlow<LoansVehiclesModel?>(null)
     val loansVehiclesState: MutableStateFlow<LoansVehiclesModel?> = _loansVehiclesState
+
+    private val _returnLoansVehiclesState = MutableStateFlow<LoansVehiclesModel?>(null)
+    val returnLoansVehiclesState: MutableStateFlow<LoansVehiclesModel?> = _returnLoansVehiclesState
 
     private val _pullLoansVehiclesState = MutableStateFlow<LoansVehiclesModel?>(null)
     val pullLoansVehiclesState: MutableStateFlow<LoansVehiclesModel?> = _pullLoansVehiclesState
@@ -326,13 +331,34 @@ class VehiclesViewModel(
         viewModelScope.launch {
             _loading.value = true
             try {
-                val result = pullUseCase(
+                val result = returnUseCase(
                     vehicleId = vehicleId
                 )
                 Log.d("VehiclesViewModel", "Return loans success: ${result.message}")
                 _pullLoansVehiclesState.value = result
             } catch (e: Exception) {
                 Log.e("VehiclesViewModel", "Error return loans: ${e.message}")
+                _error.value = e.message
+            } finally {
+                _loading.value = false
+            }
+        }
+    }
+
+    // pull loans
+    fun pullsLoans(
+        vehicleId: String
+    ) {
+        viewModelScope.launch {
+            _loading.value = true
+            try {
+                val result = pullUseCase(
+                    vehicleId = vehicleId
+                )
+                Log.d("VehiclesViewModel", "Pulls loans success: ${result.message}")
+                _pullLoansVehiclesState.value = result
+            } catch (e: Exception) {
+                Log.e("VehiclesViewModel", "Error pull loans: ${e.message}")
                 _error.value = e.message
             } finally {
                 _loading.value = false

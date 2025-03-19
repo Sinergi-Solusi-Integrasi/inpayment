@@ -15,6 +15,16 @@ object Dates {
         }
     }
 
+    fun dateFormat(): SimpleDateFormat{
+        return SimpleDateFormat("HH:mm yyyy/MM/dd", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+    }
+
+    fun formatIso8601(timeMillis: Long): String {
+        return dateFormat().format(Date(timeMillis))
+    }
+
     fun parseIso8601(dateString: String): Long {
         return try {
             iso8601Format().parse(dateString)?.time ?: 0

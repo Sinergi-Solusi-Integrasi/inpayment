@@ -103,6 +103,11 @@ interface ApiServices {
         @Path("vehicle_id") vehicleId: String
     ): LoansVehiclesResponse
 
+    @DELETE("vehicles/lend/{vehicle_id}/return")
+    suspend fun returnLoans(
+        @Path("vehicle_id") vehicleId: String
+    ): LoansVehiclesResponse
+
     // Add new Vehicles
     @POST("vehicles/register")
     suspend fun addVehicles(

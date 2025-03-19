@@ -210,10 +210,15 @@ fun AppNavigation(
             arguments = listOf(navArgument("transactionId") { type = NavType.StringType })
         ) { backStackEntry ->
             val transactionId = backStackEntry.arguments?.getString("transactionId") ?: ""
-            DetailTransactionScreen(
-                navController = navController,
-                balanceViewModel = balanceViewModel,
-                transactionId = transactionId)
+            if (transactionId.isEmpty()) {
+                Log.e("DetailTransactionScreen", "Gagal navigasi: transactionId null atau kosong")
+            } else {
+                DetailTransactionScreen(
+                    navController = navController,
+                    balanceViewModel = balanceViewModel,
+                    transactionId = transactionId
+                )
+            }
         }
         composable("home_screen") {
             Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->

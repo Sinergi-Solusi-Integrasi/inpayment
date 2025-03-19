@@ -1,10 +1,17 @@
     package com.s2i.inpayment.ui.screen.wallet
 
     import android.Manifest
+    import android.app.Activity
     import android.content.Intent
+    import android.content.pm.PackageManager
     import android.graphics.Bitmap
     import android.os.Build
     import android.provider.Settings
+    import android.util.Log
+    import android.view.View
+    import android.widget.Toast
+    import androidx.activity.compose.rememberLauncherForActivityResult
+    import androidx.activity.result.contract.ActivityResultContracts
     import androidx.compose.foundation.background
     import androidx.compose.foundation.layout.Arrangement
     import androidx.compose.foundation.layout.Box
@@ -18,13 +25,17 @@
     import androidx.compose.foundation.layout.padding
     import androidx.compose.foundation.layout.size
     import androidx.compose.foundation.layout.width
+    import androidx.compose.foundation.lazy.LazyColumn
     import androidx.compose.foundation.rememberScrollState
     import androidx.compose.foundation.shape.CircleShape
     import androidx.compose.foundation.verticalScroll
     import androidx.compose.material.ExperimentalMaterialApi
     import androidx.compose.material.icons.Icons
+    import androidx.compose.material.icons.filled.ChangeCircle
     import androidx.compose.material.icons.filled.CheckCircle
     import androidx.compose.material.icons.filled.Close
+    import androidx.compose.material.icons.filled.DownloadForOffline
+    import androidx.compose.material.icons.filled.IosShare
     import androidx.compose.material.icons.filled.Person
     import androidx.compose.material.pullrefresh.pullRefresh
     import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -46,18 +57,23 @@
     import androidx.compose.runtime.setValue
     import androidx.compose.ui.Alignment
     import androidx.compose.ui.Modifier
+    import androidx.compose.ui.platform.ComposeView
     import androidx.compose.ui.platform.LocalContext
     import androidx.compose.ui.platform.LocalDensity
     import androidx.compose.ui.platform.LocalView
     import androidx.compose.ui.text.font.FontWeight
     import androidx.compose.ui.tooling.preview.Preview
     import androidx.compose.ui.unit.dp
+    import androidx.compose.ui.viewinterop.AndroidView
     import androidx.core.app.NotificationManagerCompat
+    import androidx.core.content.ContextCompat
     import androidx.navigation.NavController
     import com.google.accompanist.permissions.ExperimentalPermissionsApi
     import com.google.accompanist.permissions.isGranted
     import com.google.accompanist.permissions.rememberPermissionState
     import com.s2i.inpayment.ui.components.DetailTrxCard
+    import com.s2i.inpayment.ui.components.button.SplitButton
+    import com.s2i.inpayment.ui.components.captureView
     import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
     import com.s2i.inpayment.ui.components.saveBitmapToFile
     import com.s2i.inpayment.ui.components.shareScreenshot
@@ -78,29 +94,21 @@
         val coroutineScope = rememberCoroutineScope()
         val context = LocalContext.current
         val view = LocalView.current
-        val density = LocalDensity.current
+        val transactionDetail by balanceViewModel.detailTrx.collectAsState()
 
-        // State for permissions
-        val storagePermissionState = rememberPermissionState(
-            permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                Manifest.permission.READ_MEDIA_IMAGES
-            } else {
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            }
-        )
+        val transactionView = remember { mutableStateOf<ComposeView?>(null) }
+        var excludeImage by remember { mutableStateOf(false) }
 
-        val notificationPermissionState = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
-        } else {
-            null // Notification permissions are not applicable for API < 33
-        }
 
         // Function to check if notifications are enabled (for Realme or other devices)
-        fun areNotificationsEnabled(): Boolean {
-            return NotificationManagerCompat.from(context).areNotificationsEnabled()
+        val permissionLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            if (!isGranted) {
+                Toast.makeText(context, "Izin diperlukan untuk menyimpan QRIS", Toast.LENGTH_SHORT).show()
+            }
         }
 
-        val transactionDetail by balanceViewModel.detailTrx.collectAsState()
         var isStartupLoading by remember { mutableStateOf(true) }
         val loading by balanceViewModel.loading.collectAsState()
         var isRefreshing by remember { mutableStateOf(false) }
@@ -132,121 +140,174 @@
             }
         }
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            Spacer(modifier = Modifier.width(32.dp))
-            // Header di posisi atas tetap
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            // Spacer to push the content down
+            Spacer(modifier = Modifier.height(24.dp))
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp, vertical = 24.dp)
+                modifier = Modifier.fillMaxSize()
             ) {
-                // Spacer to push the content down
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                Spacer(modifier = Modifier.height(16.dp))
+                // HEADER (TIDAK SCROLL)
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 16.dp),
+                        .background(MaterialTheme.colorScheme.background)
+                        .padding(horizontal = 16.dp, vertical = 16.dp)
                 ) {
-                    IconButton(
-                        onClick = {
-                            navController.navigateUp()
-                        },
-                        modifier = Modifier
-                            .size(16.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.onSecondary,
-                                shape = CircleShape
-                            )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = "Close",
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(24.dp))
-
-                    Text(
-                        text = "Transaction Detail",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                        modifier = Modifier
-                            .padding(vertical = 8.dp)
-                    )
-
-                }
-                if (isStartupLoading) {
-                    CustomLinearProgressIndicator(
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                    )
-                }
-            }
-            // Konten scrollable di bawah header
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 72.dp) // Tambahkan jarak agar tidak menimpa header
-            ) {
-                DetailTrxCard(transactionDetail = transactionDetail?.data) // Panggil komponen `DetailTrxCard`
-            }
-
-            // Tombol Aksi
-            // Tombol Share di bagian bawah
-            Button(
-                onClick = {
-                    when {
-                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                                notificationPermissionState != null &&
-                                !notificationPermissionState.status.isGranted -> {
-                            notificationPermissionState.launchPermissionRequest()
-                        }
-
-                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !areNotificationsEnabled() -> {
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    "Please enable notifications for this app in system settings."
+                            .padding(horizontal = 8.dp, vertical = 16.dp),
+                    ){
+                        IconButton(
+                            onClick = {
+                                navController.navigateUp()
+                            },
+                            modifier = Modifier
+                                .size(16.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.onSecondary,
+                                    shape = CircleShape
                                 )
-                            }
-                            context.startActivity(
-                                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                                    putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                                }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = "Close",
+                                tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
+                        Spacer(modifier = Modifier.width(24.dp))
 
-                        !storagePermissionState.status.isGranted -> {
-                            storagePermissionState.launchPermissionRequest()
-                        }
+                        Text(
+                            text = "Transaction Details",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                            modifier = Modifier
+                                .padding(vertical = 8.dp)
+                        )
 
-                        else -> {
-                            coroutineScope.launch {
-                                val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
-                                val fileUri = saveBitmapToFile(context, bitmap)
+                    }
+                    if (isStartupLoading) {
+                        CustomLinearProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                        )
+                    }
+                }
 
-                                fileUri?.let {
-                                    shareScreenshot(context, it)
-                                } ?: snackbarHostState.showSnackbar("Failed to save receipt")
-                            }
+                // KONTEN YANG BISA DI-SCROLL
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f) // Hanya konten ini yang bisa di-scroll
+                        .padding(horizontal = 16.dp)
+                ) {
+                    item {
+                        AndroidView(
+                            factory = { context ->
+                                ComposeView(context).apply {
+                                    transactionView.value = this
+                                    setContent {
+                                        DetailTrxCard(transactionDetail = transactionDetail?.data, excludeImage = excludeImage)
+                                    }
+                                }
+
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+
+                // FOOTER (TIDAK SCROLL)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.background)
+                        .align(Alignment.CenterHorizontally)
+                        .navigationBarsPadding()
+                        .padding(8.dp)
+                ) {
+                    val buttons = listOf(
+                        Pair(Icons.Filled.IosShare, "Share"),
+                        Pair(Icons.Filled.DownloadForOffline, "Downloads")
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center, // Beri jarak antar tombol
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        buttons.forEach { (icon, label) ->
+                                SplitButton(
+                                    onClick = {
+                                        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                            Manifest.permission.READ_MEDIA_IMAGES
+                                        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                                            Manifest.permission.WRITE_EXTERNAL_STORAGE
+                                        } else {
+                                            Manifest.permission.READ_EXTERNAL_STORAGE
+                                        }
+
+                                        if (ContextCompat.checkSelfPermission(
+                                            context,
+                                            permission
+                                            ) != PackageManager.PERMISSION_GRANTED
+                                        ) {
+                                            permissionLauncher.launch(permission)
+                                            return@SplitButton
+                                        }
+                                        Log.d("SplitButton", "Clicked $label")
+                                        when(label) {
+                                            "Share" -> coroutineScope.launch {
+                                                excludeImage = true
+                                                delay(300)
+                                                transactionView.value?.let {
+                                                    val bitmap = captureView(it) { excludeImage = it }
+                                                    val fileUri = saveBitmapToFile(context, bitmap)
+                                                    excludeImage = false
+
+                                                    fileUri?.let {
+                                                        shareScreenshot(context, it)
+                                                        Toast.makeText(context, "Receipt share successfully", Toast.LENGTH_SHORT).show()
+                                                        snackbarHostState.showSnackbar("Receipt share successfully")
+                                                    }
+                                                        ?: snackbarHostState.showSnackbar("Failed to save receipt")
+                                                }
+                                            }
+                                            "Downloads" -> coroutineScope.launch {
+                                                excludeImage = true
+                                                delay(300)
+                                                transactionView.value?.let {
+                                                    val bitmap = captureView(it) { excludeImage = it }
+                                                    val fileUri = saveBitmapToFile(context, bitmap)
+                                                    excludeImage = false
+
+                                                    fileUri?.let {
+                                                        Toast.makeText(context, "Receipt saved successfully", Toast.LENGTH_SHORT).show()
+                                                        snackbarHostState.showSnackbar("Receipt saved successfully")
+                                                    }
+                                                        ?: snackbarHostState.showSnackbar("Failed to save receipt")
+                                                }
+                                            }
+                                        }
+                                    },
+                                    icon = icon,
+                                    label = label,
+                                    isSelected = false,
+                                )
                         }
                     }
-                },
-                modifier = Modifier
-                    .align(Alignment.BottomCenter) // Posisi tombol di bawah
-                    .background(MaterialTheme.colorScheme.background)
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 16.dp) // Tambahkan jarak dari bawah
-                    .navigationBarsPadding() // Sesuaikan dengan navbar
-            ) {
-                Text(text = "Share Receipt")
+                }
             }
-
         }
+
     }
 
 

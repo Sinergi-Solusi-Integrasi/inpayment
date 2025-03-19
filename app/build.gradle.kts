@@ -91,7 +91,7 @@ dependencies {
     implementation(libs.accompanist.permissions)
 
     // CameraX core library using the camera2 implementation
-    val cameraXVersion = "1.5.0-alpha05"
+    val cameraXVersion = "1.5.0-alpha06"
     // The following line is optional, as the core library is included indirectly by camera-camera2
     implementation("androidx.camera:camera-core:${cameraXVersion}")
     implementation("androidx.camera:camera-camera2:${cameraXVersion}")
@@ -107,7 +107,7 @@ dependencies {
     implementation("androidx.camera:camera-extensions:${cameraXVersion}")
 
     // Import the Firebase BoM
-    implementation(platform("com.google.firebase:firebase-bom:33.8.0"))
+    implementation(platform("com.google.firebase:firebase-bom:33.10.0"))
 
 
     // TODO: Add the dependencies for Firebase products you want to use
@@ -138,8 +138,8 @@ dependencies {
     implementation("io.insert-koin:koin-compose-viewmodel-navigation")
     implementation("io.insert-koin:koin-androidx-compose-navigation")
 
-    implementation("androidx.compose.runtime:runtime:1.7.6")
-    implementation("androidx.compose.runtime:runtime-livedata:1.7.6")
+    implementation("androidx.compose.runtime:runtime:1.7.8")
+    implementation("androidx.compose.runtime:runtime-livedata:1.7.8")
 
     // Retrofit for networking
     implementation(libs.retrofit)
@@ -174,6 +174,7 @@ dependencies {
 
     implementation("com.google.accompanist:accompanist-pager:0.30.1")
     implementation("com.google.accompanist:accompanist-pager-indicators:0.30.1")
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
 
 
 
@@ -187,7 +188,7 @@ dependencies {
     implementation("androidx.compose.material3.adaptive:adaptive")
 
     // Optional - Integration with ViewModels
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     // Optional - Integration with LiveData
     implementation("androidx.compose.runtime:runtime-livedata")
     // Optional - Integration with RxJava
