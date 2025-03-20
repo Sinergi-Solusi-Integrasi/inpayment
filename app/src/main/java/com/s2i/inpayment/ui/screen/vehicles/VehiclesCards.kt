@@ -181,19 +181,19 @@ fun VehiclesCards(
                     .pointerInput(Unit) {
                         detectHorizontalDragGestures(
                             onHorizontalDrag = { _, dragAmount ->
-                                swipeOffsetX.value = (swipeOffsetX.value + dragAmount)
+                                swipeOffsetX.floatValue = (swipeOffsetX.floatValue + dragAmount)
                                     .coerceIn(maxFullSwipe, 0f)
                             },
                             onDragEnd = {
-                                if (swipeOffsetX.value <= maxPartialSwipe) {
+                                if (swipeOffsetX.floatValue <= maxPartialSwipe) {
                                     coroutineScope.launch {
                                         isPartialSwipe.value = true
-                                        swipeOffsetX.value = maxPartialSwipe
+                                        swipeOffsetX.floatValue = maxPartialSwipe
                                     }
                                 } else {
                                     coroutineScope.launch {
                                         isPartialSwipe.value = false
-                                        swipeOffsetX.value = 0f
+                                        swipeOffsetX.floatValue = 0f
                                     }
                                 }
                             }
@@ -203,6 +203,10 @@ fun VehiclesCards(
                         vehiclesState?.let {
                             if (isPartialSwipe.value) {
                                 toggleVehicleStatus(it.vehicleId!!)
+                                coroutineScope.launch {
+                                    isPartialSwipe.value = false
+                                    swipeOffsetX.floatValue = 0f
+                                }
                             } else {
                                 onShowDetail(it.vehicleId!!)
                             }

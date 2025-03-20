@@ -19,7 +19,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,13 +44,27 @@ fun LoansVehiclesScreen(
     vehiclesViewModel: VehiclesViewModel
 ) {
     val loansVehiclesState by vehiclesViewModel.loansVehiclesState.collectAsState()
+    val errorState by vehiclesViewModel.error.collectAsState()
     var token by remember { mutableStateOf("") }
-    var accountNumer by remember { mutableStateOf("") }
     var isTokenValid by remember { mutableStateOf(true) }
     val isFormValid = token.isNotEmpty()
     val context = LocalContext.current
     val isLoading by vehiclesViewModel.loading.collectAsState()
 
+    isTokenValid = token.length == 6
+
+
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(loansVehiclesState, errorState) {
+        if (errorState != null) {
+            errorMessage = "Token tidak valid"
+            Toast.makeText(context, "Oops! Token tidak valid", Toast.LENGTH_LONG).show()
+        } else if (loansVehiclesState != null) {
+            errorMessage = null
+            Toast.makeText(context, "Vehicle Loans Successfully", Toast.LENGTH_LONG).show()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -66,9 +82,13 @@ fun LoansVehiclesScreen(
 
         OutlinedTextField(
             value = token,
-            onValueChange = { token = it },
+            onValueChange = { newValue ->
+                if (newValue.length <= 6) {
+                    token = newValue
+                }
+            },
             label = { Text("Token") },
-            isError = !isTokenValid,
+            isError = !isTokenValid && token.isNotEmpty(),
             modifier = Modifier.fillMaxWidth(),
             trailingIcon = if (!isTokenValid && token.isNotEmpty()) {
                 {
@@ -90,12 +110,29 @@ fun LoansVehiclesScreen(
                 modifier = Modifier.padding(top = 4.dp)
             )
         }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // ✅ Menampilkan pesan error di bawah tombol jika ada kesalahan
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage!!,
+                color = Color.Red,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = {
-                vehiclesViewModel.loansVehicles(token)
-                Toast.makeText(context, "Vehicle Loans Successfully", Toast.LENGTH_SHORT).show()
+                if (isTokenValid) {
+                    vehiclesViewModel.loansVehicles(token)
+
+                } else {
+                    errorMessage = "Token tidak valid"
+                    Toast.makeText(context, "Oops! Token tidak valid", Toast.LENGTH_SHORT).show()
+                }
             },
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             shape = RoundedCornerShape(16.dp),

@@ -42,13 +42,15 @@ import java.util.TimeZone
 fun LendVehiclesScreen(
     navController: NavController,
     vehicleId: String,
-    vehiclesViewModel: VehiclesViewModel
+    vehiclesViewModel: VehiclesViewModel,
+    onDismissAll: () -> Unit
 ) {
     val lendVehiclesState by vehiclesViewModel.lendVehiclesState.collectAsState()
+    val errorState by vehiclesViewModel.error.collectAsState()
     var accountNumber by remember { mutableStateOf(TextFieldValue("")) }
     var dueDate by remember { mutableStateOf("") }
     var formattedDueDate by remember { mutableStateOf("") }
-    var token by remember { mutableStateOf("") }
+    var token by remember { mutableStateOf<String?>(null) }
     var isNextClicked by remember { mutableStateOf(false) }
     var isSubmitted by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -57,6 +59,8 @@ fun LendVehiclesScreen(
     val selectedDateTime = remember { mutableStateOf<LocalDateTime?>(null) }
     var showDateTimeDialog by remember { mutableStateOf(true) }
     val dialogState = rememberUseCaseState(visible = showDateTimeDialog)
+
+    val isAccountValid = accountNumber.text.length == 10
 
     fun showDateTimePicker() {
         Log.d("DateTimeDialogDebug", "DateTimeDialog triggered")
@@ -74,11 +78,19 @@ fun LendVehiclesScreen(
         return zonedDateTime.format(formatter)
     }
 
-    LaunchedEffect(lendVehiclesState) {
+    LaunchedEffect(lendVehiclesState, errorState) {
         lendVehiclesState?.data?.token?.let { responseToken ->
-            token = responseToken.token
+            if (errorState == null) { // Hanya update token jika tidak ada error
+                token = responseToken.token
+            }
+        }
+
+        errorState?.let { errorMessage ->
+            Log.e("VehiclesScreen", "Error: $errorMessage")
+            Toast.makeText(context, "Oops! Sepertinya ada yang salah dengan account numbernya", Toast.LENGTH_LONG).show()
         }
     }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -96,12 +108,22 @@ fun LendVehiclesScreen(
         if (!isNextClicked) {
             OutlinedTextField(
                 value = accountNumber,
-                onValueChange = { accountNumber = it },
+                onValueChange = { newValue ->
+                    if (newValue.text.length <= 10) {
+                        accountNumber = newValue
+                    }
+                },
                 label = { Text("Account Number") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Number
                 ),
+                isError = !isAccountValid && accountNumber.text.isNotEmpty(), // Tampilkan error jika tidak valid
+                supportingText = {
+                    if (!isAccountValid && accountNumber.text.isNotEmpty()) {
+                        Text("Account Number harus 10 digit", color = Color.Red)
+                    }
+                }
             )
         } else if (!isSubmitted) {
             OutlinedTextField(
@@ -117,42 +139,50 @@ fun LendVehiclesScreen(
                         Toast.makeText(context, "TextField Clicked", Toast.LENGTH_SHORT).show()
                     }
             )
-        } else {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Token",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(16.dp)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
+        }else {
+            // ✅ Tampilkan token hanya jika tidak ada error
+            if (token != null) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = token,
-                        style = MaterialTheme.typography.displayLarge.copy(fontSize = 32.sp),
-                        color = MaterialTheme.colorScheme.primary
+                        text = "Token",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(16.dp)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Icon(
-                        imageVector = Icons.Default.ContentCopy,
-                        contentDescription = "Token Options",
-                        modifier = Modifier.clickable {
-                            val clipboardManager =
-                                context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                            val clip = ClipData.newPlainText(
-                                "Token",
-                                lendVehiclesState?.data?.token?.token ?: ""
-                            )
-                            clipboardManager.setPrimaryClip(clip)
-                        }
-                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = token!!,
+                            style = MaterialTheme.typography.displayLarge.copy(fontSize = 32.sp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(
+                            imageVector = Icons.Default.ContentCopy,
+                            contentDescription = "Token Options",
+                            modifier = Modifier.clickable {
+                                val clipboardManager =
+                                    context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                val clip = ClipData.newPlainText("Token", token)
+                                clipboardManager.setPrimaryClip(clip)
+                                Toast.makeText(context, "Token disalin!", Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    }
                 }
+            } else {
+                Text(
+                    text = "Token tidak tersedia, Di karenakan Account Number Yang Di masukkan salah",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(16.dp)
+                )
             }
         }
 
@@ -170,9 +200,13 @@ fun LendVehiclesScreen(
                         isSubmitted = true
                         Toast.makeText(context, "Vehicle Lent Successfully", Toast.LENGTH_SHORT).show()
                     }
-                    else -> navController.navigateUp()
+                    else -> {
+                        onDismissAll()
+                    }
+
                 }
             },
+            enabled = isAccountValid,
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth()

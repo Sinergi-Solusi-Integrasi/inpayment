@@ -154,7 +154,8 @@ fun AppNavigation(
             LendVehiclesScreen(
                 navController = navController,
                 vehicleId = vehicleId,
-                vehiclesViewModel = vehiclesViewModel
+                vehiclesViewModel = vehiclesViewModel,
+                onDismissAll = { navController.popBackStack()}
             )
         }
 

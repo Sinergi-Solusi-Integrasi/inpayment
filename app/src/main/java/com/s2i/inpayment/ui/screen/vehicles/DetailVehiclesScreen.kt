@@ -92,6 +92,8 @@ fun DetailVehiclesScreen(
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showBottomSheet by remember { mutableStateOf(false) }
+    val lendSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var showLendBottomSheet by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val selectedVehicle = vehiclesState.find { it.vehicleId == vehicleId }
 
@@ -243,7 +245,7 @@ fun DetailVehiclesScreen(
                             isLoading = isLoading,
                             isSelected = false,
                             onClick = {
-                                showBottomSheet = true
+                                showLendBottomSheet = true
                             },
                         )
                     } else {
@@ -293,15 +295,21 @@ fun DetailVehiclesScreen(
         }
     }
 
-    if (showBottomSheet) {
+    if (showLendBottomSheet) {
         ReusableBottomSheet(
-            sheetState = sheetState,
-            onDismiss = { showBottomSheet = false }
+            sheetState = lendSheetState,
+            onDismiss = { showLendBottomSheet = false }
         ) {
             LendVehiclesScreen(
                 navController = navController,
                 vehicleId = vehicleId,
-                vehiclesViewModel = vehiclesViewModel
+                vehiclesViewModel = vehiclesViewModel,
+                onDismissAll = {
+                    showLendBottomSheet = false
+                    navController.navigate("vehicles_screen"){
+                        popUpTo("vehicles_screen") { inclusive = true }
+                    } // Kembali ke VehiclesScreen
+                }
             )
         }
     }

@@ -44,7 +44,9 @@ fun ReusableBottomSheet(
     ModalBottomSheet(
         onDismissRequest = {
             Log.d("ReusableBottomSheet", "onDismissRequest called")
-            onDismiss?.invoke()
+            onDismiss?.let {
+                it() // Pastikan hanya menutup bottom sheet, bukan memanggil navigateUp()
+            }
         },
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surface,
