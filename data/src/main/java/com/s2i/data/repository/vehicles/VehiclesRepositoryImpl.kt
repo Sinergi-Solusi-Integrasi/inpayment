@@ -118,6 +118,9 @@ class VehiclesRepositoryImpl(
                 code = response.code,
                 message = response.message,
                 vehiclesData = VehicleModel(
+                    brand = response.vehiclesData.brand,
+                    model = response.vehiclesData.model,
+                    varian = response.vehiclesData.varian,
                     nameVehicles = response.vehiclesData.nameVehicles,
                     color = response.vehiclesData.color,
                     plateNumber = response.vehiclesData.plateNumber,

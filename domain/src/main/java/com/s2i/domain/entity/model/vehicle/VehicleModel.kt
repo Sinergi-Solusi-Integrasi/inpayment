@@ -1,7 +1,5 @@
 package com.s2i.domain.entity.model.vehicle
 
-import com.google.gson.annotations.SerializedName
-
 data class VehicleModel(
     val vehicleId: String? = null,
     val statusVehiclesId: String? = null,
