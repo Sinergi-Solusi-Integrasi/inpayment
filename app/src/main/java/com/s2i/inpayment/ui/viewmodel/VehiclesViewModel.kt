@@ -226,7 +226,7 @@ class VehiclesViewModel(
 //                    )
 //                }
 
-                val compressedDocument = compressBitmap(documentBitmap, imageFormat, 70)
+                val compressedDocument = compressBitmap(documentBitmap, imageFormat, 75)
                 val (docBase64, docExt, docMimeType) = bitmapToBase64WithFormat(compressedDocument, imageFormat)
                 val documentImage = BlobImageModel(
                     data = docBase64,
@@ -236,7 +236,7 @@ class VehiclesViewModel(
 
                 // Kompresi gambar kendaraan
                 val vehicleImages = vehicleBitmaps.map { bitmap ->
-                    val compressedBitmap = compressBitmap(bitmap, imageFormat, 70)
+                    val compressedBitmap = compressBitmap(bitmap, imageFormat, 75)
                     val (base64, ext, mimeType) = bitmapToBase64WithFormat(compressedBitmap, imageFormat)
                     BlobImageModel(
                         data = base64,
@@ -433,6 +433,14 @@ class VehiclesViewModel(
                 _loading.value = false
             }
         }
+    }
+
+    fun setError(message: String) {
+        _error.value = message
+    }
+
+    fun clearError() {
+        _error.value = null
     }
 }
 
