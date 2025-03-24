@@ -302,17 +302,17 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             //Forgot Password
-            TextButton(
-                onClick = {
-
-                }
-            ) {
-                Text(
-                    "Forgotten Password ?",
-                    color = Color.Blue,
-                    fontSize = 14.sp
-                )
-            }
+//            TextButton(
+//                onClick = {
+//
+//                }
+//            ) {
+//                Text(
+//                    "Forgotten Password ?",
+//                    color = Color.Blue,
+//                    fontSize = 14.sp
+//                )
+//            }
 
             Spacer(modifier = Modifier.weight(1f))
 
