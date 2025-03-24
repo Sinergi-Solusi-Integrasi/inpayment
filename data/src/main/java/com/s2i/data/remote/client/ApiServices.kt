@@ -73,10 +73,10 @@ interface ApiServices {
     ): LogoutResponse
 
     // Change Password
-    @POST("auth/password")
-    suspend fun changePassword(
-        @Body changePasswordData: ChangePasswordRequest
-    ):
+//    @POST("auth/password")
+//    suspend fun changePassword(
+//        @Body changePasswordData: ChangePasswordRequest
+//    ):
 
     // Get Profile
     @GET("accounts/profile")
