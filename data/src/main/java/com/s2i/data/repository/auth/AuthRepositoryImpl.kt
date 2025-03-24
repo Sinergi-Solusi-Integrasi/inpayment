@@ -27,6 +27,8 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
+import timber.log.Timber
+
 class AuthRepositoryImpl(
     private val apiServices: ApiServices,
     private val sessionManager: SessionManager
@@ -111,7 +113,7 @@ class AuthRepositoryImpl(
         identityNumber: String,
         identityImage: BlobImageModel
     ): Result<UsersModel> {
-        Log.d("AuthRepository", "Attempting to register with $username")
+        Timber.d("AuthRepository: Attempting to register with $username")
 
         // Convert BlobImageModel (domain model) to BlobImageData (data model)
         val blobImageData = BlobImageData(
@@ -138,10 +140,10 @@ class AuthRepositoryImpl(
             val userData = response.data ?: return Result.failure(Exception("Invalid response data"))
             if (response.code != 0) {
                 val errorMessage = response.message ?: "Unknown error occurred"
-                Log.e("AuthRepository", "Registration failed: $errorMessage")
+                Timber.e("AuthRepository: Registration failed: $errorMessage")
                 Result.failure(Exception("Registration failed: $errorMessage"))
             } else {
-                Log.d("AuthRepository", "Registration successful for user: ${userData.username}, ${userData.name}")
+                Timber.d("AuthRepository: Registration successful for user: ${userData.username}, ${userData.name}")
                 Result.success(
                     UsersModel(
                         name = userData.name,
@@ -150,7 +152,7 @@ class AuthRepositoryImpl(
                 )
             }
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Registration error: ${e.message}", e)
+            Timber.e("AuthRepository: Registration error: ${e.message}", e)
             Result.failure(Exception("Registration error: ${e.message}"))
         }
     }
@@ -158,7 +160,7 @@ class AuthRepositoryImpl(
     override suspend fun logout(
         deviceId: String?
     ): AuthLogoutModel {
-        Log.d("AuthRepository", "Attempting to logout")
+        Timber.d("AuthRepository: Attempting to logout")
 
         val logoutRequest = LogoutRequest(
             deviceId = deviceId
@@ -168,10 +170,10 @@ class AuthRepositoryImpl(
             val response = apiServices.logout(logoutRequest)
             if (response.code != 0) {
                 val errorMessage = response.message ?: "Uknown "
-                Log.e("AuthRepository", "Logout failed: $errorMessage")
+                Timber.e("AuthRepository: Logout failed: $errorMessage")
                 throw Exception("Logout failed: $errorMessage")
             } else {
-                Log.d("AuthRepository", "Logout successful")
+                Timber.d("AuthRepository: Logout successful")
                 AuthLogoutModel(
                     code = response.code,
                     message = response.message,
@@ -181,7 +183,7 @@ class AuthRepositoryImpl(
                 )
             }
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Logout error: ${e.message}", e)
+            Timber.e("AuthRepository: Logout error: ${e.message}", e)
             throw Exception("Logout error: ${e.message}")
         }
     }

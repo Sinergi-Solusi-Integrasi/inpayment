@@ -1,7 +1,6 @@
 package com.s2i.data.model.vehicles
 
 import com.google.gson.annotations.SerializedName
-import com.s2i.domain.entity.model.vehicle.AgencyCardModel
 
 data class VehiclesData(
     @SerializedName("id")
