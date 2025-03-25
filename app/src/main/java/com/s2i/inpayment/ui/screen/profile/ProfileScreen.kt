@@ -3,10 +3,12 @@ package com.s2i.inpayment.ui.screen.profile
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.view.RoundedCorner
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,6 +31,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -64,6 +67,7 @@ import com.s2i.inpayment.ui.theme.DarkTeal21
 import com.s2i.inpayment.ui.theme.DarkTeal40
 import com.s2i.inpayment.ui.viewmodel.AuthViewModel
 import com.s2i.inpayment.ui.viewmodel.UsersViewModel
+import com.s2i.inpayment.utils.helper.workmanager.TokenWorkManagerUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -77,21 +81,20 @@ fun ProfileScreen(
     authViewModel: AuthViewModel = koinViewModel(),
     usersViewModel: UsersViewModel = koinViewModel()
 ) {
+
     val scope = rememberCoroutineScope()
     val usersState by usersViewModel.users.collectAsState()
     var isStartupLoading by remember { mutableStateOf(true) }
     val loading by usersViewModel.loading.collectAsState()
+    val loadingLogout by authViewModel.loadingState.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
     val error by usersViewModel.error.collectAsState()
 
     LaunchedEffect(Unit) {
-        if (loading && isStartupLoading) {
-            isStartupLoading = true
-        } else if (!loading) {
-            usersViewModel.fetchUsers()
-            isStartupLoading = false
-        }
+        isStartupLoading = true
+        usersViewModel.fetchUsers()
     }
+
 
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
@@ -113,7 +116,7 @@ fun ProfileScreen(
                 navigationIcon = {
                     IconButton(onClick = {
                         /* Handle back navigation */
-                        navController.navigateUp()
+                        navController.popBackStack()
                     }
                     ) {
                         Icon(imageVector = Icons.Filled.Close, contentDescription = "Back")
@@ -134,7 +137,7 @@ fun ProfileScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            if (isStartupLoading) {
+            if (loading && usersState == null) {
                 CustomLinearProgressIndicator(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -151,6 +154,32 @@ fun ProfileScreen(
             ProfileMenu(navController)
             Spacer(modifier = Modifier.height(16.dp))
             ProfileFooter(navController, authViewModel, sessionManager, scope)
+        }
+
+        // Overlay Loading
+        if (loadingLogout) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.4f)),
+                contentAlignment = Alignment.Center
+            ){
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = CardDefaults.cardElevation(8.dp),
+                    colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
+                    modifier = Modifier.size(120.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            }
         }
     }
 }
@@ -276,6 +305,7 @@ fun ProfileFooter(
     sessionManager: SessionManager,
     scope: CoroutineScope
 ) {
+    val logoutLoading by authViewModel.loadingState.collectAsState()
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -288,16 +318,15 @@ fun ProfileFooter(
             icon = R.drawable.ic_logout, // Icon logout
             title = "Logout",
             onClick = {
-                scope.launch {
-                    // Logout dari session
-                    authViewModel.logout()
-
-                    sessionManager.isLoggedOut = true
-
-                    // Navigasi ke HomeScreen (atau layar yang sesuai)
-                    navController.navigate("login_screen") {
-                        // Pop up semua screen yang ada di atas HomeScreen (termasuk profile_screen)
-                        popUpTo("profile_screen") { inclusive = true }
+                if (!logoutLoading) {
+                    scope.launch {
+                        // Logout dari session
+                        authViewModel.logout()
+                        // Navigasi ke HomeScreen (atau layar yang sesuai)
+                        navController.navigate("login_screen") {
+                            // Pop up semua screen yang ada di atas HomeScreen (termasuk profile_screen)
+                            popUpTo("profile_screen") { inclusive = true }
+                        }
                     }
                 }
             }

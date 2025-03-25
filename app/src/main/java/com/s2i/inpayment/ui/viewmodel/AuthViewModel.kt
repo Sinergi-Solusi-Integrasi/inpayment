@@ -184,7 +184,8 @@ class AuthViewModel(
 
                 // Set isLoggedOut menjadi true agar LaunchEffect tidak memicu navigasi otomatis
                 sessionManager.isLoggedOut = true
-
+                // ✅ Pastikan menghentikan WorkManager di sini
+                TokenWorkManagerUtil.stopWorkManager(context)
                 Log.d("AuthViewModel", "All session data cleared after successful logout.")
                 _logoutState.value = result
             } catch(e: Exception) {

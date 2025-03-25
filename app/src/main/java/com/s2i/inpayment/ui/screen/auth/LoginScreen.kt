@@ -3,6 +3,7 @@ package com.s2i.inpayment.ui.screen.auth
 import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,8 +18,10 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -26,10 +29,13 @@ import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -147,15 +153,6 @@ fun LoginScreen(
             Log.d("LoginScreen", "User is logged out. Waiting for re-login.")
             // Tampilkan sheet tanpa reset navigasi secara langsung
             authViewModel.resetLoginState()
-//            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-//                if (!task.isSuccessful) {
-//                    Log.w("LoginScreen", "Fetching FCM registration token failed", task.exception)
-//                    return@addOnCompleteListener
-//                }
-//                val token = task.result
-//                Log.d("LoginScreen", "FCM Registration Token: $token")
-//                sendTokenToServer(token)
-//            }
         }
     }
 
@@ -208,16 +205,10 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.systemBars)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
-
-            if (loadingState) {
-                CircularProgressIndicator()
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
             Spacer(modifier = Modifier.weight(1f))
 
             Image(
@@ -347,6 +338,32 @@ fun LoginScreen(
                         contentDescription = "Intracs Logo",
                         modifier = Modifier.size(24.dp)
                     )
+                }
+            }
+        }
+    }
+
+    // Overlay Loading
+    if (loadingState) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.4f)),
+            contentAlignment = Alignment.Center
+        ){
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                elevation = CardDefaults.cardElevation(8.dp),
+                colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
+                modifier = Modifier.size(120.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator()
                 }
             }
         }

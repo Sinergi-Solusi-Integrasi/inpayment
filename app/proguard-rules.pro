@@ -82,38 +82,179 @@
 -dontwarn kotlinx.**
 
 
-# Existing rules
--keep class com.s2i.** { *; }
--keepattributes *Annotation*
+# Existing Rules
 
-# Keep the AuthRepository and related classes
--keep class com.s2i.domain.repository.auth.AuthRepository { *; }
--keep class com.s2i.data.repository.auth.AuthRepositoryImpl { *; }
+#########################################
+# ========== BASIC OPTIMIZATION ======== #
+#########################################
 
-# Keep the SessionManager class
--keep class com.s2i.data.local.auth.SessionManager { *; }
+# Hilangkan log saat release
+-assumenosideeffects class android.util.Log {
+    public static *** d(...);
+    public static *** v(...);
+    public static *** i(...);
+    public static *** w(...);
+    public static *** e(...);
+}
 
-# Keep the ApiServices class
--keep class com.s2i.data.remote.client.ApiServices { *; }
+# Keep Source Debug Info (optional untuk debug purposes)
+# -keepattributes SourceFile,LineNumberTable
 
-# Keep the UseCases
--keep class com.s2i.domain.usecase.auth.LoginUseCase { *; }
--keep class com.s2i.domain.usecase.auth.RegisterUseCase { *; }
+#########################################
+# ========== KOTLIN / COROUTINES ======= #
+#########################################
 
-# Keep Transaction model
--keep class com.s2i.core.model.transaction.Transaction { *; }
+-dontwarn kotlin.**
+-keep class kotlin.Metadata { *; }
+-keepclassmembers class ** {
+    @kotlin.Metadata *;
+}
+-keepclassmembers class * {
+    @kotlinx.serialization.SerialName <fields>;
+}
+-dontwarn kotlinx.coroutines.**
 
-# Keep all ViewModels
--keep class com.s2i.inpayment.ui.viewmodel.** { *; }
+#########################################
+# ========== JETPACK COMPOSE =========== #
+#########################################
 
-# Keep Gson annotations (if you use Gson for serialization)
+-keep class androidx.compose.** { *; }
+-keep class androidx.activity.ComponentActivity { *; }
+-keepclassmembers class * {
+    @androidx.compose.runtime.Composable <methods>;
+}
+-dontwarn androidx.compose.**
+
+#########################################
+# ========== RETROFIT ================== #
+#########################################
+
+-keepattributes Signature, InnerClasses, EnclosingMethod, Exceptions
+-keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParameterAnnotations
+
+-keepclassmembers,allowshrinking,allowobfuscation interface * {
+    @retrofit2.http.* <methods>;
+}
+
+-dontwarn retrofit2.**
+-dontwarn javax.annotation.**
+-dontwarn kotlin.Unit
+-dontwarn retrofit2.KotlinExtensions
+-dontwarn retrofit2.KotlinExtensions$*
+-dontwarn org.codehaus.mojo.animal_sniffer.*
+
+-if interface * { @retrofit2.http.* <methods>; }
+-keep,allowobfuscation interface <1>
+
+#########################################
+# ========== GSON ====================== #
+#########################################
+
+-keepattributes Signature, *Annotation*
+
+-dontwarn sun.misc.**
+-keep class com.google.gson.** { *; }
+
+-keep class * implements com.google.gson.TypeAdapter
+-keep class * implements com.google.gson.TypeAdapterFactory
+-keep class * implements com.google.gson.JsonSerializer
+-keep class * implements com.google.gson.JsonDeserializer
+
+-keepclassmembers,allowobfuscation class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
 -keep class com.google.gson.annotations.SerializedName { *; }
 
-# Keep Koin injection classes
+#########################################
+# ========== KOIN ====================== #
+#########################################
+
+-dontwarn org.koin.**
 -keep class org.koin.** { *; }
 
+#########################################
+# ========== ROOM ====================== #
+#########################################
 
-# Suppress warnings for specific classes
--dontwarn com.s2i.domain.entity.model.auth.AuthModel
--dontwarn com.s2i.domain.entity.model.users.UsersModel
+-keep class androidx.room.** { *; }
+-keepclassmembers class * {
+    @androidx.room.* <methods>;
+}
+-dontwarn androidx.room.**
+
+#########################################
+# ========== FIREBASE ================== #
+#########################################
+
+-keep class com.google.firebase.** { *; }
+-dontwarn com.google.firebase.**
+-dontwarn com.google.android.gms.**
+
+#########################################
+# ========== ML KIT ==================== #
+#########################################
+
+-keep class com.google.mlkit.** { *; }
+-dontwarn com.google.mlkit.**
+-keep class com.google.android.gms.** { *; }
+
+#########################################
+# ========== CAMERA X ================== #
+#########################################
+
+-keep class androidx.camera.** { *; }
+-dontwarn androidx.camera.**
+
+#########################################
+# ========== TIMBER ==================== #
+#########################################
+
+-dontwarn timber.log.**
+
+#########################################
+# ========== VIEWMODEL ================= #
+#########################################
+
+-keep class * extends androidx.lifecycle.ViewModel { *; }
+
+#########################################
+# ========== YOUR MODULES ============== #
+#########################################
+
+# Core domain/data layer (bisa spesifik jika perlu)
+-keep class com.s2i.core.** { *; }
+-keep class com.s2i.domain.** { *; }
+-keep class com.s2i.data.** { *; }
+-keep class com.s2i.common.** { *; }
+
+# SessionManager, ApiService, UseCases
+-keep class com.s2i.data.local.auth.SessionManager { *; }
+-keep class com.s2i.data.remote.client.ApiServices { *; }
+-keep class com.s2i.domain.usecase.** { *; }
+
+# ViewModel UI Layer
+-keep class com.s2i.inpayment.ui.viewmodel.** { *; }
+
+#########################################
+# ========== THIRD PARTY UI ============ #
+#########################################
+
+# Dialog Sheets
+-keep class com.maxkeppeler.sheets.** { *; }
+-dontwarn com.maxkeppeler.sheets.**
+
+# Accompanist
+-dontwarn com.google.accompanist.**
+
+# Coil & Glide
+-keep class coil.** { *; }
+-keep class com.bumptech.glide.** { *; }
+-dontwarn coil.**
+-dontwarn com.bumptech.glide.**
+
+#########################################
+# ========== SUPPRESS WARNINGS ========= #
+#########################################
+
 -dontwarn java.lang.invoke.StringConcatFactory
+-dontwarn com.s2i.domain.entity.model.**

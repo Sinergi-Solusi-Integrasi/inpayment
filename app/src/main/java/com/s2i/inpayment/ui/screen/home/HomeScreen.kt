@@ -154,23 +154,7 @@ fun HomeScreen(
     val textMeasurer = rememberTextMeasurer()
     var isBalanceValid by remember { mutableStateOf(true) }
 
-
-    // WorkManager akan mulai hanya jika belum berjalan
     LaunchedEffect(Unit) {
-        TokenWorkManagerUtil.startWorkManager(context)
-        Log.d("HomeScreen", "TokenWorkManger : ${TokenWorkManagerUtil.startWorkManager(context)}")
-    }
-
-
-    LaunchedEffect(Unit) {
-        val isSessionExpired = sessionManager.checkAndHandleSessionExpired()
-        if (isSessionExpired) {
-            Log.d("HomeScreen", "User is not logged in. Redirecting to login_screen.")
-            TokenWorkManagerUtil.stopWorkManager(context) // Stop WorkManager jika user logout
-            navController.navigate("login_screen") {
-                popUpTo("home_screen") { inclusive = true }
-            }
-        } else {
             val deviceId = sessionManager.getFromPreference(SessionManager.KEY_DEVICE_ID)
             if (!deviceId.isNullOrBlank()) {
                 Log.d("HomeScreen", "Device ID: $deviceId, proceeding to bind account.")
@@ -181,7 +165,6 @@ fun HomeScreen(
             balanceViewModel.fetchBalance()
             balanceViewModel.fetchTriLastTransaction()
             balanceViewModel.fetchInComeExpenses()
-        }
     }
 
     // Menangani hasil response BindingModel
