@@ -154,4 +154,153 @@ class VehiclesRepositoryImplTest {
 
         coVerify { apiServices.addVehicles(any()) }
     }
+
+    @Test
+    fun `pullVehiclesLoans should return pulled vehicle data`() = runTest(testDispatcher) {
+        // Arrange
+        val vehicleId = "1"
+        val vehicleData = VehiclesData(
+            vehicleId = vehicleId,
+            ownerUserId = "owner1",
+            borrowerUserId = "borrower1",
+            brand = "Toyota",
+            model = "Corolla",
+            varian = "XLI",
+            nameVehicles = "Toyota Corolla XLI",
+            color = "White",
+            plateNumber = "AB123CD",
+            group = 10,
+            rfid = "RFID123",
+            priority = 1,
+            images = emptyList(),
+            certificateImage = "cert1",
+            loanExpiredAt = "2024-12-31",
+            loanedAt = "2024-01-01",
+            createdAt = "2024-01-01",
+            updatedAt = "2024-01-02",
+            isOwner = true,
+            isLoaned = false,
+            status = "active",
+            agencyCard = null
+        )
+        val expectedResponse = com.s2i.data.remote.response.vehicles.LoansVehiclesResponse(
+            code = 200,
+            message = "Pulled",
+            data = vehicleData
+        )
+
+        coEvery { apiServices.pullLoans(vehicleId) } returns expectedResponse
+
+        // Act
+        val result = repository.pullVehiclesLoans(vehicleId)
+
+        // Assert
+        assertEquals(200, result.code)
+        assertEquals("Pulled", result.message)
+        assertEquals(vehicleId, result.data.vehicleId)
+
+        coVerify { apiServices.pullLoans(vehicleId) }
+    }
+
+    @Test
+    fun `loansVehicles should return vehicle data based on token`() = runTest(testDispatcher) {
+        // Arrange
+        val token = "vehicle_token_abc"
+        val vehicleData = VehiclesData(
+            vehicleId = "1",
+            ownerUserId = "owner1",
+            borrowerUserId = "borrower1",
+            brand = "Toyota",
+            model = "Corolla",
+            varian = "XLI",
+            nameVehicles = "Toyota Corolla XLI",
+            color = "White",
+            plateNumber = "AB123CD",
+            group = 10,
+            rfid = "RFID123",
+            priority = 1,
+            images = emptyList(),
+            certificateImage = "cert1",
+            loanExpiredAt = "2024-12-31",
+            loanedAt = "2024-01-01",
+            createdAt = "2024-01-01",
+            updatedAt = "2024-01-02",
+            isOwner = true,
+            isLoaned = true,
+            status = "loaned",
+            agencyCard = null
+        )
+        val expectedResponse = com.s2i.data.remote.response.vehicles.LoansVehiclesResponse(
+            code = 200,
+            message = "Loan success",
+            data = vehicleData
+        )
+
+        coEvery { apiServices.loansVehicles(any()) } returns expectedResponse
+
+        // Act
+        val result = repository.loansVehicles(token)
+
+        // Assert
+        assertEquals(200, result.code)
+        assertEquals("Loan success", result.message)
+        assertEquals("1", result.data.vehicleId)
+
+        coVerify { apiServices.loansVehicles(any()) }
+    }
+
+    @Test
+    fun `getStatusEnableVehicles should return vehicle status enabled`() = runTest(testDispatcher) {
+        // Arrange
+        val vehicleId = "1"
+        val expectedData = com.s2i.data.model.vehicles.StatusVehiclesData(
+            vehicleId = vehicleId,
+            status = "enabled"
+        )
+        val expectedResponse = com.s2i.data.remote.response.vehicles.SelectedVehiclesResponse(
+            code = 200,
+            message = "Enabled",
+            data = expectedData
+        )
+
+        coEvery { apiServices.vehiclesEnable(vehicleId) } returns expectedResponse
+
+        // Act
+        val result = repository.getStatusEnableVehicles(vehicleId)
+
+        // Assert
+        assertEquals(200, result.code)
+        assertEquals("Enabled", result.message)
+        assertEquals("enabled", result.data.status)
+
+        coVerify { apiServices.vehiclesEnable(vehicleId) }
+    }
+
+    @Test
+    fun `getStatusDisableVehicles should return vehicle status disabled`() = runTest(testDispatcher) {
+        // Arrange
+        val vehicleId = "1"
+        val expectedData = com.s2i.data.model.vehicles.StatusVehiclesData(
+            vehicleId = vehicleId,
+            status = "disabled"
+        )
+        val expectedResponse = com.s2i.data.remote.response.vehicles.SelectedVehiclesResponse(
+            code = 200,
+            message = "Disabled",
+            data = expectedData
+        )
+
+        coEvery { apiServices.vehiclesDisable(vehicleId) } returns expectedResponse
+
+        // Act
+        val result = repository.getStatusDisableVehicles(vehicleId)
+
+        // Assert
+        assertEquals(200, result.code)
+        assertEquals("Disabled", result.message)
+        assertEquals("disabled", result.data.status)
+
+        coVerify { apiServices.vehiclesDisable(vehicleId) }
+    }
+
 }
