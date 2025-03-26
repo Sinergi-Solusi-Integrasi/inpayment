@@ -25,3 +25,34 @@
 
 # Add keep rules for any specific model or logic in the common module
 -keep class com.s2i.common.** { *; }
+
+# Keep semua model data yang memakai Kotlin serialization / Gson / Room / Retrofit
+-keepclassmembers class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+    @androidx.room.* <methods>;
+}
+
+# Keep data class jika kamu pakai Gson atau Room
+-keep class com.s2i.common.model.** { *; }
+
+# Keep untuk Kotlin metadata (wajib untuk modul Kotlin)
+-keepattributes KotlinMetadata
+
+
+
+# Jangan obfuscate model yang dipakai oleh retrofit
+-keepclasseswithmembers class * {
+    @retrofit2.http.* <methods>;
+}
+
+# Keep Room DAO
+-keep class * extends androidx.room.RoomDatabase
+-keep class * implements androidx.room.RoomDatabase$Callback
+-keep class * implements androidx.room.RoomDatabase$Callback
+
+# Optional: jika Glide digunakan
+-keep class com.bumptech.glide.** { *; }
+-keep interface com.bumptech.glide.** { *; }
+
+-dontwarn java.lang.invoke.StringConcatFactory
+

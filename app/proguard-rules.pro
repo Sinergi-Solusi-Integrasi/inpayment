@@ -87,7 +87,7 @@
 #########################################
 # ========== BASIC OPTIMIZATION ======== #
 #########################################
-
+-keep class com.s2i.** { *; }
 # Hilangkan log saat release
 -assumenosideeffects class android.util.Log {
     public static *** d(...);
@@ -109,9 +109,7 @@
 -keepclassmembers class ** {
     @kotlin.Metadata *;
 }
--keepclassmembers class * {
-    @kotlinx.serialization.SerialName <fields>;
-}
+
 -dontwarn kotlinx.coroutines.**
 
 #########################################
@@ -258,3 +256,4 @@
 
 -dontwarn java.lang.invoke.StringConcatFactory
 -dontwarn com.s2i.domain.entity.model.**
+-dontwarn com.s2i.data.remote.client.WalletServices

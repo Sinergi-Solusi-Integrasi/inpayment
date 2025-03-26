@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,6 +8,18 @@ plugins {
     id("kotlin-parcelize")
     id("com.google.gms.google-services")
 }
+
+val localProperties = Properties()  // Menggunakan import java.util.Properties
+val localPropertiesFile = rootProject.file("local.properties")
+
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+
+val keystoreFile = localProperties["RELEASE_STORE_FILE"]?.toString()?.let { rootProject.file(it) }
+val keystoreAlias = localProperties["RELEASE_KEY_ALIAS"]?.toString() ?: ""
+val keystorePassword = localProperties["RELEASE_STORE_PASSWORD"]?.toString() ?: ""
+val keyPasswords = localProperties["RELEASE_KEY_PASSWORD"]?.toString() ?: ""
 
 android {
     namespace = "com.s2i.inpayment"
@@ -16,14 +30,24 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "1.5.7"
+        versionName = "1.8.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("release"){
+            storeFile = keystoreFile
+            storePassword = keystorePassword
+            keyAlias = keystoreAlias
+            keyPassword = keyPasswords
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -80,6 +104,10 @@ dependencies {
 
     // CLOCK
     implementation("com.maxkeppeler.sheets-compose-dialogs:clock:${dialogVersion}")
+
+    // Shimmer
+    implementation("com.valentinilk.shimmer:compose-shimmer:1.3.2")
+
 
     // DATE TIME
     implementation("com.maxkeppeler.sheets-compose-dialogs:date-time:1.3.0")

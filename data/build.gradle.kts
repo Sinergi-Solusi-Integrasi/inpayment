@@ -30,7 +30,7 @@ android {
         minSdk = 24
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "BASE_URL", "\"https://inpayment.app-intracs.co.id/\"")
+        buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
         buildConfigField("String", "QRIS_URL", "\"$qrisUrl\"")
         buildConfigField("String", "MID", "\"$mid\"")
         buildConfigField("String", "TID", "\"$tid\"")

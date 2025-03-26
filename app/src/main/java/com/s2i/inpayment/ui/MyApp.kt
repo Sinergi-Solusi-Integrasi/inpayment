@@ -30,7 +30,8 @@ fun MyApp(navController: NavHostController) {
 
         LaunchedEffect(tokenState) {
             val currentRoute = navController.currentDestination?.route
-            val exampleRoutes = listOf("login_screen","register_screen", "onboarding_screen")
+
+            val exampleRoutes = listOf("splash_screen", "onboard_screen", "login_screen","register_screen")
 
             if (currentRoute !in exampleRoutes && tokenViewModel.tokenState.value is TokenViewModel.TokenState.Expired) {
                 TokenWorkManagerUtil.stopWorkManager(context)

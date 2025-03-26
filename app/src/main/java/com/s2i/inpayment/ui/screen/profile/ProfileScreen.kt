@@ -63,6 +63,7 @@ import com.s2i.data.local.auth.SessionManager
 import com.s2i.domain.entity.model.users.ProfileModel
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
+import com.s2i.inpayment.ui.components.shimmer.profile.ProfileCardShimmer
 import com.s2i.inpayment.ui.theme.DarkTeal21
 import com.s2i.inpayment.ui.theme.DarkTeal40
 import com.s2i.inpayment.ui.viewmodel.AuthViewModel
@@ -138,17 +139,18 @@ fun ProfileScreen(
                 .padding(16.dp)
         ) {
             if (loading && usersState == null) {
-                CustomLinearProgressIndicator(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                )
+//                CustomLinearProgressIndicator(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(vertical = 8.dp)
+//                )
+                ProfileCardShimmer()
             }
             // Pastikan usersState tidak null sebelum menampilkan profile card
             if (usersState != null) {
                 ProfileCard(navController, sessionManager, scope, usersState)
             } else {
-                Text("User data is loading...")
+                ProfileCardShimmer()
             }
             Spacer(modifier = Modifier.height(16.dp))
             ProfileMenu(navController)

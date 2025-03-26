@@ -80,16 +80,22 @@ fun LendVehiclesScreen(
 
     LaunchedEffect(lendVehiclesState, errorState) {
         lendVehiclesState?.data?.token?.let { responseToken ->
-            if (errorState == null) { // Hanya update token jika tidak ada error
+            if (errorState == null) {
                 token = responseToken.token
+                Toast.makeText(context, "Vehicle Lent Successfully", Toast.LENGTH_SHORT).show()
             }
         }
 
         errorState?.let { errorMessage ->
             Log.e("VehiclesScreen", "Error: $errorMessage")
-            Toast.makeText(context, "Oops! Sepertinya ada yang salah dengan account numbernya", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                context,
+                "Oops! Sepertinya ada yang salah dengan account number-nya",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
+
 
     Column(
         modifier = Modifier
@@ -196,10 +202,10 @@ fun LendVehiclesScreen(
                         isNextClicked = true
                     }
                     !isSubmitted -> {
-                        vehiclesViewModel.lendVehicles(vehicleId, accountNumber.text, dueDate)
                         isSubmitted = true
-                        Toast.makeText(context, "Vehicle Lent Successfully", Toast.LENGTH_SHORT).show()
+                        vehiclesViewModel.lendVehicles(vehicleId, accountNumber.text, dueDate)
                     }
+
                     else -> {
                         onDismissAll()
                     }
