@@ -31,6 +31,18 @@
 # ==== Annotation metadata for DI, Gson, serialization, etc ====
 -keepattributes *Annotation*
 
+# Untuk Koin agar tidak strip class module-nya
+-keepclassmembers class * {
+    @org.koin.core.annotation.* <methods>;
+}
+
+# Untuk ViewModel yang di-inject
+-keep class * extends androidx.lifecycle.ViewModel { *; }
+
+-keepclassmembers class * {
+    @org.koin.core.annotation.* *;
+}
+
 # ==== Fix: Type a.a is defined multiple times (shrink error) ====
 -keep class kotlin.Metadata { *; }
 -dontwarn java.lang.invoke.StringConcatFactory

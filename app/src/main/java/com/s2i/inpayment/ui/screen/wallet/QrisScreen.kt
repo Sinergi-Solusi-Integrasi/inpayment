@@ -11,6 +11,7 @@ import android.provider.MediaStore
 import android.util.Log
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -79,6 +80,10 @@ fun QrisScreen(
     // State untuk BottomSheet
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
+
+    BackHandler(enabled = true) {
+        showBottomSheet = true
+    }
 
     val balanceState by balanceViewModel.balance.collectAsState()
 

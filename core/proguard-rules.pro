@@ -45,6 +45,15 @@
 # === Optional: If you use kotlinx.coroutines in shared logic ===
 -dontwarn kotlinx.coroutines.**
 
+# Untuk Koin agar tidak strip class module-nya
+-keepclassmembers class * {
+    @org.koin.core.annotation.* <methods>;
+}
+
+# Untuk ViewModel yang di-inject
+-keep class * extends androidx.lifecycle.ViewModel { *; }
+
+
 # Keep Kotlin Metadata
 -keepattributes *Annotation*
 -keepattributes InnerClasses

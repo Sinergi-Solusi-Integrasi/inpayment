@@ -52,6 +52,7 @@
 # Retrofit does reflection on generic parameters. InnerClasses is required to use Signature and
 # EnclosingMethod is required to use InnerClasses.
 -keepattributes Signature, InnerClasses, EnclosingMethod
+-keepattributes *Annotation*, Signature, InnerClasses, EnclosingMethod
 
 # Retrofit does reflection on method and parameter annotations.
 -keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParameterAnnotations
@@ -140,9 +141,14 @@
 -dontwarn retrofit2.KotlinExtensions
 -dontwarn retrofit2.KotlinExtensions$*
 -dontwarn org.codehaus.mojo.animal_sniffer.*
+# Jangan obfuscate Retrofit API
+-keep interface * {
+    @retrofit2.http.* <methods>;
+}
 
 -if interface * { @retrofit2.http.* <methods>; }
 -keep,allowobfuscation interface <1>
+
 
 #########################################
 # ========== GSON ====================== #
@@ -178,6 +184,19 @@
 -keepclassmembers class * {
     @androidx.room.* <methods>;
 }
+# Untuk Koin agar tidak strip class module-nya
+-keep class org.koin.core.module.Module
+-keepclassmembers class * {
+    @org.koin.core.annotation.* <methods>;
+}
+
+# Untuk ViewModel yang di-inject
+-keep class * extends androidx.lifecycle.ViewModel { *; }
+
+-keepclassmembers class * {
+    @org.koin.core.annotation.* *;
+}
+
 -dontwarn androidx.room.**
 
 #########################################
@@ -226,9 +245,16 @@
 -keep class com.s2i.common.** { *; }
 
 # SessionManager, ApiService, UseCases
+-keep class com.s2i.domain.** { *; }
 -keep class com.s2i.data.local.auth.SessionManager { *; }
 -keep class com.s2i.data.remote.client.ApiServices { *; }
+# Keep Retrofit API interface WalletServices
+-keep class com.s2i.data.remote.client.WalletServices { *; }
 -keep class com.s2i.domain.usecase.** { *; }
+-keep class com.s2i.data.remote.client.** { *; }
+# Keep semua interface Retrofit
+-keep interface com.s2i.data.remote.client.** { *; }
+
 
 # ViewModel UI Layer
 -keep class com.s2i.inpayment.ui.viewmodel.** { *; }

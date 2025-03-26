@@ -23,6 +23,20 @@
 # Keep Koin modules and injection-related classes
 -keep class org.koin.** { *; }
 
+-keepclassmembers class * {
+    @org.koin.core.annotation.* *;
+}
+
+# Untuk Koin agar tidak strip class module-nya
+-keep class org.koin.core.module.Module
+-keepclassmembers class * {
+    @org.koin.core.annotation.* <methods>;
+}
+
+# Untuk ViewModel yang di-inject
+-keep class * extends androidx.lifecycle.ViewModel { *; }
+
+
 # Add keep rules for any specific model or logic in the common module
 -keep class com.s2i.common.** { *; }
 

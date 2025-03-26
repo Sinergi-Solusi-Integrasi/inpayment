@@ -53,6 +53,24 @@
 -keepattributes InnerClasses, EnclosingMethod, Signature, SourceFile, LineNumberTable
 -keepattributes KotlinMetadata
 
+# Untuk Koin agar tidak strip class module-nya
+-keep class org.koin.core.module.Module
+-keepclassmembers class * {
+    @org.koin.core.annotation.* <methods>;
+}
+
+# Untuk ViewModel yang di-inject
+-keep class * extends androidx.lifecycle.ViewModel { *; }
+
+-keepclassmembers class * {
+    @org.koin.core.annotation.* *;
+}
+
+# Jangan obfuscate Retrofit API
+-keep interface * {
+    @retrofit2.http.* <methods>;
+}
+
 
 ##---------------Begin: proguard configuration for Retrofit ----------
 # Retrofit does reflection on generic parameters. InnerClasses is required to use Signature and
@@ -96,8 +114,11 @@
 
 
 # Keep classes related to Retrofit services, repositories, and session management
+-keep class com.s2i.data.** { *; }
 -keep class com.s2i.data.local.auth.SessionManager { *; }
+-keep class com.s2i.data.remote.** { *; }
 -keep class com.s2i.data.remote.client.ApiServices { *; }
+-keep class com.s2i.data.remote.client.WalletServices { *; }
 -keep class com.s2i.data.repository.** { *; }
 
 # Keep Retrofit model classes
@@ -133,4 +154,6 @@
 -dontwarn com.s2i.domain.entity.model.users.UsersModel
 -dontwarn java.lang.invoke.StringConcatFactory
 -dontwarn kotlinx.coroutines.internal.MainDispatcherLoader
+-dontwarn com.s2i.data.remote.client.WalletServices
+
 
