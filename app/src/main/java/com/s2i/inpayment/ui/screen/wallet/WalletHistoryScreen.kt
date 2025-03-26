@@ -44,6 +44,7 @@ import androidx.navigation.NavController
 import com.s2i.inpayment.ui.components.HistoryCard
 import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
 import com.s2i.inpayment.ui.components.custome.LogoIndicator
+import com.s2i.inpayment.ui.components.shimmer.balance.HistoryCardShimmer
 import com.s2i.inpayment.ui.theme.White30
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import kotlinx.coroutines.delay
@@ -162,11 +163,25 @@ fun WalletHistoryScreen(
                     .fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ){
-                groupedTransaction.forEach { (dateLabel, transactions) ->
-                    item {
-                        HistoryCard(dateLabel, transactions, onTransactionClick = { transactionId ->
-                            navController.navigate("detail_transaksi_screen/$transactionId")
-                        })
+                if (showLoading) {
+                    // Tampilkan shimmer saat loading atau refreshing
+                    repeat(3) {
+                        item {
+                            HistoryCardShimmer()
+                        }
+                    }
+                } else {
+                    groupedTransaction.forEach { (dateLabel, transactions) ->
+                        if (transactions.isNotEmpty()) {
+                            item {
+                                HistoryCard(
+                                    dateLabel,
+                                    transactions,
+                                    onTransactionClick = { transactionId ->
+                                        navController.navigate("detail_transaksi_screen/$transactionId")
+                                    })
+                            }
+                        }
                     }
                 }
             }

@@ -110,18 +110,5 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-
-    // Fungsi untuk menjadwalkan worker
-    fun scheduleOrderQueryWorker(trxId: String) {
-        val inputData = Data.Builder()
-            .putString("trxId", trxId)
-            .build()
-
-        val orderQueryWork = OneTimeWorkRequestBuilder<NotificationWorker>()
-            .setInputData(inputData)
-            .build()
-
-        WorkManager.getInstance(this).enqueue(orderQueryWork)
-    }
 }
 

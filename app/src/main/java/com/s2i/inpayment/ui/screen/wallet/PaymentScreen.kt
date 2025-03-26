@@ -2,6 +2,7 @@ package com.s2i.inpayment.ui.screen.wallet
 
 import android.os.Build
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -27,10 +28,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.TextRange
 import androidx.navigation.NavController
 import com.s2i.common.utils.convert.RupiahFormatter
+import com.s2i.common.utils.networkmanager.NetworkUtils
 import com.s2i.data.BuildConfig
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.s2i.inpayment.R
+import com.s2i.inpayment.ui.components.NetworkContent
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import com.s2i.inpayment.ui.viewmodel.QrisViewModel
 import com.s2i.inpayment.utils.helper.generateCurrentTime
@@ -46,6 +49,8 @@ fun PaymentScreen(
     qrisViewModel: QrisViewModel = koinViewModel(),
     navController: NavController
 ) {
+    val isNetworkAvailable by NetworkUtils.isNetworkAvailable.collectAsState()
+    var isInternetStable by remember { mutableStateOf(true) }
     var rawAmount by remember { mutableStateOf(("")) }
     var amount by remember { mutableStateOf(TextFieldValue("")) }
     var isValidAmount by remember { mutableStateOf(false) }
@@ -56,6 +61,11 @@ fun PaymentScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val balanceState by balanceViewModel.balance.collectAsState()
+
+    LaunchedEffect(isNetworkAvailable) {
+        delay(300) // debounce untuk stabilisasi
+        isInternetStable = isNetworkAvailable
+    }
 
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
@@ -117,7 +127,14 @@ fun PaymentScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
+                    IconButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                delay(300) // kasih waktu network content settle
+                                navController.navigateUp()
+                            }
+                        }
+                    ) {
                         Icon(
                             imageVector = Icons.Filled.Close,
                             contentDescription = "Back",
@@ -193,35 +210,73 @@ fun PaymentScreen(
                 } else {
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // QRIS Section
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color.White)
-                            .padding(16.dp)
-                    ) {
-                        Column {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.qris_logo),
-                                    contentDescription = "QRIS",
-                                    tint = Color.Unspecified,  // Ikon QRIS warna asli
-                                    modifier = Modifier.size(36.dp)
+                    if(!isInternetStable) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color.White)
+                                .padding(16.dp)
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color.White)
+                                    .padding(24.dp)
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_networks_errors),
+                                    contentDescription = "No Internet",
+                                    modifier = Modifier.size(120.dp)
                                 )
-                                Spacer(modifier = Modifier.width(12.dp))
+                                Spacer(modifier = Modifier.height(16.dp))
                                 Text(
-                                    text = "QRIS",
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Medium
+                                    text = "No Internet Connection or Unstable Internet Connection",
+                                    color = Color.Red,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(vertical = 16.dp)
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Silakan periksa koneksi Anda dan coba lagi.",
+                                    color = Color.Gray,
+                                    fontSize = 14.sp
                                 )
                             }
+                        }
+                    } else {
+                        // QRIS Section
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color.White)
+                                .padding(16.dp)
+                        ) {
+                            Column {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.qris_logo),
+                                        contentDescription = "QRIS",
+                                        tint = Color.Unspecified,  // Ikon QRIS warna asli
+                                        modifier = Modifier.size(36.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(
+                                        text = "QRIS",
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
 
-                            Spacer(modifier = Modifier.height(16.dp))
+                                Spacer(modifier = Modifier.height(16.dp))
 
-                            OutlinedTextField(
-                                value = amount,
-                                onValueChange = { newValue ->
+                                OutlinedTextField(
+                                    value = amount,
+                                    onValueChange = { newValue ->
 //                                    if (newValue.text.all { it.isDigit() }) {
 //                                        amount = newValue
 //                                        val inputAmount = newValue.text.toLongOrNull() ?: 0
@@ -238,69 +293,96 @@ fun PaymentScreen(
 //                                        amount = newValue
 //                                    }
 
-                                    val unformattedInput = newValue.text.replace("[^\\d]".toRegex(), "") // Hapus semua titik
-                                    if (unformattedInput.all { it.isDigit() }) { // Validasi hanya angka
-                                        rawAmount = unformattedInput // Simpan nilai mentah
-                                        val inputAmount = unformattedInput.toBigIntegerOrNull()?.times(100.toBigInteger()) ?: BigInteger.ZERO
-                                        val formattedText = if (inputAmount > BigInteger.ZERO) {
-                                            RupiahFormatter.formatToRupiah(inputAmount / 100.toBigInteger()) // Format ke Rupiah tanpa "00" di belakang
-                                        } else {
+                                        val unformattedInput = newValue.text.replace(
+                                            "[^\\d]".toRegex(),
                                             ""
+                                        ) // Hapus semua titik
+                                        if (unformattedInput.all { it.isDigit() }) { // Validasi hanya angka
+                                            rawAmount = unformattedInput // Simpan nilai mentah
+                                            val inputAmount = unformattedInput.toBigIntegerOrNull()
+                                                ?.times(100.toBigInteger()) ?: BigInteger.ZERO
+                                            val formattedText = if (inputAmount > BigInteger.ZERO) {
+                                                RupiahFormatter.formatToRupiah(inputAmount / 100.toBigInteger()) // Format ke Rupiah tanpa "00" di belakang
+                                            } else {
+                                                ""
+                                            }
+
+                                            // Hitung posisi kursor baru berdasarkan panjang teks sebelum dan sesudah
+                                            val cursorPosition =
+                                                formattedText.length - (unformattedInput.length - newValue.selection.end)
+
+                                            amount = TextFieldValue(
+                                                text = formattedText,
+                                                selection = TextRange(
+                                                    cursorPosition.coerceIn(
+                                                        0,
+                                                        formattedText.length
+                                                    )
+                                                ) // Tetapkan posisi kursor baru
+                                            )
+
+                                            // Validasi jumlah
+                                            isValidAmount =
+                                                inputAmount in BigInteger("100")..BigInteger("2000000000")
+                                            errorMessage =
+                                                if (isValidAmount) null else "Minimal Rp 10.000 dan Maksimal Rp 20.000.000"
+                                        } else if (newValue.text.isEmpty()) { // Jika teks kosong
+                                            rawAmount = ""
+                                            amount = newValue
+                                            isValidAmount = false
+                                            errorMessage = null
                                         }
+                                    },
+                                    placeholder = { Text("Rp. 0", color = Color.Gray) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    keyboardOptions = KeyboardOptions.Default.copy(
+                                        keyboardType = KeyboardType.Number
+                                    ),
+                                    singleLine = true,
+                                    isError = errorMessage != null
+                                )
 
-                                        // Hitung posisi kursor baru berdasarkan panjang teks sebelum dan sesudah
-                                        val cursorPosition = formattedText.length - (unformattedInput.length - newValue.selection.end)
+                                errorMessage?.let {
+                                    Text(
+                                        text = it,
+                                        color = Color.Red,
+                                        fontSize = 12.sp,
+                                        modifier = Modifier.padding(top = 4.dp)
+                                    )
+                                }
 
-                                        amount = TextFieldValue(
-                                            text = formattedText,
-                                            selection = TextRange(cursorPosition.coerceIn(0, formattedText.length)) // Tetapkan posisi kursor baru
-                                        )
-
-                                        // Validasi jumlah
-                                        isValidAmount = inputAmount in BigInteger("100")..BigInteger("2000000000")
-                                        errorMessage = if (isValidAmount) null else "Minimal Rp 10.000 dan Maksimal Rp 20.000.000"
-                                    } else if (newValue.text.isEmpty()) { // Jika teks kosong
-                                        rawAmount = ""
-                                        amount = newValue
-                                        isValidAmount = false
-                                        errorMessage = null
-                                    }
-                                },
-                                placeholder = { Text("Rp. 0", color = Color.Gray) },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions.Default.copy(
-                                    keyboardType = KeyboardType.Number
-                                ),
-                                singleLine = true,
-                                isError = errorMessage != null
-                            )
-
-                            errorMessage?.let {
+                                Spacer(modifier = Modifier.height(16.dp))
                                 Text(
-                                    text = it,
-                                    color = Color.Red,
-                                    fontSize = 12.sp,
-                                    modifier = Modifier.padding(top = 4.dp)
+                                    text = "Saldo Tersedia : ${
+                                        balanceState?.let {
+                                            RupiahFormatter.formatToRupiah(
+                                                it.balance
+                                            )
+                                        }
+                                    }",
+                                    fontSize = 14.sp,
+                                    color = Color.Gray
+                                )
+
+                                Text(
+                                    text = "Maks. Saldo BABLAS Rp 20.000.000",
+                                    fontSize = 14.sp,
+                                    color = Color.Gray
                                 )
                             }
-
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "Saldo Tersedia : ${balanceState?.let { RupiahFormatter.formatToRupiah(it.balance)}}",
-                                fontSize = 14.sp,
-                                color = Color.Gray
-                            )
-
-                            Text(
-                                text = "Maks. Saldo BABLAS Rp 20.000.000",
-                                fontSize = 14.sp,
-                                color = Color.Gray
-                            )
                         }
                     }
                 }
             }
         }
     }
+    // Tambahkan ini untuk menampilkan NetworkContent
+    NetworkContent(
+        onRetry = {
+            coroutineScope.launch {
+                balanceViewModel.fetchBalance()
+            }
+        }
+    )
 }
 
