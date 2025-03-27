@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.view.RoundedCorner
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -85,15 +86,26 @@ fun ProfileScreen(
 
     val scope = rememberCoroutineScope()
     val usersState by usersViewModel.users.collectAsState()
+    var isNavigating by remember { mutableStateOf(false) }
     var isStartupLoading by remember { mutableStateOf(true) }
     val loading by usersViewModel.loading.collectAsState()
     val loadingLogout by authViewModel.loadingState.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
     val error by usersViewModel.error.collectAsState()
 
+    BackHandler(enabled = !loadingLogout && !isNavigating) {
+        isNavigating = true
+        scope.launch {
+            navController.popBackStack()
+        }
+    }
+
+
     LaunchedEffect(Unit) {
-        isStartupLoading = true
-        usersViewModel.fetchUsers()
+        if (!loading) {
+            isStartupLoading = true
+            usersViewModel.fetchUsers()
+        }
     }
 
 
@@ -117,7 +129,12 @@ fun ProfileScreen(
                 navigationIcon = {
                     IconButton(onClick = {
                         /* Handle back navigation */
-                        navController.popBackStack()
+                        if (!loadingLogout && !isNavigating) {
+                            isNavigating = true
+                            scope.launch {
+                                navController.popBackStack()
+                            }
+                        }
                     }
                     ) {
                         Icon(imageVector = Icons.Filled.Close, contentDescription = "Back")

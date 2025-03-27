@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Build
 import android.provider.Settings
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -58,8 +59,10 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.DetailTrxCard
 import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
+import com.s2i.inpayment.ui.components.navigation.rememberSingleClickHandler
 import com.s2i.inpayment.ui.components.saveBitmapToFile
 import com.s2i.inpayment.ui.components.shareScreenshot
+import com.s2i.inpayment.ui.components.shimmer.balance.PaymentMethodItemShimmer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -68,32 +71,19 @@ import kotlinx.coroutines.launch
 fun PaymentMethodsScreen(
     navController: NavController,
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
-    val context = LocalContext.current
-    val view = LocalView.current
-    val density = LocalDensity.current
 
-    // State for permissions
-    val storagePermissionState = rememberPermissionState(
-        permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            Manifest.permission.READ_MEDIA_IMAGES
-        } else {
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        }
-    )
-
-
-    // Function to check if notifications are enabled (for Realme or other devices)
-    fun areNotificationsEnabled(): Boolean {
-        return NotificationManagerCompat.from(context).areNotificationsEnabled()
-    }
-
-//    val transactionDetail by balanceViewModel.detailTrx.collectAsState()
+    val canClick = rememberSingleClickHandler()
     var isStartupLoading by remember { mutableStateOf(true) }
-//    val loading by balanceViewModel.loading.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+
+    BackHandler(enabled = true) {
+        if (canClick()) {
+            scope.launch {
+                navController.navigateUp()
+            }
+        }
+    }
 
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
@@ -108,17 +98,10 @@ fun PaymentMethodsScreen(
     )
 
     // Show loading indicator initially and when refreshing
-//    val showLoading = loading || isRefreshing
-//
+    val showLoading = isStartupLoading || isRefreshing
+
     // Memanggil fetchHistory hanya sekali ketika layar pertama kali dibuka
     LaunchedEffect(Unit){
-//        balanceViewModel.fetchDetailTrx(transactionId)
-//        if (loading && isStartupLoading) {
-//            isStartupLoading = true
-//        } else if (!loading) {
-//            delay(500) // Optional delay to keep the loading indicator visible for a short time
-//            isStartupLoading = false
-//        }
         scope.launch {
             delay(500)
             isStartupLoading = false
@@ -144,7 +127,11 @@ fun PaymentMethodsScreen(
             ) {
                 IconButton(
                     onClick = {
-                        navController.navigateUp()
+                        if (canClick()) {
+                            scope.launch {
+                                navController.navigateUp()
+                            }
+                        }
                     },
                     modifier = Modifier
                         .size(16.dp)
@@ -172,12 +159,15 @@ fun PaymentMethodsScreen(
 
             }
             // Tampilkan loading jika masih dalam kondisi loading
-            if (isStartupLoading) {
+            if (showLoading) {
                 CustomLinearProgressIndicator(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
                 )
+                repeat(3) {
+                    PaymentMethodItemShimmer()
+                }
             } else {
                 Spacer(modifier = Modifier.height(24.dp))
 

@@ -44,8 +44,10 @@ import androidx.navigation.NavController
 import com.s2i.inpayment.ui.components.HistoryCard
 import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
 import com.s2i.inpayment.ui.components.custome.LogoIndicator
+import com.s2i.inpayment.ui.components.navigation.rememberSingleClickHandler
 import com.s2i.inpayment.ui.components.shimmer.balance.HistoryCardShimmer
 import com.s2i.inpayment.ui.theme.White30
+import androidx.activity.compose.BackHandler
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -58,11 +60,20 @@ fun WalletHistoryScreen(
     navController: NavController
 ){
     val groupedTransaction by  balanceViewModel.historyTransaction.collectAsState()
+    val canClick = rememberSingleClickHandler()
     var isStartupLoading by remember { mutableStateOf(true) }
     val loading by balanceViewModel.loading.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     // Handle initial loading
+
+    BackHandler(enabled = true) {
+        if (canClick()) {
+            scope.launch {
+                navController.navigateUp()
+            }
+        }
+    }
 
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
@@ -77,7 +88,7 @@ fun WalletHistoryScreen(
     )
 
     // Show loading indicator initially and when refreshing
-    val showLoading = loading || isRefreshing
+    val showLoading = isStartupLoading || loading || isRefreshing
 
 
     // Memanggil fetchHistory hanya sekali ketika layar pertama kali dibuka
@@ -98,13 +109,6 @@ fun WalletHistoryScreen(
             .pullRefresh(state = pullRefreshState)
 
     ) {
-        if (isStartupLoading) {
-            CustomLinearProgressIndicator(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            )
-        }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -129,7 +133,11 @@ fun WalletHistoryScreen(
             ){
                 IconButton(
                     onClick = {
-                        navController.navigateUp()
+                        if (canClick()) {
+                            scope.launch {
+                                navController.navigateUp()
+                            }
+                        }
                     },
                     modifier = Modifier
                         .size(16.dp)
@@ -188,12 +196,12 @@ fun WalletHistoryScreen(
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        PullRefreshIndicator(
-            isRefreshing,
-            pullRefreshState,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-        )
+//        PullRefreshIndicator(
+//            isRefreshing,
+//            pullRefreshState,
+//            modifier = Modifier
+//                .align(Alignment.TopCenter)
+//        )
     }
 }
 
