@@ -2,6 +2,7 @@ package com.s2i.inpayment.ui.screen.wallet
 
 import android.os.Build
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -34,6 +35,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.NetworkContent
+import com.s2i.inpayment.ui.components.navigation.rememberSingleClickHandler
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import com.s2i.inpayment.ui.viewmodel.QrisViewModel
 import com.s2i.inpayment.utils.helper.generateCurrentTime
@@ -50,6 +52,7 @@ fun PaymentScreen(
     navController: NavController
 ) {
     val isNetworkAvailable by NetworkUtils.isNetworkAvailable.collectAsState()
+    val canClick = rememberSingleClickHandler()
     var isInternetStable by remember { mutableStateOf(true) }
     var rawAmount by remember { mutableStateOf(("")) }
     var amount by remember { mutableStateOf(TextFieldValue("")) }
@@ -61,6 +64,14 @@ fun PaymentScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val balanceState by balanceViewModel.balance.collectAsState()
+
+    BackHandler(enabled = true) {
+        if (canClick()) {
+            coroutineScope.launch {
+                navController.navigateUp()
+            }
+        }
+    }
 
     LaunchedEffect(isNetworkAvailable) {
         delay(300) // debounce untuk stabilisasi
@@ -129,9 +140,11 @@ fun PaymentScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = {
-                            coroutineScope.launch {
-                                delay(300) // kasih waktu network content settle
-                                navController.navigateUp()
+                            if (canClick()) {
+                                coroutineScope.launch {
+                                    delay(300) // kasih waktu network content settle
+                                    navController.navigateUp()
+                                }
                             }
                         }
                     ) {

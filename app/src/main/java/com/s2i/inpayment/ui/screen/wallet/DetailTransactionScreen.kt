@@ -10,6 +10,7 @@
     import android.util.Log
     import android.view.View
     import android.widget.Toast
+    import androidx.activity.compose.BackHandler
     import androidx.activity.compose.rememberLauncherForActivityResult
     import androidx.activity.result.contract.ActivityResultContracts
     import androidx.compose.foundation.background
@@ -75,8 +76,10 @@
     import com.s2i.inpayment.ui.components.button.SplitButton
     import com.s2i.inpayment.ui.components.captureView
     import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
+    import com.s2i.inpayment.ui.components.navigation.rememberSingleClickHandler
     import com.s2i.inpayment.ui.components.saveBitmapToFile
     import com.s2i.inpayment.ui.components.shareScreenshot
+    import com.s2i.inpayment.ui.components.shimmer.balance.DetailTrxCardShimmer
     import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
     import kotlinx.coroutines.delay
     import kotlinx.coroutines.launch
@@ -91,6 +94,7 @@
     ) {
 
         val snackbarHostState = remember { SnackbarHostState() }
+        val canClick = rememberSingleClickHandler()
         val coroutineScope = rememberCoroutineScope()
         val context = LocalContext.current
         val view = LocalView.current
@@ -99,6 +103,13 @@
         val transactionView = remember { mutableStateOf<ComposeView?>(null) }
         var excludeImage by remember { mutableStateOf(false) }
 
+        BackHandler(enabled = true) {
+            if (canClick()) {
+                coroutineScope.launch {
+                    navController.navigateUp()
+                }
+            }
+        }
 
         // Function to check if notifications are enabled (for Realme or other devices)
         val permissionLauncher = rememberLauncherForActivityResult(
@@ -112,12 +123,12 @@
         var isStartupLoading by remember { mutableStateOf(true) }
         val loading by balanceViewModel.loading.collectAsState()
         var isRefreshing by remember { mutableStateOf(false) }
-        val scope = rememberCoroutineScope()
+//        val scope = rememberCoroutineScope()
 
         val pullRefreshState = rememberPullRefreshState(
             refreshing = isRefreshing,
             onRefresh = {
-                scope.launch {
+                coroutineScope.launch {
                     isRefreshing = true
                     balanceViewModel.fetchDetailTrx(transactionId)
                     delay(2000) // simulate refresh delay
@@ -127,7 +138,7 @@
         )
 
         // Show loading indicator initially and when refreshing
-        val showLoading = loading || isRefreshing
+        val showLoading = isStartupLoading || loading || isRefreshing
 
         // Memanggil fetchHistory hanya sekali ketika layar pertama kali dibuka
         LaunchedEffect(Unit){
@@ -165,7 +176,11 @@
                     ){
                         IconButton(
                             onClick = {
-                                navController.navigateUp()
+                                if (canClick()) {
+                                    coroutineScope.launch {
+                                        navController.navigateUp()
+                                    }
+                                }
                             },
                             modifier = Modifier
                                 .size(16.dp)
@@ -192,7 +207,7 @@
                         )
 
                     }
-                    if (isStartupLoading) {
+                    if (showLoading) {
                         CustomLinearProgressIndicator(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -208,19 +223,28 @@
                         .weight(1f) // Hanya konten ini yang bisa di-scroll
                         .padding(horizontal = 16.dp)
                 ) {
-                    item {
-                        AndroidView(
-                            factory = { context ->
-                                ComposeView(context).apply {
-                                    transactionView.value = this
-                                    setContent {
-                                        DetailTrxCard(transactionDetail = transactionDetail?.data, excludeImage = excludeImage)
+                    if (showLoading) {
+                        item {
+                            DetailTrxCardShimmer()
+                        }
+                    } else {
+                        item {
+                            AndroidView(
+                                factory = { context ->
+                                    ComposeView(context).apply {
+                                        transactionView.value = this
+                                        setContent {
+                                            DetailTrxCard(
+                                                transactionDetail = transactionDetail?.data,
+                                                excludeImage = excludeImage
+                                            )
+                                        }
                                     }
-                                }
 
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
                 }
 
