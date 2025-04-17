@@ -29,6 +29,7 @@ import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -48,6 +49,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.graphics.PaintingStyle.Companion.Stroke
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
@@ -79,6 +81,7 @@ import com.s2i.inpayment.ui.theme.DarkGreen
 import com.s2i.inpayment.ui.theme.DarkTeal21
 import com.s2i.inpayment.ui.theme.DarkTeal40
 import com.s2i.inpayment.ui.theme.GreenTeal40
+import com.s2i.inpayment.ui.theme.Red560
 import com.s2i.inpayment.ui.theme.backgroundGradientBrush
 import com.s2i.inpayment.ui.theme.exComeGradient
 import com.s2i.inpayment.ui.theme.gradientBrush
@@ -395,8 +398,7 @@ fun HomeScreen(
                                             horizontalAlignment = Alignment.Start
                                         ) {
                                             Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth(),
+                                                modifier = Modifier.fillMaxWidth(),
                                                 horizontalArrangement = Arrangement.SpaceBetween,
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
@@ -404,6 +406,7 @@ fun HomeScreen(
                                                     text = "Pemasukan",
                                                     style = MaterialTheme.typography.titleSmall
                                                 )
+
                                                 // Triangle Up Icon for Income
 //                                                Icon(
 //                                                    painter = painterResource(id = R.drawable.ic_triangle_up),
@@ -411,35 +414,38 @@ fun HomeScreen(
 //                                                    tint = GreenTeal40,
 //                                                    modifier = Modifier.size(16.dp)
 //                                                )
-                                                Canvas(
-                                                    modifier = Modifier
-                                                        .size(16.dp)
-                                                ){
-                                                    val path = Path()
-                                                        .apply{
-                                                            moveTo(size.width / 2f, 0f)
-                                                            lineTo(size.width, size.height)
-                                                            lineTo(0f, size.height)
-                                                            close()
-                                                        }
+                                                // You can also use Canvas to draw a triangle if you don't have a resource:
+
+                                                Canvas(modifier = Modifier.size(16.dp)) {
+                                                    val path = Path().apply {
+                                                        moveTo(size.width / 2f, 0f)
+                                                        lineTo(size.width, size.height)
+                                                        lineTo(0f, size.height)
+                                                        close()
+                                                    }
+                                                    drawPath(
+                                                        path = path,
+                                                        color = BrightTeal,
+                                                        style = Fill
+                                                    )
                                                 }
-                                                Spacer(modifier = Modifier.height(8.dp))
-                                                Text(
-                                                    text = incomeExpense?.data?.incomeTrx?.amount?.let {
-                                                        RupiahFormatter.formatToRupiah(
-                                                            it
-                                                        )
-                                                    } ?: "Loading...",
-                                                    style = MaterialTheme.typography.bodyLarge,
-                                                    color = GreenTeal40
-                                                )
-                                                Spacer(modifier = Modifier.height(8.dp))
-                                                Text(
-                                                    text = incomeExpense?.data?.incomeTrx?.title?.ifEmpty { "" }
-                                                        ?: " ",
-                                                    style = MaterialTheme.typography.bodySmall
-                                                )
+
                                             }
+                                            Text(
+                                                text = incomeExpense?.data?.incomeTrx?.amount?.let {
+                                                    RupiahFormatter.formatToRupiah(
+                                                        it
+                                                    )
+                                                } ?: "Loading...",
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                color = GreenTeal40
+                                            )
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Text(
+                                                text = incomeExpense?.data?.incomeTrx?.title?.ifEmpty { "" }
+                                                    ?: " ",
+                                                style = MaterialTheme.typography.bodySmall
+                                            )
                                         }
                                     }
 
@@ -465,10 +471,41 @@ fun HomeScreen(
                                                 .padding(16.dp),
                                             horizontalAlignment = Alignment.Start
                                         ) {
-                                            Text(
-                                                text = "Pengeluaran",
-                                                style = MaterialTheme.typography.titleSmall
-                                            )
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = "Pengeluaran",
+                                                    style = MaterialTheme.typography.titleSmall
+                                                )
+
+                                                // Triangle Down Icon for Expense
+//                                                Icon(
+//                                                    painter = painterResource(id = R.drawable.ic_triangle_down),
+//                                                    contentDescription = "Expense Indicator",
+//                                                    tint = Color.Red,
+//                                                    modifier = Modifier.size(16.dp)
+//                                                )
+                                                // Canvas alternative if resource isn't available:
+
+                                                Canvas(modifier = Modifier.size(16.dp)) {
+                                                    val path = Path().apply {
+                                                        moveTo(0f, 0f)
+                                                        lineTo(size.width, 0f)
+                                                        lineTo(size.width / 2f, size.height)
+                                                        close()
+                                                    }
+                                                    drawPath(
+                                                        path = path,
+                                                        color = Red560,
+                                                        style = Fill
+                                                    )
+                                                }
+
+                                            }
+
                                             Text(
                                                 text = incomeExpense?.data?.expenseTrx?.amount?.let {
                                                     "-" + RupiahFormatter.formatToRupiah(
@@ -478,6 +515,7 @@ fun HomeScreen(
                                                 style = MaterialTheme.typography.bodyLarge,
                                                 color = Color.Red
                                             )
+                                            Spacer(modifier = Modifier.height(8.dp))
                                             Text(
                                                 text = incomeExpense?.data?.expenseTrx?.title
                                                     ?: " ",
@@ -491,11 +529,34 @@ fun HomeScreen(
                             // Transaction History Title
                             item {
                                 Spacer(modifier = Modifier.height(16.dp))
-                                Text(
-                                    text = "Riwayat Transaksi",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    // Left line
+                                    HorizontalDivider(
+                                        modifier = Modifier
+                                            .weight(1f),
+                                        thickness = 1.dp,
+                                        color = Color.LightGray
+                                    )
+
+                                    Text(
+                                        text = "Riwayat Transaksi",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        modifier = Modifier.padding(vertical = 8.dp)
+                                    )
+
+                                    // Left line
+                                    HorizontalDivider(
+                                        modifier = Modifier
+                                            .weight(1f),
+                                        thickness = 1.dp,
+                                        color = Color.LightGray
+                                    )
+                                }
                             }
 
                             // Transaction History Card
