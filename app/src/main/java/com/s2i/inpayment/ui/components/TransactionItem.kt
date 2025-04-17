@@ -17,6 +17,7 @@ import com.s2i.inpayment.ui.theme.GreenTeal40
 @Composable
 fun TransactionItem(
     title: String,
+    trxType: String? = null,
     description: String,
     amount: String,
     isNegative: Boolean,
@@ -47,6 +48,14 @@ fun TransactionItem(
                     style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp), // Menyesuaikan font
                     color = MaterialTheme.colorScheme.onBackground
                 )
+                Spacer(modifier = Modifier.height(2.dp))
+                if(trxType != null){
+                    Text(
+                        text = trxType,
+                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp), // Menyesuaikan font
+                        color = Color.Gray
+                    )
+                }
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = description,
@@ -92,6 +101,7 @@ fun PreviewTransactionItem() {
         // Preview for negative cash flow transaction
         TransactionItem(
             title = "GT Fatmawati 1",
+            trxType = "Top Up",
             description = "Pembayaran",
             amount = "-Rp 9.500",
             dateTime = "2222",
@@ -104,6 +114,7 @@ fun PreviewTransactionItem() {
         // Preview for another negative cash flow transaction
         TransactionItem(
             title = "INPayment",
+            trxType = "Top Up",
             description = "Biaya Top Up",
             amount = "-Rp 1.000",
             dateTime = "2222",
@@ -116,6 +127,7 @@ fun PreviewTransactionItem() {
         // Preview for positive cash flow transaction
         TransactionItem(
             title = "Bank BCA",
+            trxType = "Top Up",
             description = "Top Up",
             amount = "+Rp 100.000",
             dateTime = "2222",

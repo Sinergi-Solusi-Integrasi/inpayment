@@ -65,6 +65,8 @@ import com.s2i.domain.entity.model.users.ProfileModel
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
 import com.s2i.inpayment.ui.components.shimmer.profile.ProfileCardShimmer
+import com.s2i.inpayment.ui.theme.BrightTeal
+import com.s2i.inpayment.ui.theme.BrightTeal20
 import com.s2i.inpayment.ui.theme.DarkTeal21
 import com.s2i.inpayment.ui.theme.DarkTeal40
 import com.s2i.inpayment.ui.viewmodel.AuthViewModel
@@ -141,7 +143,7 @@ fun ProfileScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
+                    containerColor = BrightTeal20,
                     titleContentColor = DarkTeal40,
                     navigationIconContentColor = DarkTeal21
                 ),
@@ -248,7 +250,9 @@ fun ProfileCard(
                         Icon(
                             imageVector = Icons.Default.ContentCopy,
                             contentDescription = "Account Number Options",
-                            modifier = Modifier.clickable {
+                            modifier = Modifier
+                                .size(16.dp)
+                                .clickable {
                                 val clipboardManager =
                                     context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                 val clip = ClipData.newPlainText(

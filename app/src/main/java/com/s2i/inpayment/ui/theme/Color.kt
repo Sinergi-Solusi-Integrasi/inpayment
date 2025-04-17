@@ -8,6 +8,16 @@ import androidx.compose.ui.graphics.Color
 //val Pink80 = Color(0xFFEFB8C8)
 
 //val DarkTeal40 = Color(0xFF11526B)
+val DarkGreen = Color(0xFF07452F)      // Dark green color from the top section
+val MediumTeal = Color(0xFF0C7852)     // Medium teal from the middle section
+val BrightTeal = Color(0xFF11AB74)     // Bright teal from the bottom section
+val DarkGreen10 = Color(0xFF134c38)
+val BrightTeal30 = Color(0xFF1a644a)
+val BrightTeal25 = Color(0xFF2a7d61)
+val DarkTeal29 = Color(0xFF165c44)
+val DarkTeal45 = Color(0xFF36946e)
+val GreenTeal45 = Color(0xFF4aaa84)
+val BrightTeal20 = Color(0xFFEFF4F1)
 val DarkTeal40 = Color(0xFF064530)
 val GreenTeal40 = Color(0xFF007419)
 val GreenTealLight20 = Color(0xFF48BC13)

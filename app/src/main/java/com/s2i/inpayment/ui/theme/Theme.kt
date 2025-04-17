@@ -23,7 +23,7 @@ import androidx.core.view.WindowCompat
 //)
 
 private val LightColorScheme = lightColorScheme(
-    primary = DarkTeal40,
+    primary = DarkGreen,
     onPrimary = Color.White, // For text/icons on primary color
     primaryContainer = DarkTeal40.copy(alpha = 0.1f), // Lighter variant for primary backgrounds
     onPrimaryContainer = DarkTeal40,
@@ -34,7 +34,7 @@ private val LightColorScheme = lightColorScheme(
     onSecondaryContainer = DarkTeal21,
 
 //    background = Color(0xFFF6F6F8),
-    background = Color(0xFFFFFFFF), // Subtle light gray for the background
+    background =   BrightTeal20, // Subtle light gray for the background
     onBackground = DarkTeal40, // Dark teal for better readability on background
 
     surface = Color.White, // Surface color for cards or sheets
