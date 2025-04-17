@@ -19,12 +19,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.CircleNotifications
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -274,34 +278,29 @@ fun HomeScreen(
                                 ) {
                                     IconButton(onClick = { /* Handle notification click */ }) {
                                         Icon(
-                                            Icons.Default.Notifications,
+                                            Icons.Filled.Notifications,
                                             contentDescription = "Notifications",
-                                            tint = Color.White
+                                            tint = Color.White,
+                                            modifier = Modifier
+                                                .size(30.dp)
+
                                         )
                                     }
 
-                                    Spacer(modifier = Modifier.width(8.dp))
-
                                     // Profile picture
-                                    Box(
-                                        modifier = Modifier
-                                            .size(32.dp)
-                                            .clip(CircleShape)
-                                            .background(Color.White, shape = CircleShape)
-                                            .clickable {
+//
+                                        Icon(
+                                            imageVector = Icons.Filled.AccountCircle,
+                                            contentDescription = "Profile",
+                                            tint = Color.White,
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .clickable{
                                                 navController.navigate("profile_screen") {
                                                     launchSingleTop = true
                                                 }
-                                            },
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Person,
-                                            contentDescription = "Profile",
-                                            tint = Color.Gray,
-                                            modifier = Modifier.size(20.dp)
+                                            }
                                         )
-                                    }
                                 }
                             }
 
@@ -542,13 +541,13 @@ fun HomeScreen(
                                         thickness = 1.dp,
                                         color = Color.LightGray
                                     )
-
+                                    Spacer(modifier = Modifier.width(2.dp))
                                     Text(
                                         text = "Riwayat Transaksi",
                                         style = MaterialTheme.typography.titleMedium,
                                         modifier = Modifier.padding(vertical = 8.dp)
                                     )
-
+                                    Spacer(modifier = Modifier.width(2.dp))
                                     // Left line
                                     HorizontalDivider(
                                         modifier = Modifier
