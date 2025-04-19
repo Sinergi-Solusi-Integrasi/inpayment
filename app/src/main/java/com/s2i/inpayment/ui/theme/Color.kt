@@ -15,6 +15,7 @@ val DarkGreen10 = Color(0xFF134c38)
 val BrightTeal30 = Color(0xFF1a644a)
 val DarkGreen40 = Color(0xFF275C45) // Dark green
 val BrigtTeal50 = Color(0xFF52B788)  // Light green
+val BrightTeal09 = Color(0xFF2D9B23)
 val BrightTeal25 = Color(0xFF2a7d61)
 val DarkTeal29 = Color(0xFF165c44)
 val DarkTeal45 = Color(0xFF36946e)

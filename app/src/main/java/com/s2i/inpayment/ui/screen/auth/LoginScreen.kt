@@ -70,6 +70,9 @@ import com.s2i.data.local.auth.SessionManager
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.ReusableBottomSheet
 import com.s2i.inpayment.ui.components.permission.hasAllPermissions
+import com.s2i.inpayment.ui.theme.BrightTeal
+import com.s2i.inpayment.ui.theme.BrightTeal09
+import com.s2i.inpayment.ui.theme.BrightTeal20
 import com.s2i.inpayment.ui.viewmodel.AuthViewModel
 import com.s2i.inpayment.ui.viewmodel.NotificationsViewModel
 import com.s2i.inpayment.ui.viewmodel.ServicesViewModel
@@ -199,6 +202,7 @@ fun LoginScreen(
 
     Box(
         modifier = Modifier
+            .background(BrightTeal20)
             .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
@@ -239,7 +243,8 @@ fun LoginScreen(
                 ),
                 trailingIcon = if (!isValidUsername && username.isNotEmpty()) {
                     { Icon(Icons.Default.Error, contentDescription = null, tint = Color.Red) }
-                } else null
+                } else null,
+                shape = RoundedCornerShape(20.dp)
             )
             if (!isValidUsername && username.isNotEmpty()) {
                 Text("Username minimal 4 karakter", color = Color.Red, fontSize = 12.sp)
@@ -272,7 +277,8 @@ fun LoginScreen(
                         Icon(imageVector = image, contentDescription = null)
                     }
                 },
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation()
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                shape = RoundedCornerShape(20.dp),
             )
             if (!isValidPassword && password.isNotEmpty()) {
                 Text("Password minimal 8 karakter", color = Color.Red, fontSize = 12.sp)
@@ -307,7 +313,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Button(
+            TextButton(
                 onClick = {
                     navController.navigate("kyc_intro_screen") {
                         popUpTo("login_screen") { inclusive = false }
@@ -317,10 +323,13 @@ fun LoginScreen(
                 enabled = !loadingState,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .navigationBarsPadding() // Hindari ketutupan navigation bar
-                    .imePadding() // Hindari ketutupan keyboard
+                    .navigationBarsPadding()
+                    .imePadding()
             ) {
-                Text("Create new account")
+                Text(
+                    "Create new account",
+                    color = BrightTeal09,
+                )
             }
             if (showExtraInfo) {
                 Spacer(modifier = Modifier.height(32.dp))
