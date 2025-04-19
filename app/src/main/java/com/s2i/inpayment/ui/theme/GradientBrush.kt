@@ -5,6 +5,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.draw.drawBehind
 
 fun gradientBrush(): Brush {
     return Brush.linearGradient(
@@ -93,6 +96,33 @@ fun triGradientBrussh(): Brush {
         end = Offset(0f, 1000f),
         tileMode = TileMode.Clamp
     )
+}
+
+fun Modifier.linearGradientBackground(
+    colors: List<Color>,
+    angle: Float = 90f // dalam derajat, 0 = horizontal ke kanan, 90 = vertikal ke bawah
+) = composed {
+    val angleRad = Math.toRadians(angle.toDouble()).toFloat()
+    val cosAngle = kotlin.math.cos(angleRad)
+    val sinAngle = kotlin.math.sin(angleRad)
+
+    this.drawBehind {
+        val width = size.width
+        val height = size.height
+
+        // Hitung titik awal dan akhir berdasarkan sudut
+        val endX = width * cosAngle
+        val endY = height * sinAngle
+
+        drawRect(
+            brush = Brush.linearGradient(
+                colors = colors,
+                start = Offset.Zero,
+                end = Offset(endX, endY)
+            ),
+            size = size
+        )
+    }
 }
 
 

@@ -147,7 +147,6 @@ fun WalletHistoryScreen(
                             }
                         }
                     },
-                    modifier = Modifier.size(48.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Filled.ArrowBack,
@@ -155,7 +154,6 @@ fun WalletHistoryScreen(
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
-
                 // Center-aligned title
                 Box(
                     modifier = Modifier.weight(1f),

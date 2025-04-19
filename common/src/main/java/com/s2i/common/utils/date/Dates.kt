@@ -33,6 +33,12 @@ object Dates {
         }
     }
 
+    fun formatDate(timeMillis: Long, timeZone: TimeZone = TimeZone.getDefault()): String {
+        val dateFormat = SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault())
+        dateFormat.timeZone = timeZone
+        return dateFormat.format(Date(timeMillis))
+    }
+
     fun formatTimeDifference(startTime: Long, endTime: Long): String {
         val duration = endTime - startTime
 

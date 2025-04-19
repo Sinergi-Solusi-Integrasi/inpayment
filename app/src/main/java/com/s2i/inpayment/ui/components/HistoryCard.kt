@@ -62,9 +62,10 @@ fun HistoryCard(
             ) {
 
                 transaction.forEach{ transaction ->
-                    val dateTimeFormatted = Dates.formatTimeDifference(
-                        startTime = Dates.parseIso8601(transaction.trxDate),
-                        endTime = System.currentTimeMillis()
+                    val dateTimeFormatted = Dates.formatDate(
+                        Dates.parseIso8601(
+                            transaction.trxDate
+                        )
                     )
                     Log.d("HistoryCard", "Processing transaction with cashFlow: ${transaction.cashFlow}")
                     TransactionItem(
