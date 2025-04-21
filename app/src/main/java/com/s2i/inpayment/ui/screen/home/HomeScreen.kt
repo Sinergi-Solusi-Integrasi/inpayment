@@ -234,7 +234,7 @@ fun HomeScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(30.dp))
+                        .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
                 ) {
                     // Show loading indicator when needed
                     if (isStartupLoading) {
@@ -332,13 +332,14 @@ fun HomeScreen(
                         }
 
 
-                    // Triangle pointer below balance card
+                    // Water drop effect below balance card
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 2.dp), // Adjust position as needed
+                            .padding(top = 2.dp),
                         contentAlignment = Alignment.TopCenter
                     ) {
+                        // Create water drop shape using a rotated rounded rectangle
                         Box(
                             modifier = Modifier
                                 .size(20.dp)
@@ -350,6 +351,8 @@ fun HomeScreen(
                                 )
                         )
                     }
+
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     Spacer(modifier = Modifier.height(8.dp))
                     // Scrollable content (transaction history and income/expense cards)
