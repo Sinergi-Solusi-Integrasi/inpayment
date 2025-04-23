@@ -4,14 +4,12 @@ import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,27 +18,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.DismissDirection
 import androidx.compose.material.DismissValue
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.rememberDismissState
-import androidx.compose.material.swipeable
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,36 +40,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import coil3.ImageLoader
-import coil3.compose.AsyncImage
-import coil3.compose.AsyncImagePainter
-import coil3.request.ImageRequest
-import coil3.request.CachePolicy
-import coil3.request.crossfade
-import okhttp3.OkHttpClient
-import okhttp3.Interceptor
-import coil3.compose.LocalPlatformContext
-import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.rememberAsyncImagePainter
 import coil3.compose.rememberConstraintsSizeResolver
-import coil3.decode.DataSource
-import coil3.network.httpHeaders
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.s2i.data.local.auth.SessionManager
+import coil3.size.Size
 import com.s2i.domain.entity.model.vehicle.VehicleModel
-import com.s2i.inpayment.R
-import com.s2i.inpayment.ui.theme.BrightYellow20
-import com.s2i.inpayment.ui.theme.DarkTeal40
 import com.s2i.inpayment.ui.theme.GreenTeal21
 import com.s2i.inpayment.ui.theme.Red500
 import kotlinx.coroutines.launch
-import org.koin.core.Koin
-import kotlin.math.roundToInt
 import org.koin.compose.getKoin
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -212,96 +191,121 @@ fun VehiclesCards(
                             }
                         }
                     }
-                    .offset { IntOffset(swipeOffsetX.value.toInt(), 0) },
+                    .offset { IntOffset(swipeOffsetX.floatValue.toInt(), 0) },
                 colors = CardDefaults.cardColors(
                     containerColor = if (vehiclesState?.status == "ACTIVE") Color.White else Color.White
                 )
             ) {
+                // Status badge (smaller size)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 12.dp, top = 12.dp)
+                ) {
+                    val statusColor = when {
+                        vehiclesState?.isLoaned == true -> Red500
+                        vehiclesState?.status == "ACTIVE" -> Color(0xFF1B5E20) // Darker green
+                        else -> Color.Gray
+                    }
+
+                    Card(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .height(28.dp) // Smaller height
+                            .width(80.dp), // Fixed width
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = statusColor)
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = if (vehiclesState?.isLoaned == true) "Loans" else vehiclesState?.status ?: "ACTIVE",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = Color.White
+                            )
+                        }
+                    }
+                }
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    vehiclesState?.images?.firstOrNull()?.let { imageUrl ->
-                        Log.d("ImageDebug", "URL: $imageUrl")
-                        val sizeResolver = rememberConstraintsSizeResolver()
-                        val painter = rememberAsyncImagePainter(
-                            model = ImageRequest.Builder(LocalContext.current)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally, // Center the text
+                        modifier = Modifier.width(120.dp) // Match image width
+                    ) {
+                        vehiclesState?.images?.firstOrNull()?.let { imageUrl ->
+                            Log.d("ImageDebug", "URL: $imageUrl")
+                            // Gunakan request tanpa menentukan size spesifik
+                            val request = ImageRequest.Builder(LocalContext.current)
                                 .data(imageUrl)
-                                // Menambahkan header Authorization
                                 .diskCachePolicy(CachePolicy.ENABLED)
-                                .crossfade(true) // Opsional: crossfade untuk transisi yang mulus
-//                                .placeholder(R.drawable.placeholder) // Placeholder saat gambar belum dimuat
-//                                .error(R.drawable.error_image) // Gambar fallback jika terjadi error
-                                .build(),
-                            imageLoader = imageLoader,
+                                .crossfade(true)
+                                .build()
+
+                            val painter = rememberAsyncImagePainter(
+                                model = request,
+                                imageLoader = imageLoader
                             )
-                        Image(
-                            painter = painter,
-                            contentDescription = "Vehicle Image",
-                            modifier = Modifier
-                                .size(56.dp)
-                                .clip(RoundedCornerShape(10)) // Membuat gambar berbentuk lingkaran
-                                .background(Color.Gray)
-                        )
-                    }?: Log.e("ImageDebug", "Image URL is null or empty")
+
+                            // Tentukan ukuran landscape pada Box langsung
+                            Box(
+                                modifier = Modifier
+                                    .height(120.dp)
+                                    .clip(RoundedCornerShape(10))
+                                    .background(Color.Gray)
+                            ) {
+                                Image(
+                                    painter = painter,
+                                    contentDescription = "Vehicle Image",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+
+                            // Add spacing between image and text
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // Brand text centered below the image
+                            Text(
+                                text = vehiclesState.brand ?: "Unknown Brand",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Black,
+                                modifier = Modifier.padding(top = 4.dp, bottom = 4.dp)
+                            )
+                        } ?: Log.e("ImageDebug", "Image URL is null or empty")
+                    }
 
                     Column(
                         modifier = Modifier
-                            .weight(1f)
                             .padding(start = 16.dp)
+                            .weight(1f)
                     ) {
                         Text(
-                            text = vehiclesState?.brand ?: "Unknown Brand",
-                            color = if (vehiclesState?.status == "ACTIVE") Color.Black else Color.Black,
+                            text = vehiclesState?.model ?: "Unknown Brand",
+                            color = if (vehiclesState?.status == "ACTIVE") Black else Black,
                             style = MaterialTheme.typography.titleMedium
                         )
                         Text(
                             text = vehiclesState?.varian ?: " ",
-                            color = if (vehiclesState?.status == "ACTIVE") Color.Black else Color.Gray,
+                            color = if (vehiclesState?.status == "ACTIVE") Black else Color.Gray,
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
                             text = vehiclesState?.plateNumber ?: "Unknown Plate",
-                            color = if (vehiclesState?.status == "ACTIVE") Color.Black else Color.Gray,
+                            color = if (vehiclesState?.status == "ACTIVE") Black else Color.Gray,
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
-                            text = vehiclesState?.rfid ?: " ",
-                            color = if (vehiclesState?.status == "ACTIVE") Color.Black else Color.Gray,
+                            text = vehiclesState?.rfid ?: " - ",
+                            color = if (vehiclesState?.status == "ACTIVE") Black else Color.Gray,
                             style = MaterialTheme.typography.bodyMedium
                         )
-                        // Tambahkan Spacer untuk mendorong elemen di bawahnya
-                        Spacer(modifier = Modifier.weight(1f))
-
-                            Row(
-                                modifier = Modifier
-                                    .align(Alignment.End)
-                                    .padding(4.dp),
-                                horizontalArrangement = Arrangement.Start
-                            ) {
-                                val statusColor = when {
-                                    vehiclesState?.isLoaned == true -> Red500
-                                    vehiclesState?.status == "ACTIVE" -> DarkTeal40
-                                    else -> Color.Gray
-                                }
-                                Card(
-                                    modifier = Modifier
-                                        .padding(4.dp)
-                                        .width(85.dp),
-                                    colors = CardDefaults.cardColors(containerColor = statusColor)
-                                ) {
-                                    Text(
-                                        text = if (vehiclesState?.isLoaned == true) "Loans" else vehiclesState?.status
-                                            ?: "ACTIVE",
-                                        modifier = Modifier
-                                            .align(Alignment.CenterHorizontally)
-                                            .padding(4.dp),
-                                        color = Color.White
-                                    )
-                                }
-                            }
 
                     }
                 }
