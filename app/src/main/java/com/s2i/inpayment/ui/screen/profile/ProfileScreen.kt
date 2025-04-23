@@ -3,6 +3,7 @@ package com.s2i.inpayment.ui.screen.profile
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.util.Log
 import android.view.RoundedCorner
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -188,7 +189,9 @@ fun ProfileScreen(
                         Column(modifier = Modifier.padding(vertical = 8.dp)) {
                             ProfileMenuItem(
                                 icon = Icons.Default.DirectionsCarFilled,
-                                title = "Vehicles",
+                                title = buildString {
+        append("Vehicles")
+    },
                                 onClick = {
                                     navController.navigate("vehicles_screen") {
                                         popUpTo("profile_screen") { inclusive = false }
@@ -390,6 +393,7 @@ fun ProfileCard(
 
                 // Informasi kendaraan di kanan bawah
                 usersState?.selectVehicle?.let { vehicle ->
+                    Log.d("ProfileCard", "Vehicle data: brand=${vehicle.brand}, model=${vehicle.model}, plateNumber=${vehicle.plateNumber}")
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -420,6 +424,7 @@ fun ProfileCard(
         }
     }
 }
+
 
 //@Composable
 //fun ProfileMenu(

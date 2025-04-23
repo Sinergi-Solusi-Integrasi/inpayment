@@ -32,6 +32,7 @@
     import androidx.compose.foundation.verticalScroll
     import androidx.compose.material.ExperimentalMaterialApi
     import androidx.compose.material.icons.Icons
+    import androidx.compose.material.icons.filled.ArrowBack
     import androidx.compose.material.icons.filled.ChangeCircle
     import androidx.compose.material.icons.filled.CheckCircle
     import androidx.compose.material.icons.filled.Close
@@ -81,6 +82,7 @@
     import com.s2i.inpayment.ui.components.shareScreenshot
     import com.s2i.inpayment.ui.components.shimmer.balance.DetailTrxCardShimmer
     import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
+    import com.s2i.inpayment.ui.viewmodel.UsersViewModel
     import kotlinx.coroutines.delay
     import kotlinx.coroutines.launch
     import org.koin.compose.viewmodel.koinViewModel
@@ -90,7 +92,8 @@
     fun DetailTransactionScreen(
         balanceViewModel: BalanceViewModel = koinViewModel(),
         navController: NavController,
-        transactionId: String
+        transactionId: String,
+        usersViewModel: UsersViewModel = org.koin.androidx.compose.koinViewModel()
     ) {
 
         val snackbarHostState = remember { SnackbarHostState() }
@@ -99,6 +102,8 @@
         val context = LocalContext.current
         val view = LocalView.current
         val transactionDetail by balanceViewModel.detailTrx.collectAsState()
+        val usersState by usersViewModel.users.collectAsState()
+
 
         val transactionView = remember { mutableStateOf<ComposeView?>(null) }
         var excludeImage by remember { mutableStateOf(false) }
@@ -154,9 +159,10 @@
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
         ) {
             // Spacer to push the content down
-            Spacer(modifier = Modifier.height(24.dp))
+//            Spacer(modifier = Modifier.height(24.dp))
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
@@ -172,7 +178,7 @@
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 16.dp),
+                            .padding(horizontal = 8.dp, vertical = 16.dp)
                     ){
                         IconButton(
                             onClick = {
@@ -183,20 +189,21 @@
                                 }
                             },
                             modifier = Modifier
-                                .size(16.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.onSecondary,
-                                    shape = CircleShape
-                                )
+                                .size(24.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Filled.Close,
-                                contentDescription = "Close",
+                                imageVector = Icons.Filled.ArrowBack,
+                                contentDescription = "Back",
                                 tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
-                        Spacer(modifier = Modifier.width(24.dp))
 
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(end = 40.dp),
+                            contentAlignment = Alignment.Center
+                        ){
                         Text(
                             text = "Transaction Details",
                             style = MaterialTheme.typography.bodyMedium,
@@ -205,7 +212,7 @@
                             modifier = Modifier
                                 .padding(vertical = 8.dp)
                         )
-
+}
                     }
                     if (showLoading) {
                         CustomLinearProgressIndicator(
@@ -236,6 +243,7 @@
                                         setContent {
                                             DetailTrxCard(
                                                 transactionDetail = transactionDetail?.data,
+                                                usersState = usersState,
                                                 excludeImage = excludeImage
                                             )
                                         }

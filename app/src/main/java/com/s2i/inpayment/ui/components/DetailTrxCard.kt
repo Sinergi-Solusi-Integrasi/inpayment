@@ -19,6 +19,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,9 +28,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Colors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
@@ -45,6 +48,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,7 +66,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -90,12 +96,18 @@ import java.util.Date
 import java.util.Locale
 import java.util.UUID
 import androidx.core.graphics.createBitmap
+import com.s2i.domain.entity.model.users.ProfileModel
+import com.s2i.inpayment.ui.screen.profile.ProfileScreen
+import com.s2i.inpayment.ui.theme.GreenTeal21
+import com.s2i.inpayment.ui.theme.Success
+import com.s2i.inpayment.ui.viewmodel.UsersViewModel
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun DetailTrxCard(
     transactionDetail: HistoryBalanceModel?,
-    excludeImage: Boolean
+    usersState: ProfileModel?,
+    excludeImage: Boolean,
 ) {
     val imageLoader: ImageLoader = getKoin().get()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -104,25 +116,44 @@ fun DetailTrxCard(
     var showPreview by remember { mutableStateOf(false) }
     var selectedImageUri by remember { mutableStateOf<String?>(null) }
 
+    // Simpan dalam variable yang bisa digunakan di seluruh fungsi
+    var plateNumber by remember { mutableStateOf("-") }
+    var receiptNumber by remember { mutableStateOf("-") }
+
     val context = LocalContext.current
     val density = LocalDensity.current
 
+// Ambil plate number dari usersState dan tollPayment
+    usersState?.selectVehicle?.let { vehicle ->
+        Log.d("ProfileCard", "Vehicle data: brand=${vehicle.brand}, model=${vehicle.model}, plateNumber=${vehicle.plateNumber}")
+        plateNumber = vehicle.plateNumber ?: "-"
+    }
 
     // Konten scrollable di bawah header
     transactionDetail?.let { detail ->
-        val formattedTime = Dates.formatTimeDifference(
-            startTime = Dates.parseIso8601(detail.trxDate),
-            endTime = System.currentTimeMillis()
-        )
+        // Prioritaskan plateNumber dari detail transaksi jika ada
+        detail.tollPayment?.plateNumber?.let { tollPlateNumber ->
+            Log.d("DetailTrxCard", "Using plate number from transaction: $tollPlateNumber")
+            plateNumber = tollPlateNumber
+        }
+        detail.tollPayment?.receiptNumber?.let {tollReceiptNumber ->
+            receiptNumber = tollReceiptNumber
+        }
+
+//        val formattedTime = Dates.formatTimeDifference(
+//            startTime = Dates.parseIso8601(detail.trxDate),
+//            endTime = System.currentTimeMillis()
+//        )
+        val formattedTime = Dates.formatTimeFromIso8601(detail.trxDate)
         val formattedDate = SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(
             Date(Dates.parseIso8601(detail.trxDate))
         )
-        val shortenedTransactionId = detail.transactionId.take(10) + "..."
+//        val shortenedTransactionId = detail.transactionId.take(10) + "..."
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 72.dp) // Beri padding agar tidak menimpa header
+                .background(MaterialTheme.colorScheme.background)
         ) {
             // Card untuk Detail Transaksi
             Card(
@@ -130,8 +161,7 @@ fun DetailTrxCard(
                     .fillMaxWidth()
                     .padding(16.dp),
                 shape = MaterialTheme.shapes.large,
-                elevation = CardDefaults.elevatedCardElevation(8.dp),
-                colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background)
+                colors = CardDefaults.cardColors(MaterialTheme.colorScheme.onPrimary)
             ) {
                 Column(
                     modifier = Modifier
@@ -141,9 +171,16 @@ fun DetailTrxCard(
                 ) {
                     // Ikon Sukses
                     val iconImageVector = if (detail.status.lowercase() == "failed") Icons.Default.Close else Icons.Default.CheckCircle
-                    val iconColor = if (detail.status.lowercase() == "failed") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-                    val statusMessage = if (detail.status.lowercase() == "failed") "Transaction Failed" else "Transaction Successful"
-                    val statusDescription = if (detail.status.lowercase() == "failed") "Your transaction ${detail.title} failed" else "Your transaction ${detail.title} was successful"
+                    val iconColor = if (detail.status.lowercase() == "failed") MaterialTheme.colorScheme.error else Success
+                    val statusMessage = if (detail.status.lowercase() == "failed"){
+                        "Transaction Failed"
+                    }else{
+                        if(detail.title.lowercase().contains("top up")){
+                            "Top Up Successful"
+                        }else{
+                            "Toll Payment Successful"
+                        }
+                    }
 
                     Icon(
                         imageVector = iconImageVector,
@@ -162,12 +199,6 @@ fun DetailTrxCard(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
-                    Text(
-                        text = statusDescription,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.padding(bottom = 24.dp)
-                    )
 
                     // Jumlah Transaksi
                     Text(
@@ -184,17 +215,61 @@ fun DetailTrxCard(
                             .fillMaxWidth()
                             .padding(vertical = 16.dp)
                     ) {
-                        TransactionDetailRow(
-                            label = "Status",
-                            value = if (detail.status.lowercase() == "failed") "Failed ❌" else "Completed ✅"
-                        )
+                        if (detail.title.lowercase() != "top up") {
+                            TransactionDetailRow(
+                                label = "Gerbang Toll",
+                                value = "${detail.title}"
+                            )
+                        }
+
                         Spacer(modifier = Modifier.height(8.dp))
-                        TransactionDetailRow("Payment Method", when(detail.paymentMethod) { "WALLET_CASH" ->
-                            "Balance"
-                            else -> detail.paymentMethod
-                        })
+                        if (detail.title.lowercase() != "top up") {
+                            TransactionDetailRow(
+                                "Payment Method", when (detail.paymentMethod) {
+                                    "WALLET_CASH" -> "Saldo Bablas"
+                                    else -> detail.paymentMethod
+                                }
+                            )
+                        }
+
                         Spacer(modifier = Modifier.height(8.dp))
+                        // Gunakan plate number yang sudah disimpan
+                        if (detail.title.lowercase() != "top up") {
+                            TransactionDetailRow(
+                                label = "Plate Number",
+                                value = plateNumber
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        if (detail.title.lowercase() != "top up") {
+                            TransactionDetailRow(
+                                label = "Receipt Number",
+                                value = receiptNumber
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        if (detail.title.lowercase() == "top up") {
+                            TransactionDetailRow(
+                                label = "Issuer Name",
+                                value = detail.topUp?.issuerName ?: "-"
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        if (detail.title.lowercase() == "top up") {
+                            TransactionDetailRow(
+                                label = "Issuer PAN",
+                                value = detail.topUp?.issuerPan ?: "-"
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        if (detail.title.lowercase() == "top up") {
+                            TransactionDetailRow(
+                                label = "Customer PAN",
+                                value = detail.topUp?.customerPan ?: "-"
+                            )
+                        }
                         TransactionDetailRow("Time", formattedTime)
+                        Log.d("DetailTrxCard", "Formatted Time: $formattedTime")
                         Spacer(modifier = Modifier.height(8.dp))
                         TransactionDetailRow("Date", formattedDate)
                         Spacer(modifier = Modifier.height(8.dp))
@@ -207,6 +282,13 @@ fun DetailTrxCard(
                                 }
                             }
                         )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        if(detail.title.lowercase() == "top up") {
+                            TransactionDetailRow(
+                                label = "Fee Amount",
+                                value = detail.fee.toString()
+                            )
+                        }
                         Spacer(modifier = Modifier.height(8.dp))
                         TransactionDetailRow("Amount", RupiahFormatter.formatToRupiah(detail.amount))
                     }
@@ -251,11 +333,8 @@ fun DetailTrxCard(
                                 val painter = rememberAsyncImagePainter(
                                     model = ImageRequest.Builder(LocalContext.current)
                                         .data(imageUrl)
-                                        // Menambahkan header Authorization
                                         .diskCachePolicy(CachePolicy.ENABLED)
-                                        .crossfade(true) // Opsional: crossfade untuk transisi yang mulus
-//                                .placeholder(R.drawable.placeholder) // Placeholder saat gambar belum dimuat
-//                                .error(R.drawable.error_image) // Gambar fallback jika terjadi error
+                                        .crossfade(true)
                                         .build(),
                                     imageLoader = imageLoader,
                                 )
@@ -264,7 +343,7 @@ fun DetailTrxCard(
                                     contentDescription = "Vehicle Image",
                                     modifier = Modifier
                                         .size(56.dp)
-                                        .clip(RoundedCornerShape(10)) // Membuat gambar berbentuk lingkaran
+                                        .clip(RoundedCornerShape(10))
                                         .background(Color.Gray)
                                 )
                             }
@@ -273,13 +352,13 @@ fun DetailTrxCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
 
+            Spacer(modifier = Modifier.height(16.dp))
 
             // SnackbarHost untuk menampilkan snackbar
             SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.CenterHorizontally))
         }
-    }  ?: run {
+    } ?: run {
         // Tampilkan jika datanya null
         Text(
             text = "Transaction details not available",
@@ -307,7 +386,6 @@ fun captureView(view: View, excludeImage: (Boolean) -> Unit): Bitmap {
     excludeImage(false)
     return bitmap.copy(Bitmap.Config.ARGB_8888, true)
 }
-
 
 // Function to save the bitmap to file
 fun saveBitmapToFile(context: Context, bitmap: Bitmap): Uri? {
@@ -374,7 +452,6 @@ fun saveBitmapToFile(context: Context, bitmap: Bitmap): Uri? {
     }
 }
 
-
 // Function to share a screenshot
 fun shareScreenshot(context: Context, fileUri: Uri) {
     val shareIntent = Intent(Intent.ACTION_SEND).apply {
@@ -385,54 +462,53 @@ fun shareScreenshot(context: Context, fileUri: Uri) {
     context.startActivity(Intent.createChooser(shareIntent, "Share Receipt"))
 }
 
-
-
 @Composable
 fun TransactionDetailRowWithCopy(label: String, value: String, onCopy: () -> Unit) {
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
-    val snackbarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
 
-    Column {
-        // Snackbar Host
-        SnackbarHost(hostState = snackbarHostState)
-
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top
+    ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(1f)
         ) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onBackground
             )
-            Row(
-                verticalAlignment = Alignment.CenterVertically
+
+            IconButton(
+                onClick = {
+                    clipboardManager.setText(AnnotatedString(value))
+                    onCopy()
+                },
+                modifier = Modifier.size(16.dp)
             ) {
-                Text(
-                    text = value.take(10) + "...",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold
+                Icon(
+                    imageVector = Icons.Default.ContentCopy,
+                    contentDescription = "Copy $label",
+                    tint = Success
                 )
-                IconButton(
-                    onClick = {
-                        clipboardManager.setText(AnnotatedString(value))
-                        coroutineScope.launch {
-                            snackbarHostState.showSnackbar("Transaction ID has been copied")
-                        }
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ContentCopy,
-                        contentDescription = "Copy Transaction ID",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
             }
         }
+
+        Text(
+            text = if (value.length > 20){
+                value.substring(0, 20) + "\n" + value.substring(20)
+            }else{
+                value
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.widthIn(max = 200.dp),
+            textAlign = TextAlign.End
+        )
     }
 }
 
