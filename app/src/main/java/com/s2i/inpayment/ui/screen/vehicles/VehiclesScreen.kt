@@ -2,6 +2,7 @@ package com.s2i.inpayment.ui.screen.vehicles
 
 import android.os.Build
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,6 +28,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -58,6 +60,8 @@ import com.maxkeppeler.sheets.date_time.models.DateTimeSelection
 import com.s2i.domain.entity.model.vehicle.VehicleModel
 import com.s2i.inpayment.ui.components.ReusableBottomSheet
 import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
+import com.s2i.inpayment.ui.components.navigation.rememberSingleClickHandler
+import com.s2i.inpayment.ui.theme.DarkGreen
 import com.s2i.inpayment.ui.viewmodel.VehiclesViewModel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -72,6 +76,7 @@ fun VehiclesScreen(
     vehiclesViewModel: VehiclesViewModel = koinViewModel()
 ) {
     val vehiclesState = vehiclesViewModel.getVehiclesState.collectAsState()
+    val canClick = rememberSingleClickHandler()
     val loading by vehiclesViewModel.loading.collectAsState()
     var isStartupLoading by remember { mutableStateOf(true) }
     var selectedVehicleId by remember { mutableStateOf<String?>(null) }
@@ -82,6 +87,13 @@ fun VehiclesScreen(
     val scope = rememberCoroutineScope()
 
 
+    BackHandler(enabled = true) {
+        if (canClick()) {
+            scope.launch {
+                navController.navigateUp()
+            }
+        }
+    }
     // Memperlihatkan loading atau refreshing
 
     val showLoading = loading || isRefreshing
@@ -134,48 +146,56 @@ fun VehiclesScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .windowInsetsPadding(WindowInsets.systemBars)
             .pullRefresh(state = pullRefreshState)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 32.dp, vertical = 24.dp)
+                .padding(horizontal = 16.dp, vertical = 16.dp)
         ) {
+            // Header tanpa padding horizontal untuk memposisikan tombol back di tepi
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 16.dp),
+                    .padding(vertical = 16.dp)
             ) {
                 IconButton(
                     onClick = {
-                        navController.navigateUp()
+                        if (canClick()) {
+                            scope.launch {
+                                navController.navigateUp()
+                            }
+                        }
                     },
-                    modifier = Modifier
-                        .size(16.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.onSecondary,
-                            shape = CircleShape
-                        )
+                    modifier = Modifier.padding(start = 8.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = "Close",
-                        tint = MaterialTheme.colorScheme.onBackground
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
-                Spacer(modifier = Modifier.width(24.dp))
-                Text(
-                    text = "Vehicles",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                    modifier = Modifier
-                        .padding(vertical = 8.dp)
-                )
+
+                // Title di tengah
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Vehicles",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = DarkGreen,
+                        fontSize = MaterialTheme.typography.titleLarge.fontSize
+                    )
+                }
+                // Spacer untuk simetri
+                Spacer(modifier = Modifier.size(48.dp))
             }
-            Spacer(modifier = Modifier.height(8.dp))
+
             if (isStartupLoading || showLoading) {
                 CustomLinearProgressIndicator(
                     modifier = Modifier
