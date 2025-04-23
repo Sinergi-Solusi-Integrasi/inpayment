@@ -81,6 +81,7 @@
     import com.s2i.inpayment.ui.components.saveBitmapToFile
     import com.s2i.inpayment.ui.components.shareScreenshot
     import com.s2i.inpayment.ui.components.shimmer.balance.DetailTrxCardShimmer
+    import com.s2i.inpayment.ui.theme.DarkGreen
     import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
     import com.s2i.inpayment.ui.viewmodel.UsersViewModel
     import kotlinx.coroutines.delay
@@ -208,6 +209,7 @@
                             text = "Transaction Details",
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
+                            color = DarkGreen,
                             fontSize = MaterialTheme.typography.titleLarge.fontSize,
                             modifier = Modifier
                                 .padding(vertical = 8.dp)
