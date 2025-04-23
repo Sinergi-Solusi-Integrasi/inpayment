@@ -286,7 +286,7 @@ fun DetailTrxCard(
                         if(detail.title.lowercase() == "top up") {
                             TransactionDetailRow(
                                 label = "Fee Amount",
-                                value = detail.fee.toString()
+                                value = RupiahFormatter.formatToRupiah(detail.fee)
                             )
                         }
                         Spacer(modifier = Modifier.height(8.dp))
