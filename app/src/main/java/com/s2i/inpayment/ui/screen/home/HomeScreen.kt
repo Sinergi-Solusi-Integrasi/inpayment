@@ -66,7 +66,6 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
-import com.google.firebase.messaging.FirebaseMessaging
 import com.s2i.common.utils.convert.RupiahFormatter
 import com.s2i.common.utils.date.Dates
 import com.s2i.data.local.auth.SessionManager

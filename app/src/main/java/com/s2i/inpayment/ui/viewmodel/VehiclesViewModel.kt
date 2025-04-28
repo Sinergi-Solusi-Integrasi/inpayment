@@ -1,7 +1,9 @@
 package com.s2i.inpayment.ui.viewmodel
 
 import android.graphics.Bitmap
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,6 +11,7 @@ import com.s2i.common.utils.convert.ImageCompressor
 import com.s2i.common.utils.convert.bitmapToBase64
 import com.s2i.common.utils.convert.bitmapToBase64WithFormat
 import com.s2i.common.utils.convert.compressBitmap
+import com.s2i.data.model.vehicles.LoansTokenVehiclesData
 import com.s2i.domain.entity.model.users.BlobImageModel
 import com.s2i.domain.entity.model.vehicle.ChangeVehiclesModel
 import com.s2i.domain.entity.model.vehicle.GetVehiclesModel
@@ -29,6 +32,8 @@ import com.s2i.domain.usecase.vehicles.ReturnLoansVehiclesUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.time.format.DateTimeFormatter
+import java.time.OffsetDateTime
 
 class VehiclesViewModel(
     private val registUseCase: RegistVehiclesUseCase,
@@ -81,6 +86,55 @@ class VehiclesViewModel(
 
     private val _vehicleUrisState = MutableStateFlow<List<String>>(emptyList()) // Tambahkan untuk menyimpan URI
     val vehicleUrisState: MutableStateFlow<List<String>> = _vehicleUrisState
+
+    private val _vehiclesTokenMap = mutableMapOf<String, String>()
+    private var lastVehiclesId: String? = null
+    private fun saveTokenForVehicles(vehicleId: String, token: String){
+        _vehiclesTokenMap[vehicleId] = token
+        Log.d("VehiclesViewModel", "Token saved for vehicle $vehicleId: $token")
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun isTokenExpired(expiryTimeStr: String?): Boolean {
+        if (expiryTimeStr == null) return true
+
+        return try {
+            val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
+            val expiryTime = OffsetDateTime.parse(expiryTimeStr, formatter)
+            OffsetDateTime.now().isAfter(expiryTime)
+        } catch (e: Exception) {
+            true
+        }
+    }
+
+    fun getTokenForVehicles(vehicleId: String): String?{
+        return _vehiclesTokenMap[vehicleId]
+    }
+
+    fun hasTokenForVehicles(vehicleId: String): Boolean{
+        return _vehiclesTokenMap.containsKey(vehicleId)
+    }
+
+    fun handleVehiclesChange(newVehiclesId: String){
+        if (lastVehiclesId != null && lastVehiclesId != newVehiclesId){
+            clearTokenForVehicles(newVehiclesId)
+        }
+        // Update the last vehicle ID
+        lastVehiclesId = newVehiclesId
+    }
+
+    fun clearTokenForVehicles(vehicleId: String) {
+//        _vehiclesTokenMap.remove(vehicleId)
+
+        // Reset lending state
+        _lendVehiclesState.value = null
+        _error.value = null
+    }
+
+    fun clearAllTokens(){
+        _vehiclesTokenMap.clear()
+        Log.d("VehiclesViewModel", "All tokens cleared")
+    }
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
@@ -293,6 +347,11 @@ class VehiclesViewModel(
                     expiredAt = expiredAt
                 )
                 Log.d("VehiclesViewModel", "Lend vehicles success: ${result.message}")
+                // Save token with vehiclesid if success
+                result.data?.token?.token?.let { token ->
+                    saveTokenForVehicles(vehicleId, token)
+                }
+
                 _lendVehiclesState.value = result
             } catch (e: Exception) {
                 Log.e("VehiclesViewModel", "Error lend vehicles: ${e.message}")
@@ -301,6 +360,11 @@ class VehiclesViewModel(
                 _loading.value = false
             }
         }
+    }
+
+    fun resetLendState() {
+        _lendVehiclesState.value = null
+        _error.value = null
     }
 
     // loans vehicles
