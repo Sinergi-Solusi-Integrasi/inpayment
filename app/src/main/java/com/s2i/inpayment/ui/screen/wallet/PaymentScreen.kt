@@ -28,6 +28,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
 import com.s2i.common.utils.convert.RupiahFormatter
 import com.s2i.common.utils.networkmanager.NetworkUtils
@@ -37,6 +38,7 @@ import kotlinx.coroutines.launch
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.NetworkContent
 import com.s2i.inpayment.ui.components.navigation.rememberSingleClickHandler
+import com.s2i.inpayment.ui.theme.BrightTeal20
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import com.s2i.inpayment.ui.viewmodel.QrisViewModel
 import com.s2i.inpayment.utils.helper.generateCurrentTime
@@ -128,51 +130,63 @@ fun PaymentScreen(
 
     Scaffold(
         topBar = {
-            // Header
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Payment Top Up",
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black,
-                        fontSize = 18.sp
-                    )
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            if (canClick()) {
-                                coroutineScope.launch {
-                                    delay(300) // kasih waktu network content settle
-                                    navController.navigateUp()
+            // Custom TopAppBar with perfect visual balance
+            Box(modifier = Modifier
+                .fillMaxWidth()) {
+                TopAppBar(
+                    title = { /* Title intentionally left empty */ },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = {
+                                if (canClick()) {
+                                    coroutineScope.launch {
+                                        delay(300) // kasih waktu network content settle
+                                        navController.navigateUp()
+                                    }
                                 }
                             }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color.Black
+                            )
                         }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.Black
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White  // Header putih
+                    },
+                    // Add an empty action to balance the layout
+                    actions = {
+                        // Empty spacer with same size as back button for visual balance
+                        Spacer(modifier = Modifier.width(48.dp))
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = BrightTeal20  // Header putih
+                    )
                 )
-            )
+
+                // Centered title overlay
+                Text(
+                    text = "Payment Top Up",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    fontSize = 18.sp,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(top = 25.dp)
+                )
+            }
         },
         bottomBar = {
             // Bottom Bar (Tombol Lanjut)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(BrightTeal20)
                     .padding(16.dp)
                     .navigationBarsPadding()  // Hindari tertutup oleh system bar
             ) {
                 Button(
                     onClick = {
-                    /* Aksi ketika tombol lanjut ditekan */
+                        /* Aksi ketika tombol lanjut ditekan */
                         val txnAmount = rawAmount.toLongOrNull()
                         if (txnAmount != null && txnAmount > 0) {
 //                            val formattedAmount = txnAmount.toString()
@@ -207,7 +221,7 @@ fun PaymentScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(Color(0xFFF0F0F0))  // Latar luar berwarna abu-abu
+                .background(BrightTeal20)  // Latar luar berwarna abu-abu
                 .pullRefresh(pullRefreshState)
         ) {
             Column(
@@ -291,22 +305,6 @@ fun PaymentScreen(
                                 OutlinedTextField(
                                     value = amount,
                                     onValueChange = { newValue ->
-//                                    if (newValue.text.all { it.isDigit() }) {
-//                                        amount = newValue
-//                                        val inputAmount = newValue.text.toLongOrNull() ?: 0
-//                                        if (inputAmount in 10000..20000000) {
-//                                            isValidAmount = true
-//                                            errorMessage = null
-//                                        } else {
-//                                            isValidAmount = false
-//                                            errorMessage = "Minimal Rp 10.000 dan Maksimal Rp 20.000.000"
-//                                        }
-//                                    } else if (newValue.text.isEmpty()) {
-//                                        isValidAmount = false
-//                                        errorMessage = null
-//                                        amount = newValue
-//                                    }
-
                                         val unformattedInput = newValue.text.replace(
                                             "[^\\d]".toRegex(),
                                             ""
@@ -399,4 +397,3 @@ fun PaymentScreen(
         }
     )
 }
-

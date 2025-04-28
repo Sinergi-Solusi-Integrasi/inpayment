@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
@@ -27,12 +28,15 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChangeCircle
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.SwapVerticalCircle
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
@@ -74,6 +78,9 @@ import org.koin.compose.getKoin
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.s2i.inpayment.ui.theme.BrightTeal20
+import com.s2i.inpayment.ui.theme.Gagal
+import com.s2i.inpayment.ui.theme.Success
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -118,23 +125,30 @@ fun DetailVehiclesScreen(
         onDismissRequest = { onDismiss() }, // Tutup saat swipe ke bawah
         sheetState = sheetState,
         scrimColor = Color.Black.copy(alpha = 0.3f),
-        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        dragHandle = null,
+        containerColor = MaterialTheme.colorScheme.background,
+        dragHandle = null
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.systemBars)
                 .padding(16.dp)
+                .background(BrightTeal20)
         ) {
             // Judul Detail Vehicle
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 24.dp, bottom = 16.dp),
+                horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Spacer(modifier = Modifier.width(8.dp))
+//                Icon(
+//                    imageVector = Icons.Filled.ArrowBack,
+//                    contentDescription = "Back",
+//                    tint = Color.Black
+//                )
                 Text(
                     text = "Detail Vehicle",
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
@@ -190,21 +204,41 @@ fun DetailVehiclesScreen(
                     DetailItem(label = "Color", value = selectedVehicle?.color ?: "-")
                     DetailItem(label = "Plate Number", value = selectedVehicle?.plateNumber ?: "-")
                     DetailItem(label = "Status", value = selectedVehicle?.status ?: "-")
-                    DetailItem(
-                        label = "Is Owner",
-                        value = if (selectedVehicle?.isOwner == true) "Yes" else "No"
-                    )
 
+                    // Khusus untuk item loaned
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Loaned",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onBackground
+                            )
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(
+                                    if(selectedVehicle?.isLoaned == true) Success else Gagal
+                                )
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                        ){
+                            Text(
+                                text = if(selectedVehicle?.isLoaned == true) "Yes" else "No",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.White
+                            )
+                        }
+                    }
                     if (selectedVehicle?.isLoaned == true) {
-                        DetailItem(label = "Is Loaned", value = "Yes")
-                        DetailItem(label = "Loaned At", value = loanedAtFormatted)
+                        DetailItem(label = "Loaned Until", value = loanedAtFormatted)
                         DetailItem(label = "Loan Expired At", value = loandExpiredAtFormatted)
                         DetailItem(
                             label = "Borrower User",
-                            value = (selectedVehicle.borrowerUserId?.take(10) + "...") ?: "-"
+                            value = (selectedVehicle?.borrowerUserId?.take(10) + "...") ?: "-"
                         )
-                    } else {
-                        DetailItem(label = "Is Loaned", value = "No")
                     }
                 }
             }

@@ -16,18 +16,46 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -38,11 +66,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
-import com.s2i.common.utils.convert.RupiahFormatter
 import com.s2i.data.local.auth.SessionManager
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.ReusableBottomSheet
-import com.s2i.inpayment.ui.components.services.notifications.NotificationWorker
+import com.s2i.inpayment.ui.theme.BrightTeal20
+import com.s2i.inpayment.ui.theme.Gagal
+import com.s2i.inpayment.ui.theme.GreenTeal40
+import com.s2i.inpayment.ui.theme.Pendding
+import com.s2i.inpayment.ui.theme.Success
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import com.s2i.inpayment.ui.viewmodel.QrisViewModel
 import com.s2i.inpayment.utils.NotificationManagerUtil
@@ -51,9 +82,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.io.OutputStream
-import androidx.compose.ui.draw.clip
-import com.s2i.inpayment.ui.components.permission.hasAllPermissions
-import com.s2i.inpayment.ui.theme.GreenTeal40
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -106,18 +134,6 @@ fun QrisScreen(
             Toast.makeText(context, "Izin diperlukan untuk menyimpan QRIS", Toast.LENGTH_SHORT).show()
         }
     }
-
-//    LaunchedEffect(Unit) {
-//        while (true) {
-//            val allPermissionsGranted = hasAllPermissions(context)
-//            if (!allPermissionsGranted) {
-//                navController.navigate("permission_screen") {
-//                    popUpTo("home_screen") { inclusive = true }
-//                }
-//            }
-//            delay(1000) // Check every second
-//        }
-//    }
 
     // Simulate loading on startup
     LaunchedEffect(Unit) {
@@ -180,37 +196,50 @@ fun QrisScreen(
 
     Scaffold(
         topBar = {
-            // Header
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Payment QRIS",
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black,
-                        fontSize = 18.sp
+            // Custom TopAppBar with perfect visual balance
+            Box(modifier = Modifier.fillMaxWidth()) {
+                TopAppBar(
+                    title = { /* Title intentionally left empty */ },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = {
+                                showBottomSheet = true
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color.Black
+                            )
+                        }
+                    },
+                    // Add an empty action to balance the layout
+                    actions = {
+                        // Empty spacer with same size as back button for visual balance
+                        Spacer(modifier = Modifier.width(48.dp))
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = BrightTeal20  // Header color
                     )
-                },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        showBottomSheet = true
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = "Back",
-                            tint = Color.Black
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White  // Header putih
                 )
-            )
+
+                // Centered title overlay
+                Text(
+                    text = "Payment QRIS",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    fontSize = 18.sp,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(top = 25.dp)
+                )
+            }
         },
         bottomBar = {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(BrightTeal20)
                     .padding(16.dp)
                     .navigationBarsPadding()
             ) {
@@ -246,7 +275,7 @@ fun QrisScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(Color(0xFFF0F0F0))  // Latar luar berwarna abu-abu
+                .background(BrightTeal20 )  // Latar luar berwarna abu-abu
                 .pullRefresh(pullRefreshState)
         ) {
             Column(
@@ -330,7 +359,11 @@ fun QrisScreen(
                                             else -> "Pembayaran Gagal: ${orderState.message}"
                                         },
                                         style = MaterialTheme.typography.bodyLarge,
-                                        color = statusColor,
+                                        color = when (orderState.rCode){
+                                            "00" -> Success
+                                            "99" -> Pendding
+                                            else -> Gagal
+                                        },
                                         textAlign = TextAlign.Center
                                     )
                                     orderState.trxId?.let { trxId ->

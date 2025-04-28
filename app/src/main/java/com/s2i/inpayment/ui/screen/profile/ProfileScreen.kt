@@ -74,6 +74,8 @@ import com.s2i.inpayment.ui.theme.BrightTeal
 import com.s2i.inpayment.ui.theme.BrightTeal20
 import com.s2i.inpayment.ui.theme.DarkTeal21
 import com.s2i.inpayment.ui.theme.DarkTeal40
+import com.s2i.inpayment.ui.theme.Gagal
+import com.s2i.inpayment.ui.theme.Gagal1
 import com.s2i.inpayment.ui.theme.Red500
 import com.s2i.inpayment.ui.theme.linearGradientBackground
 import com.s2i.inpayment.ui.viewmodel.AuthViewModel
@@ -252,9 +254,9 @@ fun ProfileScreen(
                     ) {
                         ProfileMenuItem(
                             icon = R.drawable.ic_logout,
-                            iconColor = Red500,
+                            iconColor = Gagal1,
                             title = "Logout",
-                            textColor = Color.Red,
+                            textColor = Gagal,
                             onClick = {
                                 if (!loadingLogout) {
                                     scope.launch {

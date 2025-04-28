@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -24,6 +25,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
@@ -51,7 +53,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.app.NotificationManagerCompat
+//import androidx.core.app.NotificationManagerCompat
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -63,6 +65,7 @@ import com.s2i.inpayment.ui.components.navigation.rememberSingleClickHandler
 import com.s2i.inpayment.ui.components.saveBitmapToFile
 import com.s2i.inpayment.ui.components.shareScreenshot
 import com.s2i.inpayment.ui.components.shimmer.balance.PaymentMethodItemShimmer
+import com.s2i.inpayment.ui.theme.BrightTeal20
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -108,7 +111,10 @@ fun PaymentMethodsScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(BrightTeal20)
+    ) {
         Spacer(modifier = Modifier.width(32.dp))
         // Header di posisi atas tetap
         Column(
@@ -119,45 +125,57 @@ fun PaymentMethodsScreen(
             // Spacer to push the content down
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Centered header with Close button on the left
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp, vertical = 16.dp),
             ) {
-                IconButton(
-                    onClick = {
-                        if (canClick()) {
-                            scope.launch {
-                                navController.navigateUp()
-                            }
-                        }
-                    },
-                    modifier = Modifier
-                        .size(16.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.onSecondary,
-                            shape = CircleShape
-                        )
+                // Close button on the left
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.CenterStart
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = "Close",
-                        tint = MaterialTheme.colorScheme.onBackground
+                    IconButton(
+                        onClick = {
+                            if (canClick()) {
+                                scope.launch {
+                                    navController.navigateUp()
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .size(32.dp)
+                            .offset(x = (-14).dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                }
+
+                // Centered title
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Top Up",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = MaterialTheme.typography.titleLarge.fontSize,
                     )
                 }
-                Spacer(modifier = Modifier.width(24.dp))
 
-                Text(
-                    text = "Top Up",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                    modifier = Modifier
-                        .padding(vertical = 8.dp)
+                // Empty space with same weight on the right for balance
+                Box(
+                    modifier = Modifier.weight(1f)
                 )
-
             }
+
             // Tampilkan loading jika masih dalam kondisi loading
             if (showLoading) {
                 CustomLinearProgressIndicator(
@@ -255,7 +273,7 @@ fun PaymentMethodItem(
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFF5F5F5))
+            .background(Color.White)
             .clickable { onClick() }
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
