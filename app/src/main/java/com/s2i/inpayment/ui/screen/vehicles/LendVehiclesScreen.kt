@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -45,10 +46,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.s2i.inpayment.ui.components.navigation.rememberSingleClickHandler
 import com.s2i.inpayment.ui.theme.BrightTeal
+import com.s2i.inpayment.ui.theme.BrightTeal20
 import com.s2i.inpayment.ui.theme.DarkGreen
 import com.s2i.inpayment.ui.viewmodel.VehiclesViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.Duration
 import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.TimeZone
@@ -65,8 +70,13 @@ fun LendVehiclesScreen(
     vehiclesViewModel: VehiclesViewModel,
     onDismissAll: (() -> Unit)? = null
 ) {
+    LaunchedEffect(vehicleId) {
+        // Check if we're navigating to a different vehicle than the last one
+        vehiclesViewModel.handleVehiclesChange(vehicleId)
+    }
     val lendVehiclesState by vehiclesViewModel.lendVehiclesState.collectAsState()
-    val vehiclesState = vehiclesViewModel.getVehiclesState.collectAsState()
+    var showBottomSheet by remember {mutableStateOf(false)}
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val errorState by vehiclesViewModel.error.collectAsState()
     val canClick = rememberSingleClickHandler()
 
@@ -78,8 +88,8 @@ fun LendVehiclesScreen(
     val today = LocalDate.now()
     var selectedStartDate by remember { mutableStateOf(today) }
     var selectedEndDate by remember { mutableStateOf(today.plusDays(6)) }
-    var currentMonth by remember { mutableStateOf(today.monthValue) }
-    var currentYear by remember { mutableStateOf(today.year) }
+    var currentMonth by remember { mutableIntStateOf(today.monthValue) }
+    var currentYear by remember { mutableIntStateOf(today.year) }
 
     // Define calendarHighlight color
     val calendarHighlight = DarkGreen.copy(alpha = 0.25f)
@@ -97,8 +107,34 @@ fun LendVehiclesScreen(
     }
 
     var formattedDueDate by remember { mutableStateOf(formatDisplayDate(today)) }   // Default value for demo
-    var token by remember { mutableStateOf<String?>(null) }
-    var screenState by remember { mutableIntStateOf(0) } // 0: Account input, 1: Calendar, 2: Token
+    var token by remember { mutableStateOf<String?>(vehiclesViewModel.getTokenForVehicles(vehicleId)) }
+    var isTokenExpired by remember { mutableStateOf(false) }
+    var remainingTime by remember { mutableStateOf("") }
+    val expiredAt = lendVehiclesState?.data?.token?.expiredAt
+    fun calculateRemainingTime(expiryTimeStr: String?): String {
+        if (expiryTimeStr == null) return "00:00:00"
+
+        return try {
+            val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
+            val expiryTime = OffsetDateTime.parse(expiryTimeStr, formatter)
+            val now = OffsetDateTime.now()
+
+            if (now.isAfter(expiryTime)) {
+                isTokenExpired = true
+                return "00:00:00"
+            }
+
+            val duration = Duration.between(now, expiryTime)
+            val hours = duration.toHours()
+            val minutes = duration.toMinutes() % 60
+            val seconds = duration.seconds % 60
+
+            String.format("%02d:%02d:%02d", hours, minutes, seconds)
+        } catch(e: Exception) {
+            "00:00:00"
+        }
+    }
+    var screenState by remember(vehicleId) { mutableIntStateOf(if (token.isNullOrEmpty()) 0 else 1) }
     val context = LocalContext.current
     val isLoading by vehiclesViewModel.loading.collectAsState()
     val scope = rememberCoroutineScope()
@@ -110,9 +146,14 @@ fun LendVehiclesScreen(
     val lightGrayBackground = Color(0xFFCDCBCB)
 
     BackHandler(enabled = true) {
-        if (canClick()) {
-            scope.launch {
-                navController.navigateUp()
+        if (screenState == 1 || token != null) {
+            showBottomSheet = true
+        } else {
+            // Navigasi normal jika bukan di token screen
+            if (canClick()) {
+                scope.launch {
+                    navController.navigateUp()
+                }
             }
         }
     }
@@ -167,7 +208,12 @@ fun LendVehiclesScreen(
     LaunchedEffect(lendVehiclesState, errorState) {
         lendVehiclesState?.data?.token?.let { responseToken ->
             if (errorState == null) {
-                token = responseToken.token
+                // Update token data
+                token = vehiclesViewModel.getTokenForVehicles(vehicleId)
+
+                // Check if token is expired
+                isTokenExpired = vehiclesViewModel.isTokenExpired(expiredAt)
+
                 screenState = 1 // Move to token screen
             }
         }
@@ -178,6 +224,23 @@ fun LendVehiclesScreen(
                 "Oops! Sepertinya ada yang salah dengan account number-nya",
                 Toast.LENGTH_LONG
             ).show()
+        }
+    }
+
+    LaunchedEffect(token, screenState) {
+        if (screenState == 1 && token != null && !isTokenExpired) {
+            while (true) {
+                lendVehiclesState?.data?.token?.expiredAt?.let { expiredAt ->
+                    remainingTime = calculateRemainingTime(expiredAt)
+
+                    // Stop countdown and update UI when token expires
+                    if (remainingTime == "00:00:00") {
+                        isTokenExpired = true
+                    }
+                }
+
+                delay(1000) // Update every second
+            }
         }
     }
 
@@ -195,9 +258,14 @@ fun LendVehiclesScreen(
                 navigationIcon = {
                     IconButton(onClick = {
                         // Fixed: Call handleDismiss function properly
-                        if (canClick()) {
-                            scope.launch {
-                                navController.navigateUp()
+                        if (screenState == 1 || token != null) {
+                            showBottomSheet = true
+                        } else {
+                            // Navigasi normal jika bukan di token screen
+                            if (canClick()) {
+                                scope.launch {
+                                    navController.navigateUp()
+                                }
                             }
                         }
 
@@ -227,6 +295,42 @@ fun LendVehiclesScreen(
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
 
+                if (screenState == 1) {
+                    // Header dengan Expired Token dan Timer
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Expired Token",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = DarkGreen,
+                            fontWeight = FontWeight.Medium
+                        )
+
+                        // Timer badge dengan background kuning
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = Color(0xFFFFD54F),  // Warna kuning
+                            modifier = Modifier.height(32.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = remainingTime,
+                                    color = Color.Black,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                    }
+                }
                 Box(
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -445,10 +549,10 @@ fun LendVehiclesScreen(
                                                     .clickable(enabled = day != null && !isPastDay) {
                                                         if (day != null) {
                                                             selectedStartDate = day
-                                                            if (day == today) {
-                                                                formattedDueDate = formatDisplayDate(selectedStartDate)
+                                                            formattedDueDate = if (day == today) {
+                                                                formatDisplayDate(selectedStartDate)
                                                             } else {
-                                                                formattedDueDate = formatDisplayDate(selectedStartDate)
+                                                                formatDisplayDate(selectedStartDate)
                                                             }
                                                             dueDate = formatForServer(selectedStartDate)
                                                         }
@@ -531,56 +635,58 @@ fun LendVehiclesScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
 
-                        // Vehicle info card
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = Color.White
-                            )
+                    // Vehicle info card
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color.White
+                        )
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    // Text di tengah secara independen
-                                    Text(
-                                        text = token ?: "", // Fallback to example
-                                        style = MaterialTheme.typography.headlineLarge,
-                                        color = Color.Black,
-                                        fontWeight = FontWeight.Bold,
-                                        textAlign = TextAlign.Center,
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
 
-                                        Icon(
-                                            imageVector = Icons.Default.ContentCopy,
-                                            contentDescription = "Copy Account Number",
-                                            modifier = Modifier
-                                                .size(16.dp)
-                                                .clickable {
-                                                    val clipboardManager =
-                                                        context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                                    val clip = ClipData.newPlainText(
-                                                        "Token",
-                                                        lendVehiclesState?.data?.token?.token ?: ""
-                                                    )
-                                                    clipboardManager.setPrimaryClip(clip)
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Token disalin!",
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
-                                                },
-                                            tint = BrightTeal
-                                        )
-                                }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                // Text di tengah secara independen
+                                Text(
+                                    text = token ?: "", // Fallback to example
+                                    style = MaterialTheme.typography.headlineLarge,
+                                    color = Color.Black,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center,
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
 
+                                Icon(
+                                    imageVector = Icons.Default.ContentCopy,
+                                    contentDescription = "Copy Account Number",
+                                    modifier = Modifier
+                                        .size(16.dp)
+                                        .clickable {
+                                            val clipboardManager =
+                                                context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                            val clip = ClipData.newPlainText(
+                                                "Token",
+                                                lendVehiclesState?.data?.token?.token ?: ""
+                                            )
+                                            clipboardManager.setPrimaryClip(clip)
+                                            Toast.makeText(
+                                                context,
+                                                "Token disalin!",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        },
+                                    tint = BrightTeal
+                                )
                             }
+
                         }
+                    }
 
                     Spacer(modifier = Modifier.height(8.dp))
 
@@ -606,10 +712,11 @@ fun LendVehiclesScreen(
                                 // Done
                                 if (canClick()) {
                                     scope.launch {
+                                        navController.popBackStack()
                                         navController.navigate("intro_vehicle_screen"){
-                                            popUpTo("intro_vehicle_screen") {
-                                                saveState = false
+                                            popUpTo("lend_vehicle_screen") {
                                                 inclusive = true
+                                                saveState = false
                                             }
                                         }
                                     }
@@ -644,6 +751,93 @@ fun LendVehiclesScreen(
                 }
             }
 
+        }
+        if(showBottomSheet){
+            ModalBottomSheet(
+                onDismissRequest = {
+                    showBottomSheet = false
+                },
+                sheetState = bottomSheetState,
+                containerColor = BrightTeal20,
+                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Judul
+                    Text(
+                        text = "Konfirmasi",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Apakah Anda yakin ingin keluar? Token yang sudah didapatkan akan hilang",
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                        color = DarkGreen
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Tombol Cancel
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                showBottomSheet = false
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = darkGreen
+                        )
+                    ) {
+                        Text(
+                            text = "Tidak, Tetap di Halaman Ini",
+                            fontSize = 16.sp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Tombol Confirm
+                    OutlinedButton(
+                        onClick = {
+                            scope.launch {
+                                showBottomSheet = false
+                                navController.navigateUp()
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        border = BorderStroke(1.dp, darkGreen),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = darkGreen
+                        )
+                    ) {
+                        Text(
+                            text = "Ya, Keluar",
+                            fontSize = 16.sp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+
+            }
         }
     }
 }
