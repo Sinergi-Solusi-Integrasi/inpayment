@@ -279,7 +279,15 @@ fun DetailVehiclesScreen(
                             isLoading = isLoading,
                             isSelected = false,
                             onClick = {
-                                showLendBottomSheet = true
+                                onDismiss()
+
+                                // Navigasi ke LendVehiclesScreen dengan parameter
+                                navController.navigate(
+                                    "lend_vehicle_screen/${vehicleId}" +
+                                            "?brand=${selectedVehicle?.brand ?: ""}" +
+                                            "&model=${selectedVehicle?.model ?: ""}" +
+                                            "&plateNumber=${selectedVehicle?.plateNumber ?: ""}"
+                                )
                             },
                         )
                     } else {
@@ -334,17 +342,7 @@ fun DetailVehiclesScreen(
             sheetState = lendSheetState,
             onDismiss = { showLendBottomSheet = false }
         ) {
-            LendVehiclesScreen(
-                navController = navController,
-                vehicleId = vehicleId,
-                vehiclesViewModel = vehiclesViewModel,
-                onDismissAll = {
-                    showLendBottomSheet = false
-                    navController.navigate("vehicles_screen"){
-                        popUpTo("vehicles_screen") { inclusive = true }
-                    } // Kembali ke VehiclesScreen
-                }
-            )
+
         }
     }
 }
