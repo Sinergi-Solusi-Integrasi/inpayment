@@ -738,6 +738,15 @@ fun LendVehiclesScreen(
                             1 -> {
                                 // Done
                                 if (canClick()) {
+                                    // Clear token and all state data for this vehicle
+                                    vehiclesViewModel.clearTokenForVehicles(vehicleId)
+
+                                    // Reset UI states
+                                    token = null
+                                    remainingTime = "00:00:00"
+                                    isTokenExpired = false
+                                    screenState = 0
+
                                     scope.launch {
                                         navController.popBackStack()
                                         navController.navigate("intro_vehicle_screen"){
