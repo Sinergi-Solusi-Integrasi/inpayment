@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.s2i.inpayment.ui.viewmodel.VehiclesViewModel
@@ -52,7 +51,6 @@ fun LoansVehiclesScreen(
     val isLoading by vehiclesViewModel.loading.collectAsState()
 
     isTokenValid = token.length == 6
-
 
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
@@ -90,6 +88,7 @@ fun LoansVehiclesScreen(
             label = { Text("Token") },
             isError = !isTokenValid && token.isNotEmpty(),
             modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp), // Updated the corner radius to match the design
             trailingIcon = if (!isTokenValid && token.isNotEmpty()) {
                 {
                     Icon(
@@ -107,7 +106,8 @@ fun LoansVehiclesScreen(
             Text(
                 text = "Invalid Token",
                 color = Color.Red,
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier
+                    .padding(top = 4.dp)
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -128,16 +128,19 @@ fun LoansVehiclesScreen(
             onClick = {
                 if (isTokenValid) {
                     vehiclesViewModel.loansVehicles(token)
-
                 } else {
                     errorMessage = "Token tidak valid"
                     Toast.makeText(context, "Oops! Token tidak valid", Toast.LENGTH_SHORT).show()
                 }
             },
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF1B5E20) // Dark green color to match the design
+            ),
+            shape = RoundedCornerShape(28.dp), // Updated to match the rounded button in the design
             enabled = isFormValid,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp) // Made the button taller to match the design
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
@@ -152,6 +155,3 @@ fun LoansVehiclesScreen(
         }
     }
 }
-
-
-

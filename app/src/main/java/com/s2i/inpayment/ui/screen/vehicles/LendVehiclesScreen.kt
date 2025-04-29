@@ -727,12 +727,12 @@ fun LendVehiclesScreen(
                     enabled = if (screenState == 0) isAccountValid else true,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = darkGreen,
                         disabledContainerColor = Color.LightGray
                     ),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(28.dp)
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(
