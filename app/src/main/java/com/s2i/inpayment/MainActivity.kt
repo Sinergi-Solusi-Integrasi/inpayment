@@ -20,6 +20,7 @@ import com.s2i.inpayment.ui.theme.InPaymentTheme
 class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
     private var pendingTransactionId: String? = null
+    private var pendingQrisInfo: Triple<String, String, Int>? = null
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,10 +30,22 @@ class MainActivity : ComponentActivity() {
         NetworkUtils.initializeNetworkCallback(this)
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        val transactionId = intent?.getStringExtra("transaction_id")
+        // Periksa jika ada intent dari notifikasi QRIS
+        if (intent?.action == "ACTION_OPEN_QRIS") {
+            val qrisCode = intent.getStringExtra("EXTRA_QRIS_CODE")
+            val trxId = intent.getStringExtra("EXTRA_TRX_ID")
+            val amount = intent.getIntExtra("EXTRA_AMOUNT", 0)
 
-        if (!transactionId.isNullOrBlank()) {
-            pendingTransactionId = transactionId
+            if (!qrisCode.isNullOrEmpty() && !trxId.isNullOrEmpty()) {
+                pendingQrisInfo = Triple(qrisCode, trxId, amount)
+                Log.d("MainActivity", "📲 Intent QRIS diterima: qrisCode=$qrisCode, trxId=$trxId, amount=$amount")
+            }
+        } else {
+            // Handle intent biasa
+            val transactionId = intent?.getStringExtra("transaction_id")
+            if (!transactionId.isNullOrBlank()) {
+                pendingTransactionId = transactionId
+            }
         }
 
         setContent {
@@ -57,6 +70,15 @@ class MainActivity : ComponentActivity() {
                         }
                         pendingTransactionId = null
                     }
+
+                    // Handle QRIS dari notifikasi
+                    pendingQrisInfo?.let { (qrisCode, trxId, amount) ->
+                        Log.d("MainActivity", "Navigasi ke QRIS screen: qrisCode=$qrisCode, trxId=$trxId, amount=$amount")
+                        navController.navigate("qris_screen/$qrisCode/$trxId/$amount"){
+                            popUpTo("home_screen") { inclusive = false }
+                        }
+                        pendingQrisInfo = null
+                    }
                 }
             }
         }
@@ -66,24 +88,39 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
 
-        val transactionId = intent.getStringExtra("transaction_id") // Gunakan "transaction_id" yang benar
-        Log.d("MainActivity", "📲 onNewIntent: transactionId = $transactionId")
+        if (intent.action == "ACTION_OPEN_QRIS") {
+            val qrisCode = intent.getStringExtra("EXTRA_QRIS_CODE")
+            val trxId = intent.getStringExtra("EXTRA_TRX_ID")
+            val amount = intent.getIntExtra("EXTRA_AMOUNT", 0)
 
-        if (transactionId.isNullOrBlank()) {
-            Log.e("MainActivity", "❌ onNewIntent: transactionId null atau kosong, tidak melakukan navigasi.")
-            return
-        }
+            Log.d("MainActivity", "📲 onNewIntent: QRIS intent diterima")
 
-        if (::navController.isInitialized && navController.graph.startDestinationRoute != null) {
-            Log.d("MainActivity", "✅ onNewIntent: Navigasi ke detail transaksi")
-            if (navController.currentDestination?.route != "detail_transaksi_screen/$transactionId") {
-                navController.navigate("detail_transaksi_screen/$transactionId") {
+            if (qrisCode.isNullOrEmpty() || trxId.isNullOrEmpty()) {
+                Log.e("MainActivity", "❌ onNewIntent: Data QRIS tidak lengkap")
+                return
+            }
+
+            if (::navController.isInitialized && navController.graph.startDestinationRoute != null) {
+                Log.d("MainActivity", "✅ onNewIntent: Navigasi ke QrisScreen")
+                navController.navigate("qris_screen/$qrisCode/$trxId/$amount"){
                     popUpTo("home_screen") { inclusive = false }
                 }
+            } else {
+                Log.w("MainActivity", "⚠️ navController belum siap, menyimpan data untuk navigasi nanti")
+                pendingQrisInfo = Triple(qrisCode, trxId, amount)
             }
         } else {
-            Log.w("MainActivity", "⚠️ navController belum siap, menyimpan transactionId untuk navigasi nanti")
-            pendingTransactionId = transactionId
+            // Handle intent biasa
+            val transactionId = intent.getStringExtra("transaction_id")
+            if (!transactionId.isNullOrBlank()) {
+                if (::navController.isInitialized && navController.graph.startDestinationRoute != null) {
+                    navController.navigate("detail_transaksi_screen/$transactionId") {
+                        popUpTo("home_screen") { inclusive = false }
+                    }
+                } else {
+                    pendingTransactionId = transactionId
+                }
+            }
         }
     }
 

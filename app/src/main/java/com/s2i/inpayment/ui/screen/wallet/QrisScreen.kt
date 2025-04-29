@@ -146,8 +146,15 @@ fun QrisScreen(
 
     LaunchedEffect(trxId) {
         trxId?.let {
+            // Save qrisdata
+            if (qrisState != null && amount != null) {
+                NotificationManagerUtil.saveQrisData(context, it, qrisState, amount)
+                Log.d("QrisScreen", "Data QRIS disimpan: qrisCode=${qrisState}, trxId=${it}, amount=${amount}")
+            }
             var lastState: String? = null
-            while (true) {
+            var retryCount = 0
+            val maxRetries = 360
+            while (retryCount < maxRetries) {
                 try {
                     qrisViewModel.orderQuery(it)
 
@@ -182,14 +189,24 @@ fun QrisScreen(
                                 paymentMethod = "QRIS"
                             )
                             break
+                        } else if (currentStatus !="99") {
+                            Log.d("QrisScreen", "Stopping polling: Pembayaran gagal.")
+                            break
                         }
                     }
+                    retryCount++
+                    val delay = if (retryCount > 20) 15000L else if (retryCount > 10) 10000L else 5000L
+                    delay(delay)
                 } catch (e: Exception) {
                     Log.e("QrisScreen", "Error during order query: ${e.message}")
+                    retryCount++
+                    // Tunggu 5 detik sebelum polling berikutnya
+                    delay(5000L)
                 }
-
-                // Tunggu 5 detik sebelum polling berikutnya
-                delay(1000L)
+            }
+            if (retryCount >= maxRetries) {
+                Log.d("QrisScreen", "Max retries reached. Stopping polling.")
+                NotificationManagerUtil.showNotification(context, trxId = it, title = "Status Pembayaran", messageBody = "Waktu pembayaran habis")
             }
         }
     }

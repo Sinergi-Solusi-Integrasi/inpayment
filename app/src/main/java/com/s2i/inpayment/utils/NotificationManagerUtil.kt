@@ -11,82 +11,10 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.s2i.inpayment.MainActivity
 import com.s2i.inpayment.R
 
 object NotificationManagerUtil {
-
-//    private const val CHANNEL_ID = "default_channel"
-//    const val TRANSACTION_CHANNEL_ID = "transaction_channel"
-//    private const val CHAT_CHANNEL_ID = "chat_channel"
-//    private const val REMINDER_CHANNEL_ID = "reminder_channel"
-//
-//    private const val TRANSACTION_GROUP_KEY = "transaction_notifications"
-//    private const val CHAT_GROUP_KEY = "chat_notifications"
-//    private const val REMINDER_GROUP_KEY = "reminder_notifications"
-//
-//    fun showExpandableNotification(
-//        context: Context,
-//        title: String,
-//        message: String,
-//        channelId: String,
-//        notificationId: Int
-//    ) {
-//        val notificationManager =
-//            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-//
-//        // Tentukan group key berdasarkan channel ID
-//        val groupKey = when (channelId) {
-//            TRANSACTION_CHANNEL_ID -> TRANSACTION_GROUP_KEY
-//            CHAT_CHANNEL_ID -> CHAT_GROUP_KEY
-//            REMINDER_CHANNEL_ID -> REMINDER_GROUP_KEY
-//            else -> "default_notifications"
-//        }
-//
-//        // Buat Notification Channel (untuk Android Oreo ke atas)
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            val channelName = when (channelId) {
-//                TRANSACTION_CHANNEL_ID -> "Transaction Notification"
-//                CHAT_CHANNEL_ID -> "Chat Notification"
-//                REMINDER_CHANNEL_ID -> "Reminder Notification"
-//                else -> "Default Notification"
-//            }
-//
-//            val notificationChannel = NotificationChannel(
-//                channelId,
-//                channelName,
-//                NotificationManager.IMPORTANCE_HIGH
-//            )
-//            notificationManager.createNotificationChannel(notificationChannel)
-//        }
-//
-//        // Intent untuk aksi saat notifikasi di klik (opsional)
-////        val intent = Intent(context, TargetActivity::class.java).apply {
-////            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-////        }
-////        val pendingIntent: PendingIntent = PendingIntent.getActivity(
-////            context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT
-////        )
-//
-//        // Gaya BigText untuk expandable notification
-//        val style = NotificationCompat.BigTextStyle()
-//            .bigText(message)
-//            .setBigContentTitle(title)
-//
-//        // Membuat notifikasi
-//        val notification: Notification = NotificationCompat.Builder(context, channelId)
-//            .setSmallIcon(R.drawable.logo_loading)
-//            .setContentTitle(title)
-//            .setContentText(message)
-//            .setStyle(style)
-//            .setPriority(NotificationCompat.PRIORITY_HIGH) // Prioritas tinggi
-//            .setGroup(groupKey)
-////            .setContentIntent(pendingIntent) // Aksi saat notifikasi di klik
-//            .setAutoCancel(true) // Hilangkan notifikasi setelah di klik
-//            .build()
-//
-//        // Tampilkan notifikasi
-//        notificationManager.notify(notificationId, notification)
-//    }
 
     fun showNotification(context: Context, trxId: String, title: String, messageBody: String) {
         val channelId = "CheckStatusChannel"
@@ -109,6 +37,33 @@ object NotificationManagerUtil {
             notificationManager.createNotificationChannel(channel)
         }
 
+        // Ambil qrisCode dan amount dari shared preferences atau sumber lain
+        val sharedPrefs = context.getSharedPreferences("qris_data", Context.MODE_PRIVATE)
+        val qrisCode = sharedPrefs.getString("qris_code_$trxId", "")
+        val amount = sharedPrefs.getInt("amount_$trxId", 0)
+
+        // Buat Intent untuk membuka QrisScreen
+        val intent = Intent(context, MainActivity::class.java).apply {
+            action = "ACTION_OPEN_QRIS"
+            putExtra("EXTRA_QRIS_CODE", qrisCode)
+            putExtra("EXTRA_TRX_ID", trxId)
+            putExtra("EXTRA_AMOUNT", amount)
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+
+        val pendingIntentFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            trxId.hashCode(), // Unique request code based on trxId
+            intent,
+            pendingIntentFlag
+        )
+
         // Format Pesan notifikasi
         val formattedMessage = when {
             messageBody.contains("Pembayaran Berhasil",  ignoreCase = true) -> "Pembayaran Anda telah berhasil. Terima kasih!"
@@ -123,7 +78,17 @@ object NotificationManagerUtil {
             .setContentText(formattedMessage)
             .setAutoCancel(true)
             .setSound(defaultSoundUri)
+            .setContentIntent(pendingIntent)
 
         NotificationManagerCompat.from(context).notify(trxId.hashCode(), notificationBuilder.build())
+    }
+    // Tambahkan metode untuk menyimpan data QRIS ke shared preferences
+    fun saveQrisData(context: Context, trxId: String, qrisCode: String, amount: Int) {
+        val sharedPrefs = context.getSharedPreferences("qris_data", Context.MODE_PRIVATE)
+        sharedPrefs.edit().apply {
+            putString("qris_code_$trxId", qrisCode)
+            putInt("amount_$trxId", amount)
+            apply()
+        }
     }
 }
