@@ -70,10 +70,7 @@ fun LendVehiclesScreen(
     vehiclesViewModel: VehiclesViewModel,
     onDismissAll: (() -> Unit)? = null
 ) {
-    LaunchedEffect(vehicleId) {
-        // Check if we're navigating to a different vehicle than the last one
-        vehiclesViewModel.handleVehiclesChange(vehicleId)
-    }
+
     val lendVehiclesState by vehiclesViewModel.lendVehiclesState.collectAsState()
     var showBottomSheet by remember {mutableStateOf(false)}
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -107,10 +104,11 @@ fun LendVehiclesScreen(
     }
 
     var formattedDueDate by remember { mutableStateOf(formatDisplayDate(today)) }   // Default value for demo
-    var token by remember { mutableStateOf<String?>(vehiclesViewModel.getTokenForVehicles(vehicleId)) }
+    var token by remember(vehicleId) { mutableStateOf<String?>(vehiclesViewModel.getTokenForVehicles(vehicleId)) }
     var isTokenExpired by remember { mutableStateOf(false) }
     var remainingTime by remember { mutableStateOf("") }
     val expiredAt = lendVehiclesState?.data?.token?.expiredAt
+    var screenState by remember(vehicleId) { mutableIntStateOf(if (token.isNullOrEmpty()) 0 else 1) }
     fun calculateRemainingTime(expiryTimeStr: String?): String {
         if (expiryTimeStr == null) return "00:00:00"
 
@@ -134,7 +132,25 @@ fun LendVehiclesScreen(
             "00:00:00"
         }
     }
-    var screenState by remember(vehicleId) { mutableIntStateOf(if (token.isNullOrEmpty()) 0 else 1) }
+
+    LaunchedEffect(vehicleId) {
+        // Check if we're navigating to a different vehicle than the last one
+        vehiclesViewModel.handleVehiclesChange(vehicleId)
+        token = vehiclesViewModel.getTokenForVehicles(vehicleId)
+        screenState = if (token.isNullOrEmpty()) 0 else 1
+
+        if (token != null && screenState == 1){
+            val storedExpiryTime = vehiclesViewModel.getTokenExpirationTime(vehicleId)
+            if (storedExpiryTime != null) {
+                isTokenExpired = vehiclesViewModel.isTokenForVehicleExpired(storedExpiryTime)
+                remainingTime = calculateRemainingTime(storedExpiryTime)
+            }
+        } else {
+            isTokenExpired = true
+            remainingTime = "00:00:00"
+        }
+    }
+
     val context = LocalContext.current
     val isLoading by vehiclesViewModel.loading.collectAsState()
     val scope = rememberCoroutineScope()
@@ -230,13 +246,20 @@ fun LendVehiclesScreen(
     LaunchedEffect(token, screenState) {
         if (screenState == 1 && token != null && !isTokenExpired) {
             while (true) {
-                lendVehiclesState?.data?.token?.expiredAt?.let { expiredAt ->
-                    remainingTime = calculateRemainingTime(expiredAt)
+                val expiryTime = lendVehiclesState?.data?.token?.expiredAt
+                    ?: vehiclesViewModel.getTokenExpirationTime(vehicleId)
+
+                if (expiryTime != null){
+                    remainingTime = calculateRemainingTime(expiryTime)
 
                     // Stop countdown and update UI when token expires
                     if (remainingTime == "00:00:00") {
                         isTokenExpired = true
                     }
+                } else {
+                    remainingTime = "00:00:00"
+                    isTokenExpired = true
+                    break
                 }
 
                 delay(1000) // Update every second
@@ -295,7 +318,7 @@ fun LendVehiclesScreen(
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
 
-                if (screenState == 1) {
+                if (screenState == 1 && token != null && !isTokenExpired && remainingTime != "00:00:00" ) {
                     // Header dengan Expired Token dan Timer
                     Row(
                         modifier = Modifier
@@ -312,23 +335,27 @@ fun LendVehiclesScreen(
                         )
 
                         // Timer badge dengan background kuning
-                        Surface(
-                            shape = RoundedCornerShape(16.dp),
-                            color = Color(0xFFFFD54F),  // Warna kuning
-                            modifier = Modifier.height(32.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                                contentAlignment = Alignment.Center
+
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = Color(0xFFFFD54F),  // Warna kuning
+                                modifier = Modifier.height(32.dp)
                             ) {
-                                Text(
-                                    text = remainingTime,
-                                    color = Color.Black,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Medium
-                                )
+                                Box(
+                                    modifier = Modifier.padding(
+                                        horizontal = 12.dp,
+                                        vertical = 4.dp
+                                    ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = remainingTime,
+                                        color = Color.Black,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
                             }
-                        }
                     }
                 }
                 Box(

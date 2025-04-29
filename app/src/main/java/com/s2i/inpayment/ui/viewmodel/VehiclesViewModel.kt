@@ -88,9 +88,14 @@ class VehiclesViewModel(
     val vehicleUrisState: MutableStateFlow<List<String>> = _vehicleUrisState
 
     private val _vehiclesTokenMap = mutableMapOf<String, String>()
+    // Keep track of token expiration times
+    private val tokenExpirationTimes = mutableMapOf<String, String>()
     private var lastVehiclesId: String? = null
-    private fun saveTokenForVehicles(vehicleId: String, token: String){
+    private fun saveTokenForVehicles(vehicleId: String, token: String, expiredAt: String?){
         _vehiclesTokenMap[vehicleId] = token
+        if (expiredAt != null){
+            tokenExpirationTimes[vehicleId] = expiredAt
+        }
         Log.d("VehiclesViewModel", "Token saved for vehicle $vehicleId: $token")
     }
 
@@ -107,24 +112,40 @@ class VehiclesViewModel(
         }
     }
 
+    // Check if token for a specific vehicle is expired
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun isTokenForVehicleExpired(vehicleId: String): Boolean {
+        val expiryTimeStr = tokenExpirationTimes[vehicleId] ?: return true
+        return isTokenExpired(expiryTimeStr)
+    }
+
     fun getTokenForVehicles(vehicleId: String): String?{
         return _vehiclesTokenMap[vehicleId]
+    }
+    // Get expiration time for a vehicle token
+    fun getTokenExpirationTime(vehicleId: String): String? {
+        return tokenExpirationTimes[vehicleId]
     }
 
     fun hasTokenForVehicles(vehicleId: String): Boolean{
         return _vehiclesTokenMap.containsKey(vehicleId)
     }
 
-    fun handleVehiclesChange(newVehiclesId: String){
-        if (lastVehiclesId != null && lastVehiclesId != newVehiclesId){
-            clearTokenForVehicles(newVehiclesId)
+    fun handleVehiclesChange(newVehicleId: String) {
+        if (lastVehiclesId != null && lastVehiclesId != newVehicleId) {
+            // We're switching to a different vehicle, clear the state for the new vehicle ID
+            // Notice we're NOT clearing the token here, just resetting the UI state
+            _lendVehiclesState.value = null
+            _error.value = null
         }
+
         // Update the last vehicle ID
-        lastVehiclesId = newVehiclesId
+        lastVehiclesId = newVehicleId
     }
 
     fun clearTokenForVehicles(vehicleId: String) {
-//        _vehiclesTokenMap.remove(vehicleId)
+        _vehiclesTokenMap.remove(vehicleId)
+        tokenExpirationTimes.remove(vehicleId)
 
         // Reset lending state
         _lendVehiclesState.value = null
@@ -349,7 +370,7 @@ class VehiclesViewModel(
                 Log.d("VehiclesViewModel", "Lend vehicles success: ${result.message}")
                 // Save token with vehiclesid if success
                 result.data?.token?.token?.let { token ->
-                    saveTokenForVehicles(vehicleId, token)
+                    saveTokenForVehicles(vehicleId, token, expiredAt)
                 }
 
                 _lendVehiclesState.value = result
