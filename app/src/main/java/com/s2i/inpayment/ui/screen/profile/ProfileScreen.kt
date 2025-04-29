@@ -21,8 +21,11 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -165,109 +168,116 @@ fun ProfileScreen(
                 .background(BrightTeal20) // Light gray background
                 .padding(paddingValues)
         ) {
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp) // Jarak otomatis antar item
             ) {
-                if (loading && usersState == null) {
-                    ProfileCardShimmer()
-                } else {
-                    // Profile card with gradient background
-                    if (usersState != null) {
+                // Item 1: Profile Card
+                item {
+                    if (loading && usersState == null) {
+                        ProfileCardShimmer()
+                    } else if (usersState != null) {
                         ProfileCard(navController, sessionManager, scope, usersState)
                     } else {
                         ProfileCardShimmer()
                     }
+                }
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // First menu group (with white background card)
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        shape = RoundedCornerShape(16.dp),
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            ProfileMenuItem(
-                                icon = Icons.Default.DirectionsCarFilled,
-                                title = buildString {
-        append("Vehicles")
-    },
-                                onClick = {
-                                    navController.navigate("vehicles_screen") {
-                                        popUpTo("profile_screen") { inclusive = false }
+                // Hanya tampilkan menu item jika tidak loading atau data tersedia
+                if (!loading || usersState != null) {
+                    // Item 2: First menu group
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            shape = RoundedCornerShape(16.dp),
+                        ) {
+                            Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                                ProfileMenuItem(
+                                    icon = Icons.Default.DirectionsCarFilled,
+                                    title = "Vehicles",
+                                    onClick = {
+                                        navController.navigate("vehicles_screen") {
+                                            popUpTo("profile_screen") { inclusive = false }
+                                        }
                                     }
-                                }
-                            )
-                            ProfileMenuItem(
-                                icon = Icons.Default.Receipt,
-                                title = "All transactions",
-                                onClick = {
-                                    navController.navigate("history_screen") {
-                                        popUpTo("profile_screen") { inclusive = false }
+                                )
+                                ProfileMenuItem(
+                                    icon = Icons.Default.Receipt,
+                                    title = "All transactions",
+                                    onClick = {
+                                        navController.navigate("history_screen") {
+                                            popUpTo("profile_screen") { inclusive = false }
+                                        }
                                     }
-                                }
-                            )
-                            ProfileMenuItem(
-                                icon = R.drawable.ic_help,
-                                title = "Help and support",
-                                onClick = { }
-                            )
+                                )
+                                ProfileMenuItem(
+                                    icon = R.drawable.ic_help,
+                                    title = "Help and support",
+                                    onClick = { }
+                                )
+                            }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Second menu group (with white background card)
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        shape = RoundedCornerShape(16.dp),
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            ProfileMenuItem(
-                                icon = R.drawable.ic_about,
-                                title = "About us",
-                                onClick = { }
-                            )
-                            ProfileMenuItem(
-                                icon = R.drawable.ic_terms,
-                                title = "Terms and conditions",
-                                onClick = { }
-                            )
-                            ProfileMenuItem(
-                                icon = R.drawable.ic_feedback,
-                                title = "Feedback",
-                                onClick = { }
-                            )
+                    // Item 3: Second menu group
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            shape = RoundedCornerShape(16.dp),
+                        ) {
+                            Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                                ProfileMenuItem(
+                                    icon = R.drawable.ic_about,
+                                    title = "About us",
+                                    onClick = { }
+                                )
+                                ProfileMenuItem(
+                                    icon = R.drawable.ic_terms,
+                                    title = "Terms and conditions",
+                                    onClick = { }
+                                )
+                                ProfileMenuItem(
+                                    icon = R.drawable.ic_feedback,
+                                    title = "Feedback",
+                                    onClick = { }
+                                )
+                            }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Logout button (separate card with white background)
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        shape = RoundedCornerShape(16.dp),
-                    ) {
-                        ProfileMenuItem(
-                            icon = R.drawable.ic_logout,
-                            iconColor = Gagal1,
-                            title = "Logout",
-                            textColor = Gagal,
-                            onClick = {
-                                if (!loadingLogout) {
-                                    scope.launch {
-                                        authViewModel.logout()
-                                        navController.navigate("login_screen") {
-                                            popUpTo("profile_screen") { inclusive = true }
+                    // Item 4: Logout button
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            shape = RoundedCornerShape(16.dp),
+                        ) {
+                            ProfileMenuItem(
+                                icon = R.drawable.ic_logout,
+                                iconColor = Gagal1,
+                                title = "Logout",
+                                textColor = Gagal,
+                                onClick = {
+                                    if (!loadingLogout) {
+                                        scope.launch {
+                                            authViewModel.logout()
+                                            navController.navigate("login_screen") {
+                                                popUpTo("profile_screen") { inclusive = true }
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        )
+                            )
+                        }
+                    }
+
+                    // Item 5: Bottom spacer
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
             }
