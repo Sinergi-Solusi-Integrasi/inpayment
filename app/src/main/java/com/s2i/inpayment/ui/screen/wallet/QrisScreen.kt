@@ -189,7 +189,7 @@ fun QrisScreen(
                 }
 
                 // Tunggu 5 detik sebelum polling berikutnya
-                delay(1000L)
+                delay(5000L)
             }
         }
     }
