@@ -3,7 +3,6 @@ package com.s2i.inpayment.module.network
 import android.util.Log
 import coil3.ImageLoader
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
-import com.google.gson.GsonBuilder
 import com.s2i.data.BuildConfig
 import com.s2i.data.local.auth.SessionManager
 import com.s2i.data.remote.client.ApiServices
@@ -12,10 +11,10 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.core.qualifier.named
-import java.util.concurrent.TimeUnit
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 val networkModule = module {
     single { SessionManager(get()) }

@@ -1,44 +1,21 @@
 package com.s2i.inpayment
 
-import android.os.Bundle
-import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.work.Configuration
-import androidx.work.Data
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.s2i.common.utils.networkmanager.NetworkUtils
 import com.s2i.inpayment.ui.MyApp
 import com.s2i.inpayment.ui.components.NetworkContent
-import com.s2i.inpayment.ui.components.navigation.AppNavigation
-import com.s2i.inpayment.ui.components.services.notifications.NotificationWorker
-import com.s2i.inpayment.ui.screen.home.HomeScreen
-import com.s2i.inpayment.ui.screen.onboard.OnboardScreen
-import com.s2i.inpayment.ui.screen.splash.SplashScreen
 import com.s2i.inpayment.ui.theme.InPaymentTheme
-import com.s2i.inpayment.ui.viewmodel.HomeViewModel
 
 class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
@@ -110,18 +87,5 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-
-    // Fungsi untuk menjadwalkan worker
-    fun scheduleOrderQueryWorker(trxId: String) {
-        val inputData = Data.Builder()
-            .putString("trxId", trxId)
-            .build()
-
-        val orderQueryWork = OneTimeWorkRequestBuilder<NotificationWorker>()
-            .setInputData(inputData)
-            .build()
-
-        WorkManager.getInstance(this).enqueue(orderQueryWork)
-    }
 }
 

@@ -15,6 +15,9 @@ object NetworkUtils {
     val isNetworkAvailable: StateFlow<Boolean> = _isNetworkAvailable
 
     fun initializeNetworkCallback(context: Context) {
+        // Set nilai awal agar tidak selalu false sampai onAvailable dipanggil
+        _isNetworkAvailable.value = isNetworkConnected(context)
+
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkRequest = NetworkRequest.Builder().build()
 

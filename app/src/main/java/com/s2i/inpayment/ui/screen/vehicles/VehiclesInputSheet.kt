@@ -40,6 +40,7 @@ fun VehiclesInputSheet(
 ) {
     val context = LocalContext.current
     val vehicleOCRState by vehiclesViewModel.vehicleOCRState.collectAsState()
+    val errorState by vehiclesViewModel.error.collectAsState()
     val vehicleImages by vehiclesViewModel.vehicleImageVehiclesState.collectAsState()
     val docImage by vehiclesViewModel.docImageVehiclesState.collectAsState()
 
@@ -83,14 +84,33 @@ fun VehiclesInputSheet(
 
 
     // ✅ Menampilkan Toast saat registrasi berhasil
-    LaunchedEffect(registVehiclesState) {
+    LaunchedEffect(registVehiclesState, vehiclesViewModel.error.collectAsState().value) {
         registVehiclesState?.let {
             Toast.makeText(context, "Vehicle Registered Successfully!", Toast.LENGTH_SHORT).show()
-            vehiclesViewModel.clearVehicleData()  // Membersihkan data lama
+            vehiclesViewModel.clearVehicleData()
             navController.navigate("vehicles_screen") {
                 popUpTo("profile_screen") { inclusive = true }
                 launchSingleTop = true
             }
+        }
+
+        errorState?.let { errorMsg ->
+            when {
+                errorMsg.contains("413") -> Toast.makeText(
+                    context,
+                    "Ukuran gambar yang Anda unggah terlalu besar. Harap unggah gambar lebih kecil.",
+                    Toast.LENGTH_LONG
+                ).show()
+
+                errorMsg.contains("502") -> Toast.makeText(
+                    context,
+                    "Maaf, kami sedang mengalami gangguan. Silakan coba lagi nanti.",
+                    Toast.LENGTH_LONG
+                ).show()
+
+                else -> Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+            }
+            vehiclesViewModel.clearError()
         }
     }
 
@@ -180,10 +200,10 @@ fun VehiclesInputSheet(
                                     imageFormat = selectedFormat
                                 )
                             } else {
-                                Toast.makeText(context, "Error converting images.", Toast.LENGTH_SHORT).show()
+                                vehiclesViewModel.setError("Terjadi kesalahan saat mengonversi gambar.")
                             }
                         } else {
-                            Toast.makeText(context, "Please upload document and vehicle images.", Toast.LENGTH_SHORT).show()
+                            vehiclesViewModel.setError("Harap unggah dokumen dan gambar kendaraan.")
                         }
                     },
                     modifier = Modifier

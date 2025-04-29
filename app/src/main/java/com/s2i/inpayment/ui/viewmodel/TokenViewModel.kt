@@ -32,6 +32,12 @@ class TokenViewModel(
         }
     }
 
+    fun triggerValidation() {
+        viewModelScope.launch {
+            validateSession()
+        }
+    }
+
     private suspend fun validateSession() {
         Log.d("TokenViewModel", "Validating session. isLogin=${sessionManager.isLogin}")
         if (!sessionManager.isLogin) {
@@ -58,12 +64,23 @@ class TokenViewModel(
         try {
             val result = tokenUseCase.refreshAccessTokenIfNeeded()
             if (result.isSuccess) {
+                Log.d("TokenViewModel", "Token refreshed successfully.")
                 _tokenState.value = TokenState.Valid
             } else {
-                sessionManager.logout()
-                _tokenState.value = TokenState.Expired
+                // Refresh failed — sekarang kita cek apakah refreshToken juga expired
+                Log.e("TokenViewModel", "Refresh token failed. Checking refreshToken expiry...")
+                if (sessionManager.isRefreshTokenExpired()) {
+                    Log.e("TokenViewModel", "RefreshToken also expired. Logging out.")
+                    sessionManager.logout()
+                    _tokenState.value = TokenState.Expired
+                } else {
+                    // Bisa dicoba lagi nanti
+                    Log.e("TokenViewModel", "Refresh token gagal, tapi refreshToken masih valid.")
+                    _tokenState.value = TokenState.Error
+                }
             }
         } catch (e: Exception) {
+            Log.e("TokenViewModel", "Exception saat refreshing token: ${e.message}")
             sessionManager.logout()
             _tokenState.value = TokenState.Expired
         }

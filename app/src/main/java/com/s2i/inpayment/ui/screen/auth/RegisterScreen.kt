@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
 import android.util.Patterns
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -54,10 +55,12 @@ import com.s2i.common.utils.convert.decodeBase64ToBitmap
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.ReusableBottomSheet
 import com.s2i.inpayment.ui.components.ReusableBottomSheetScaffold
+import com.s2i.inpayment.ui.components.navigation.rememberSingleClickHandler
 import com.s2i.inpayment.ui.theme.White30
 import com.s2i.inpayment.ui.theme.White40
 import com.s2i.inpayment.ui.viewmodel.AuthViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,6 +74,8 @@ fun RegisterScreen(
 ) {
     // Collecting states from ViewModel
     val context = LocalContext.current
+    val canClick = rememberSingleClickHandler()
+    val scope = rememberCoroutineScope()
 //    val focusManager  = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val imageFormat by authViewModel.imageFormat.collectAsState()
@@ -84,6 +89,14 @@ fun RegisterScreen(
     var isStartupLoading by remember { mutableStateOf(true) }
     val loadingState by authViewModel.loadingState.collectAsState()
 
+
+    BackHandler(enabled = true) {
+        if (canClick()) {
+            scope.launch {
+                navController.navigateUp()
+            }
+        }
+    }
 
     // Use LaunchedEffect to control startup loading and fetch identityBitmap
     // Use LaunchedEffect to control startup loading and fetch identityBitmap
@@ -525,7 +538,13 @@ fun RegisterScreen(
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = { navController.navigateUp() }) {
+                        IconButton(onClick = {
+                            if (canClick()) {
+                                scope.launch {
+                                    navController.navigateUp()
+                                }
+                            }
+                        }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
                                 contentDescription = "Back"

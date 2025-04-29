@@ -21,8 +21,25 @@ object Dates {
         }
     }
 
+    fun timeFormat(): SimpleDateFormat {
+        return SimpleDateFormat("HH.mm", Locale.getDefault())
+    }
+
     fun formatIso8601(timeMillis: Long): String {
         return dateFormat().format(Date(timeMillis))
+    }
+
+    fun formatTime(timeMillis: Long): String {
+        return timeFormat().format(Date(timeMillis))
+    }
+
+    fun formatTimeFromIso8601(dateString: String): String {
+        return try {
+            val timestamp = parseIso8601(dateString)
+            formatTime(timestamp)
+        } catch (e: Exception) {
+            "--:--"
+        }
     }
 
     fun parseIso8601(dateString: String): Long {
@@ -31,6 +48,12 @@ object Dates {
         } catch (e: ParseException) {
             0
         }
+    }
+
+    fun formatDate(timeMillis: Long, timeZone: TimeZone = TimeZone.getDefault()): String {
+        val dateFormat = SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault())
+        dateFormat.timeZone = timeZone
+        return dateFormat.format(Date(timeMillis))
     }
 
     fun formatTimeDifference(startTime: Long, endTime: Long): String {
@@ -52,5 +75,4 @@ object Dates {
             else -> SimpleDateFormat("d MMMM yyyy", Locale.getDefault()).format(Date(startTime))
         }
     }
-
 }

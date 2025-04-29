@@ -19,11 +19,16 @@ import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
+import timber.log.Timber
 import java.util.concurrent.TimeUnit
+
 
 class MyApplication : Application()  {
     override fun onCreate() {
         super.onCreate()
+        if (BuildConfig.DEBUG) {
+            Timber.plant(Timber.DebugTree())
+        }
         startKoin {
             androidLogger(Level.ERROR)
             androidContext(this@MyApplication)

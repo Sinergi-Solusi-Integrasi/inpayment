@@ -10,6 +10,7 @@
     import android.util.Log
     import android.view.View
     import android.widget.Toast
+    import androidx.activity.compose.BackHandler
     import androidx.activity.compose.rememberLauncherForActivityResult
     import androidx.activity.result.contract.ActivityResultContracts
     import androidx.compose.foundation.background
@@ -31,6 +32,7 @@
     import androidx.compose.foundation.verticalScroll
     import androidx.compose.material.ExperimentalMaterialApi
     import androidx.compose.material.icons.Icons
+    import androidx.compose.material.icons.filled.ArrowBack
     import androidx.compose.material.icons.filled.ChangeCircle
     import androidx.compose.material.icons.filled.CheckCircle
     import androidx.compose.material.icons.filled.Close
@@ -75,9 +77,13 @@
     import com.s2i.inpayment.ui.components.button.SplitButton
     import com.s2i.inpayment.ui.components.captureView
     import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
+    import com.s2i.inpayment.ui.components.navigation.rememberSingleClickHandler
     import com.s2i.inpayment.ui.components.saveBitmapToFile
     import com.s2i.inpayment.ui.components.shareScreenshot
+    import com.s2i.inpayment.ui.components.shimmer.balance.DetailTrxCardShimmer
+    import com.s2i.inpayment.ui.theme.DarkGreen
     import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
+    import com.s2i.inpayment.ui.viewmodel.UsersViewModel
     import kotlinx.coroutines.delay
     import kotlinx.coroutines.launch
     import org.koin.compose.viewmodel.koinViewModel
@@ -87,18 +93,29 @@
     fun DetailTransactionScreen(
         balanceViewModel: BalanceViewModel = koinViewModel(),
         navController: NavController,
-        transactionId: String
+        transactionId: String,
+        usersViewModel: UsersViewModel = org.koin.androidx.compose.koinViewModel()
     ) {
 
         val snackbarHostState = remember { SnackbarHostState() }
+        val canClick = rememberSingleClickHandler()
         val coroutineScope = rememberCoroutineScope()
         val context = LocalContext.current
         val view = LocalView.current
         val transactionDetail by balanceViewModel.detailTrx.collectAsState()
+        val usersState by usersViewModel.users.collectAsState()
+
 
         val transactionView = remember { mutableStateOf<ComposeView?>(null) }
         var excludeImage by remember { mutableStateOf(false) }
 
+        BackHandler(enabled = true) {
+            if (canClick()) {
+                coroutineScope.launch {
+                    navController.navigateUp()
+                }
+            }
+        }
 
         // Function to check if notifications are enabled (for Realme or other devices)
         val permissionLauncher = rememberLauncherForActivityResult(
@@ -112,12 +129,12 @@
         var isStartupLoading by remember { mutableStateOf(true) }
         val loading by balanceViewModel.loading.collectAsState()
         var isRefreshing by remember { mutableStateOf(false) }
-        val scope = rememberCoroutineScope()
+//        val scope = rememberCoroutineScope()
 
         val pullRefreshState = rememberPullRefreshState(
             refreshing = isRefreshing,
             onRefresh = {
-                scope.launch {
+                coroutineScope.launch {
                     isRefreshing = true
                     balanceViewModel.fetchDetailTrx(transactionId)
                     delay(2000) // simulate refresh delay
@@ -127,7 +144,7 @@
         )
 
         // Show loading indicator initially and when refreshing
-        val showLoading = loading || isRefreshing
+        val showLoading = isStartupLoading || loading || isRefreshing
 
         // Memanggil fetchHistory hanya sekali ketika layar pertama kali dibuka
         LaunchedEffect(Unit){
@@ -143,9 +160,10 @@
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
         ) {
             // Spacer to push the content down
-            Spacer(modifier = Modifier.height(24.dp))
+//            Spacer(modifier = Modifier.height(24.dp))
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
@@ -161,38 +179,44 @@
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 16.dp),
+                            .padding(horizontal = 8.dp, vertical = 16.dp)
                     ){
                         IconButton(
                             onClick = {
-                                navController.navigateUp()
+                                if (canClick()) {
+                                    coroutineScope.launch {
+                                        navController.navigateUp()
+                                    }
+                                }
                             },
                             modifier = Modifier
-                                .size(16.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.onSecondary,
-                                    shape = CircleShape
-                                )
+                                .size(24.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Filled.Close,
-                                contentDescription = "Close",
+                                imageVector = Icons.Filled.ArrowBack,
+                                contentDescription = "Back",
                                 tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
-                        Spacer(modifier = Modifier.width(24.dp))
 
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(end = 40.dp),
+                            contentAlignment = Alignment.Center
+                        ){
                         Text(
                             text = "Transaction Details",
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
+                            color = DarkGreen,
                             fontSize = MaterialTheme.typography.titleLarge.fontSize,
                             modifier = Modifier
                                 .padding(vertical = 8.dp)
                         )
-
+}
                     }
-                    if (isStartupLoading) {
+                    if (showLoading) {
                         CustomLinearProgressIndicator(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -208,19 +232,29 @@
                         .weight(1f) // Hanya konten ini yang bisa di-scroll
                         .padding(horizontal = 16.dp)
                 ) {
-                    item {
-                        AndroidView(
-                            factory = { context ->
-                                ComposeView(context).apply {
-                                    transactionView.value = this
-                                    setContent {
-                                        DetailTrxCard(transactionDetail = transactionDetail?.data, excludeImage = excludeImage)
+                    if (showLoading) {
+                        item {
+                            DetailTrxCardShimmer()
+                        }
+                    } else {
+                        item {
+                            AndroidView(
+                                factory = { context ->
+                                    ComposeView(context).apply {
+                                        transactionView.value = this
+                                        setContent {
+                                            DetailTrxCard(
+                                                transactionDetail = transactionDetail?.data,
+                                                usersState = usersState,
+                                                excludeImage = excludeImage
+                                            )
+                                        }
                                     }
-                                }
 
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
                 }
 

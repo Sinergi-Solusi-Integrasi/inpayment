@@ -3,6 +3,7 @@ package com.s2i.inpayment.ui.screen.auth
 import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,8 +18,10 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -26,10 +29,13 @@ import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -64,6 +70,9 @@ import com.s2i.data.local.auth.SessionManager
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.ReusableBottomSheet
 import com.s2i.inpayment.ui.components.permission.hasAllPermissions
+import com.s2i.inpayment.ui.theme.BrightTeal
+import com.s2i.inpayment.ui.theme.BrightTeal09
+import com.s2i.inpayment.ui.theme.BrightTeal20
 import com.s2i.inpayment.ui.viewmodel.AuthViewModel
 import com.s2i.inpayment.ui.viewmodel.NotificationsViewModel
 import com.s2i.inpayment.ui.viewmodel.ServicesViewModel
@@ -147,15 +156,6 @@ fun LoginScreen(
             Log.d("LoginScreen", "User is logged out. Waiting for re-login.")
             // Tampilkan sheet tanpa reset navigasi secara langsung
             authViewModel.resetLoginState()
-//            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-//                if (!task.isSuccessful) {
-//                    Log.w("LoginScreen", "Fetching FCM registration token failed", task.exception)
-//                    return@addOnCompleteListener
-//                }
-//                val token = task.result
-//                Log.d("LoginScreen", "FCM Registration Token: $token")
-//                sendTokenToServer(token)
-//            }
         }
     }
 
@@ -202,22 +202,17 @@ fun LoginScreen(
 
     Box(
         modifier = Modifier
+            .background(BrightTeal20)
             .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.systemBars)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
-
-            if (loadingState) {
-                CircularProgressIndicator()
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
             Spacer(modifier = Modifier.weight(1f))
 
             Image(
@@ -248,7 +243,8 @@ fun LoginScreen(
                 ),
                 trailingIcon = if (!isValidUsername && username.isNotEmpty()) {
                     { Icon(Icons.Default.Error, contentDescription = null, tint = Color.Red) }
-                } else null
+                } else null,
+                shape = RoundedCornerShape(20.dp)
             )
             if (!isValidUsername && username.isNotEmpty()) {
                 Text("Username minimal 4 karakter", color = Color.Red, fontSize = 12.sp)
@@ -281,7 +277,8 @@ fun LoginScreen(
                         Icon(imageVector = image, contentDescription = null)
                     }
                 },
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation()
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                shape = RoundedCornerShape(20.dp),
             )
             if (!isValidPassword && password.isNotEmpty()) {
                 Text("Password minimal 8 karakter", color = Color.Red, fontSize = 12.sp)
@@ -302,21 +299,21 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             //Forgot Password
-            TextButton(
-                onClick = {
-
-                }
-            ) {
-                Text(
-                    "Forgotten Password ?",
-                    color = Color.Blue,
-                    fontSize = 14.sp
-                )
-            }
+//            TextButton(
+//                onClick = {
+//
+//                }
+//            ) {
+//                Text(
+//                    "Forgotten Password ?",
+//                    color = Color.Blue,
+//                    fontSize = 14.sp
+//                )
+//            }
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Button(
+            TextButton(
                 onClick = {
                     navController.navigate("kyc_intro_screen") {
                         popUpTo("login_screen") { inclusive = false }
@@ -326,10 +323,13 @@ fun LoginScreen(
                 enabled = !loadingState,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .navigationBarsPadding() // Hindari ketutupan navigation bar
-                    .imePadding() // Hindari ketutupan keyboard
+                    .navigationBarsPadding()
+                    .imePadding()
             ) {
-                Text("Create new account")
+                Text(
+                    "Create new account",
+                    color = BrightTeal09,
+                )
             }
             if (showExtraInfo) {
                 Spacer(modifier = Modifier.height(32.dp))
@@ -347,6 +347,32 @@ fun LoginScreen(
                         contentDescription = "Intracs Logo",
                         modifier = Modifier.size(24.dp)
                     )
+                }
+            }
+        }
+    }
+
+    // Overlay Loading
+    if (loadingState) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.4f)),
+            contentAlignment = Alignment.Center
+        ){
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                elevation = CardDefaults.cardElevation(8.dp),
+                colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
+                modifier = Modifier.size(120.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator()
                 }
             }
         }

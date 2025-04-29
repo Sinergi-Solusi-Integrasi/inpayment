@@ -52,6 +52,7 @@
 # Retrofit does reflection on generic parameters. InnerClasses is required to use Signature and
 # EnclosingMethod is required to use InnerClasses.
 -keepattributes Signature, InnerClasses, EnclosingMethod
+-keepattributes *Annotation*, Signature, InnerClasses, EnclosingMethod
 
 # Retrofit does reflection on method and parameter annotations.
 -keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParameterAnnotations
@@ -82,38 +83,203 @@
 -dontwarn kotlinx.**
 
 
-# Existing rules
+# Existing Rules
+
+#########################################
+# ========== BASIC OPTIMIZATION ======== #
+#########################################
 -keep class com.s2i.** { *; }
--keepattributes *Annotation*
+# Hilangkan log saat release
+-assumenosideeffects class android.util.Log {
+    public static *** d(...);
+    public static *** v(...);
+    public static *** i(...);
+    public static *** w(...);
+    public static *** e(...);
+}
 
-# Keep the AuthRepository and related classes
--keep class com.s2i.domain.repository.auth.AuthRepository { *; }
--keep class com.s2i.data.repository.auth.AuthRepositoryImpl { *; }
+# Keep Source Debug Info (optional untuk debug purposes)
+# -keepattributes SourceFile,LineNumberTable
 
-# Keep the SessionManager class
--keep class com.s2i.data.local.auth.SessionManager { *; }
+#########################################
+# ========== KOTLIN / COROUTINES ======= #
+#########################################
 
-# Keep the ApiServices class
--keep class com.s2i.data.remote.client.ApiServices { *; }
+-dontwarn kotlin.**
+-keep class kotlin.Metadata { *; }
+-keepclassmembers class ** {
+    @kotlin.Metadata *;
+}
 
-# Keep the UseCases
--keep class com.s2i.domain.usecase.auth.LoginUseCase { *; }
--keep class com.s2i.domain.usecase.auth.RegisterUseCase { *; }
+-dontwarn kotlinx.coroutines.**
 
-# Keep Transaction model
--keep class com.s2i.core.model.transaction.Transaction { *; }
+#########################################
+# ========== JETPACK COMPOSE =========== #
+#########################################
 
-# Keep all ViewModels
--keep class com.s2i.inpayment.ui.viewmodel.** { *; }
+-keep class androidx.compose.** { *; }
+-keep class androidx.activity.ComponentActivity { *; }
+-keepclassmembers class * {
+    @androidx.compose.runtime.Composable <methods>;
+}
+-dontwarn androidx.compose.**
 
-# Keep Gson annotations (if you use Gson for serialization)
+#########################################
+# ========== RETROFIT ================== #
+#########################################
+
+-keepattributes Signature, InnerClasses, EnclosingMethod, Exceptions
+-keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParameterAnnotations
+
+-keepclassmembers,allowshrinking,allowobfuscation interface * {
+    @retrofit2.http.* <methods>;
+}
+
+-dontwarn retrofit2.**
+-dontwarn javax.annotation.**
+-dontwarn kotlin.Unit
+-dontwarn retrofit2.KotlinExtensions
+-dontwarn retrofit2.KotlinExtensions$*
+-dontwarn org.codehaus.mojo.animal_sniffer.*
+# Jangan obfuscate Retrofit API
+-keep interface * {
+    @retrofit2.http.* <methods>;
+}
+
+-if interface * { @retrofit2.http.* <methods>; }
+-keep,allowobfuscation interface <1>
+
+
+#########################################
+# ========== GSON ====================== #
+#########################################
+
+-keepattributes Signature, *Annotation*
+
+-dontwarn sun.misc.**
+-keep class com.google.gson.** { *; }
+
+-keep class * implements com.google.gson.TypeAdapter
+-keep class * implements com.google.gson.TypeAdapterFactory
+-keep class * implements com.google.gson.JsonSerializer
+-keep class * implements com.google.gson.JsonDeserializer
+
+-keepclassmembers,allowobfuscation class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
 -keep class com.google.gson.annotations.SerializedName { *; }
 
-# Keep Koin injection classes
+#########################################
+# ========== KOIN ====================== #
+#########################################
+
+-dontwarn org.koin.**
 -keep class org.koin.** { *; }
 
+#########################################
+# ========== ROOM ====================== #
+#########################################
 
-# Suppress warnings for specific classes
--dontwarn com.s2i.domain.entity.model.auth.AuthModel
--dontwarn com.s2i.domain.entity.model.users.UsersModel
+-keep class androidx.room.** { *; }
+-keepclassmembers class * {
+    @androidx.room.* <methods>;
+}
+# Untuk Koin agar tidak strip class module-nya
+-keep class org.koin.core.module.Module
+-keepclassmembers class * {
+    @org.koin.core.annotation.* <methods>;
+}
+
+# Untuk ViewModel yang di-inject
+-keep class * extends androidx.lifecycle.ViewModel { *; }
+
+-keepclassmembers class * {
+    @org.koin.core.annotation.* *;
+}
+
+-dontwarn androidx.room.**
+
+#########################################
+# ========== FIREBASE ================== #
+#########################################
+
+-keep class com.google.firebase.** { *; }
+-dontwarn com.google.firebase.**
+-dontwarn com.google.android.gms.**
+
+#########################################
+# ========== ML KIT ==================== #
+#########################################
+
+-keep class com.google.mlkit.** { *; }
+-dontwarn com.google.mlkit.**
+-keep class com.google.android.gms.** { *; }
+
+#########################################
+# ========== CAMERA X ================== #
+#########################################
+
+-keep class androidx.camera.** { *; }
+-dontwarn androidx.camera.**
+
+#########################################
+# ========== TIMBER ==================== #
+#########################################
+
+-dontwarn timber.log.**
+
+#########################################
+# ========== VIEWMODEL ================= #
+#########################################
+
+-keep class * extends androidx.lifecycle.ViewModel { *; }
+
+#########################################
+# ========== YOUR MODULES ============== #
+#########################################
+
+# Core domain/data layer (bisa spesifik jika perlu)
+-keep class com.s2i.core.** { *; }
+-keep class com.s2i.domain.** { *; }
+-keep class com.s2i.data.** { *; }
+-keep class com.s2i.common.** { *; }
+
+# SessionManager, ApiService, UseCases
+-keep class com.s2i.domain.** { *; }
+-keep class com.s2i.data.local.auth.SessionManager { *; }
+-keep class com.s2i.data.remote.client.ApiServices { *; }
+# Keep Retrofit API interface WalletServices
+-keep class com.s2i.data.remote.client.WalletServices { *; }
+-keep class com.s2i.domain.usecase.** { *; }
+-keep class com.s2i.data.remote.client.** { *; }
+# Keep semua interface Retrofit
+-keep interface com.s2i.data.remote.client.** { *; }
+
+
+# ViewModel UI Layer
+-keep class com.s2i.inpayment.ui.viewmodel.** { *; }
+
+#########################################
+# ========== THIRD PARTY UI ============ #
+#########################################
+
+# Dialog Sheets
+-keep class com.maxkeppeler.sheets.** { *; }
+-dontwarn com.maxkeppeler.sheets.**
+
+# Accompanist
+-dontwarn com.google.accompanist.**
+
+# Coil & Glide
+-keep class coil.** { *; }
+-keep class com.bumptech.glide.** { *; }
+-dontwarn coil.**
+-dontwarn com.bumptech.glide.**
+
+#########################################
+# ========== SUPPRESS WARNINGS ========= #
+#########################################
+
 -dontwarn java.lang.invoke.StringConcatFactory
+-dontwarn com.s2i.domain.entity.model.**
+-dontwarn com.s2i.data.remote.client.WalletServices

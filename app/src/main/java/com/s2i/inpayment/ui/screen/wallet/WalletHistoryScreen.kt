@@ -44,24 +44,45 @@ import androidx.navigation.NavController
 import com.s2i.inpayment.ui.components.HistoryCard
 import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
 import com.s2i.inpayment.ui.components.custome.LogoIndicator
+import com.s2i.inpayment.ui.components.navigation.rememberSingleClickHandler
+import com.s2i.inpayment.ui.components.shimmer.balance.HistoryCardShimmer
 import com.s2i.inpayment.ui.theme.White30
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.gestures.snapping.SnapPosition
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material.icons.filled.ArrowBack
+import com.s2i.inpayment.ui.components.DateHeader
+import com.s2i.inpayment.ui.theme.BrightTeal20
+import com.s2i.inpayment.ui.theme.DarkGreen
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun WalletHistoryScreen(
     balanceViewModel: BalanceViewModel = koinViewModel(),
     navController: NavController
 ){
     val groupedTransaction by  balanceViewModel.historyTransaction.collectAsState()
+    val canClick = rememberSingleClickHandler()
     var isStartupLoading by remember { mutableStateOf(true) }
     val loading by balanceViewModel.loading.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     // Handle initial loading
+
+    BackHandler(enabled = true) {
+        if (canClick()) {
+            scope.launch {
+                navController.navigateUp()
+            }
+        }
+    }
 
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
@@ -76,7 +97,7 @@ fun WalletHistoryScreen(
     )
 
     // Show loading indicator initially and when refreshing
-    val showLoading = loading || isRefreshing
+    val showLoading = isStartupLoading || loading || isRefreshing
 
 
     // Memanggil fetchHistory hanya sekali ketika layar pertama kali dibuka
@@ -94,20 +115,15 @@ fun WalletHistoryScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .background(BrightTeal20)
+            .windowInsetsPadding(WindowInsets.statusBars)
             .pullRefresh(state = pullRefreshState)
 
     ) {
-        if (isStartupLoading) {
-            CustomLinearProgressIndicator(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            )
-        }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 32.dp, vertical = 24.dp)
+                .padding(16.dp)
         ){
             if (showLoading) {
                 CustomLinearProgressIndicator(
@@ -117,68 +133,84 @@ fun WalletHistoryScreen(
                 )
             }
 
-            // Spacer to push the content down
-            Spacer(modifier = Modifier.height(24.dp))
-
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 16.dp),
+                    .padding(vertical = 16.dp),
             ){
                 IconButton(
                     onClick = {
-                        navController.navigateUp()
+                        if (canClick()) {
+                            scope.launch {
+                                navController.navigateUp()
+                            }
+                        }
                     },
-                    modifier = Modifier
-                        .size(16.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.onSecondary,
-                            shape = CircleShape
-                        )
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Close,
+                        imageVector = Icons.Filled.ArrowBack,
                         contentDescription = "Close",
-                        tint = MaterialTheme.colorScheme.onBackground
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
-                Spacer(modifier = Modifier.width(24.dp))
-
-                Text(
-                    text = "History",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                    modifier = Modifier
-                        .padding(vertical = 8.dp)
-                )
+                // Center-aligned title
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "History",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = DarkGreen,
+                        fontSize = MaterialTheme.typography.titleLarge.fontSize
+                    )
+                }
+                // Empty space with same size as the back button for symmetry
+                Spacer(modifier = Modifier.size(48.dp))
 
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ){
-                groupedTransaction.forEach { (dateLabel, transactions) ->
-                    item {
-                        HistoryCard(dateLabel, transactions, onTransactionClick = { transactionId ->
-                            navController.navigate("detail_transaksi_screen/$transactionId")
-                        })
+                if (showLoading) {
+                    // Tampilkan shimmer saat loading atau refreshing
+                    repeat(3) {
+                        item {
+                            HistoryCardShimmer()
+                        }
+                    }
+                } else {
+                    groupedTransaction.forEach { (dateLabel, transactions) ->
+                        if (transactions.isNotEmpty()) {
+                            stickyHeader {
+                                DateHeader(dateLabel = dateLabel)
+                            }
+                            item {
+                                HistoryCard(
+                                    transactions,
+                                    onTransactionClick = { transactionId ->
+                                        navController.navigate("detail_transaksi_screen/$transactionId")
+                                    })
+                            }
+                        }
                     }
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        PullRefreshIndicator(
-            isRefreshing,
-            pullRefreshState,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-        )
+//        PullRefreshIndicator(
+//            isRefreshing,
+//            pullRefreshState,
+//            modifier = Modifier
+//                .align(Alignment.TopCenter)
+//        )
     }
 }
 

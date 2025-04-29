@@ -39,6 +39,7 @@ import com.s2i.inpayment.ui.screen.onboard.OnboardScreen
 import com.s2i.inpayment.ui.screen.permission.PermissionScreen
 import com.s2i.inpayment.ui.screen.profile.ProfileScreen
 import com.s2i.inpayment.ui.screen.splash.SplashScreen
+import com.s2i.inpayment.ui.screen.vehicles.DetailVehiclesScreen
 import com.s2i.inpayment.ui.screen.vehicles.DocImageVehiclesScreen
 import com.s2i.inpayment.ui.screen.vehicles.ImageVehiclesScreen
 import com.s2i.inpayment.ui.screen.vehicles.IntroAddVehiclesScreen
@@ -149,11 +150,54 @@ fun AppNavigation(
             CameraScreen(navController = navController, vehiclesViewModel = vehiclesViewModel)
         }
 
-        composable("lend_vehicles/{vehicleId}") { backStackEntry ->
+        // Detail vehicle route
+        composable(
+            route = "detail_vehicle_screen/{vehicleId}",
+            arguments = listOf(
+                navArgument("vehicleId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
             val vehicleId = backStackEntry.arguments?.getString("vehicleId") ?: ""
+            DetailVehiclesScreen(
+                navController = navController,
+                vehicleId = vehicleId,
+                onDismiss = { navController.navigateUp() }
+            )
+        }
+
+        // Lend vehicle route dengan parameter
+        composable(
+            route = "lend_vehicle_screen/{vehicleId}?brand={brand}&model={model}&plateNumber={plateNumber}",
+            arguments = listOf(
+                navArgument("vehicleId") { type = NavType.StringType },
+                navArgument("brand") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                    nullable = true
+                },
+                navArgument("model") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                    nullable = true
+                },
+                navArgument("plateNumber") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                    nullable = true
+                }
+            )
+        ) { backStackEntry ->
+            val vehicleId = backStackEntry.arguments?.getString("vehicleId") ?: ""
+            val brand = backStackEntry.arguments?.getString("brand") ?: ""
+            val model = backStackEntry.arguments?.getString("model") ?: ""
+            val plateNumber = backStackEntry.arguments?.getString("plateNumber") ?: ""
+
             LendVehiclesScreen(
                 navController = navController,
                 vehicleId = vehicleId,
+                vehicleBrand = brand,
+                vehicleModel = model,
+                vehiclePlateNumber = plateNumber,
                 vehiclesViewModel = vehiclesViewModel
             )
         }

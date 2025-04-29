@@ -5,45 +5,49 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowForwardIos
-import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Text
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.HorizontalPagerIndicator
+import com.google.accompanist.pager.rememberPagerState
+import com.s2i.inpayment.ui.components.Onboard
 import com.s2i.inpayment.ui.components.onboardingPages
-import com.s2i.inpayment.ui.theme.DarkTeal21
+import com.s2i.inpayment.ui.theme.BrightTeal09
+import com.s2i.inpayment.ui.theme.BrightTeal20
 import com.s2i.inpayment.ui.theme.GreenTeal21
 import com.s2i.inpayment.ui.theme.GreenTeal40
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
 
 @Composable
 fun OnboardScreen(navController: NavController) {
-    var currentPage by remember { mutableIntStateOf(0) }
-
     val pages = onboardingPages
+    val pagerState = rememberPagerState()
+    val coroutineScope = rememberCoroutineScope()
 
-    // Automatically advance to the next page every 3 seconds
-    LaunchedEffect(key1 = currentPage) {
+    // Auto-advance timer
+    LaunchedEffect(key1 = pagerState.currentPage) {
         delay(3000) // 3 seconds delay
-        if (currentPage < pages.size - 1) {
-            currentPage++
+        if (pagerState.currentPage < pages.size - 1) {
+            coroutineScope.launch {
+                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+            }
         } else {
-            currentPage = 0 // Reset to the first page
+            coroutineScope.launch {
+                pagerState.animateScrollToPage(0) // Reset to the first page
+            }
         }
     }
 
@@ -51,16 +55,16 @@ fun OnboardScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(0.dp),
+            .background(BrightTeal20)
     ) {
         // Skip button
         Text(
             text = "Skip",
-            fontSize = 18.sp,
+            fontSize = 16.sp,
             color = GreenTeal40,
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = 48.dp, end = 16.dp) // Moved down
+                .padding(top = 48.dp, end = 24.dp)
                 .clickable {
                     navController.navigate("login_screen"){
                         popUpTo(0) {
@@ -69,86 +73,67 @@ fun OnboardScreen(navController: NavController) {
                     }
                 }
         )
-        Spacer(modifier = Modifier.height(16.dp))
-        // Main content layout
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(top = 100.dp, bottom = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Spacer(modifier = Modifier.height(4.dp)) // Adjust space
-
-            // Image, resized to match the proportion of the screen
-            Image(
-                painter = painterResource(pages[currentPage].image),
-                contentDescription = "onboarding",
-                contentScale = ContentScale.Fit,
+            // Content area (image, title, desc)
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth(0.8f) // Adjusted to make the image smaller
-                    .height(500.dp) // Specific height to avoid stretching too much
-            )
-
-            // Title
-            Text(
-                text = pages[currentPage].title,
-                fontSize = 24.sp,
-                modifier = Modifier.padding(vertical = 4.dp) // Adjust padding to move it up
-            )
-
-            // Description
-            Text(
-                text = pages[currentPage].desc,
-                fontSize = 16.sp,
-                color = GreenTeal21,
-                modifier = Modifier.padding(top = 4.dp, bottom = 8.dp) // Adjusted spacing
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-            // Dots Indicator (rectangles in this case) with the "Next" button in the same row
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 32.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .weight(1f)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Spacer(modifier = Modifier.height(16.dp))
-                // Dot indicators
-                Row(
-                    modifier = Modifier.weight(2f), // Takes up the available space
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    pages.forEachIndexed { index, _ ->
-                        RectIndicator(isSelected = index == currentPage)
-                    }
+                // Horizontal Pager for swiping
+                HorizontalPager(
+                    count = pages.size,
+                    state = pagerState,
+                    modifier = Modifier.fillMaxWidth()
+                ) { pageIndex ->
+                    OnboardingPage(page = pages[pageIndex])
                 }
+                // Custom Pager Indicator with larger dots
+                HorizontalPagerIndicator(
+                    pagerState = pagerState,
+                    modifier = Modifier
+                        .padding(vertical = 16.dp)
+                        .align(Alignment.CenterHorizontally),
+                    activeColor = Color.Gray,
+                    inactiveColor = Color.LightGray,
+                    indicatorWidth = 10.dp,
+                    indicatorHeight = 10.dp,
+                    spacing = 8.dp
+                )
 
                 // Next button
-                Button(
+                TextButton(
                     onClick = {
-                        if (currentPage < pages.size - 1){
-                            currentPage++
-//                            currentPage = 0
-                        } else {
-                            navController.navigate("login_screen"){
-                                popUpTo("onboard_screen") {
-                                    inclusive = true
+                        coroutineScope.launch {
+                            if (pagerState.currentPage < pages.size - 1) {
+                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                            } else {
+                                navController.navigate("login_screen") {
+                                    popUpTo("onboard_screen") {
+                                        inclusive = true
+                                    }
                                 }
                             }
                         }
                     },
-                    shape = CircleShape, // Ensures the button is circular
                     modifier = Modifier
-                        .size(50.dp), // This will make the button circular with 56dp diameter
-                    contentPadding = PaddingValues(0.dp), // Padding for spacing from the edge
-                    colors = ButtonDefaults.buttonColors(containerColor = GreenTeal40)
+                        .align(Alignment.End)
+                        .padding(end = 8.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos, // Replace with the appropriate icon for "Next"
-                        contentDescription = "Next",
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp) // This ensures the icon fits nicely inside the circular button
+                    Text(
+                        text = "Next",
+                        fontSize = 16.sp,
+                        color = BrightTeal09,
+                        fontWeight = FontWeight.Medium
                     )
                 }
             }
@@ -157,14 +142,50 @@ fun OnboardScreen(navController: NavController) {
 }
 
 @Composable
-fun RectIndicator(isSelected: Boolean) {
-    // Change the dot to a rectangle
-    Box(
+fun OnboardingPage(page: Onboard) {
+    // Extract title, desc, and image based on the Onboard sealed class
+    val (title, desc, image) = when (page) {
+        is Onboard.FirstPages -> Triple(page.title, page.desc, page.image)
+        is Onboard.SecondPages -> Triple(page.title, page.desc, page.image)
+        // Add any other variants if they exist
+    }
+
+    Column(
         modifier = Modifier
-            .size(width = if (isSelected) 20.dp else 10.dp, height = 6.dp)
-            .background(
-                if (isSelected) GreenTeal21 else Color.Gray,
-                shape = RoundedCornerShape(3.dp)
-            )
-    )
+            .fillMaxWidth()
+            .padding(horizontal = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // Image
+        Image(
+            painter = painterResource(image),
+            contentDescription = "onboarding",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .height(280.dp)  // Fixed height instead of weight
+                .fillMaxWidth(0.8f)
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Title
+        Text(
+            text = title,
+            fontSize = 26.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            color = Color.Black,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+
+        // Description
+        Text(
+            text = desc,
+            fontSize = 16.sp,
+            color = BrightTeal09,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+    }
 }

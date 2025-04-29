@@ -5,6 +5,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.draw.drawBehind
 
 fun gradientBrush(): Brush {
     return Brush.linearGradient(
@@ -52,6 +55,76 @@ fun exComeGradient(size: IntSize): Brush {
         radius = radius
     )
 }
+
+// Add this to your com.s2i.inpayment.ui.theme file
+
+// Gradient Brush for background with football field effect
+fun triColorGradientBrushs(): Brush {
+    return Brush.verticalGradient(
+        colors = listOf(
+            DarkGreen10,           // Darker green at top
+            DarkTeal29,          // Dark teal in middle
+            GreenTeal45.copy(alpha = 0.7f)  // Lighter green at bottom with transparency
+        ),
+        startY = 0f,
+        endY = 1000f
+    )
+}
+
+// Gradient for the balance card with road background
+fun backgroundsGradientBrush(): Brush {
+    return Brush.verticalGradient(
+        colors = listOf(
+            DarkGreen,          // Matching the drop indicator color at top
+            GreenTeal45.copy(alpha = 0.8f),  // Fading to lighter green
+            MediumTeal.copy(alpha = 0.6f)   // More transparent at bottom
+        ),
+        startY = 0f,
+        endY = 500f
+    )
+}
+
+// For the triangular gradient effect shown in the image
+fun triGradientBrussh(): Brush {
+    return Brush.linearGradient(
+        colors = listOf(
+            DarkGreen,         // Top color
+            MediumTeal.copy(alpha = 0.7f),  // Middle color
+            BrightTeal.copy(alpha = 0.4f)  // Bottom color with transparency
+        ),
+        start = Offset(0f, 0f),
+        end = Offset(0f, 1000f),
+        tileMode = TileMode.Clamp
+    )
+}
+
+fun Modifier.linearGradientBackground(
+    colors: List<Color>,
+    angle: Float = 90f // dalam derajat, 0 = horizontal ke kanan, 90 = vertikal ke bawah
+) = composed {
+    val angleRad = Math.toRadians(angle.toDouble()).toFloat()
+    val cosAngle = kotlin.math.cos(angleRad)
+    val sinAngle = kotlin.math.sin(angleRad)
+
+    this.drawBehind {
+        val width = size.width
+        val height = size.height
+
+        // Hitung titik awal dan akhir berdasarkan sudut
+        val endX = width * cosAngle
+        val endY = height * sinAngle
+
+        drawRect(
+            brush = Brush.linearGradient(
+                colors = colors,
+                start = Offset.Zero,
+                end = Offset(endX, endY)
+            ),
+            size = size
+        )
+    }
+}
+
 
 
 

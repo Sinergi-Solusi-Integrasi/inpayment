@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,6 +8,18 @@ plugins {
     id("kotlin-parcelize")
     id("com.google.gms.google-services")
 }
+
+val localProperties = Properties()  // Menggunakan import java.util.Properties
+val localPropertiesFile = rootProject.file("local.properties")
+
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+
+val keystoreFile = localProperties["RELEASE_STORE_FILE"]?.toString()?.let { rootProject.file(it) }
+val keystoreAlias = localProperties["RELEASE_KEY_ALIAS"]?.toString() ?: ""
+val keystorePassword = localProperties["RELEASE_STORE_PASSWORD"]?.toString() ?: ""
+val keyPasswords = localProperties["RELEASE_KEY_PASSWORD"]?.toString() ?: ""
 
 android {
     namespace = "com.s2i.inpayment"
@@ -16,14 +30,24 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "1.5.7"
+        versionName = "1.8.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("release"){
+            storeFile = keystoreFile
+            storePassword = keystorePassword
+            keyAlias = keystoreAlias
+            keyPassword = keyPasswords
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -80,6 +104,10 @@ dependencies {
 
     // CLOCK
     implementation("com.maxkeppeler.sheets-compose-dialogs:clock:${dialogVersion}")
+
+    // Shimmer
+    implementation("com.valentinilk.shimmer:compose-shimmer:1.3.2")
+
 
     // DATE TIME
     implementation("com.maxkeppeler.sheets-compose-dialogs:date-time:1.3.0")
@@ -177,7 +205,6 @@ dependencies {
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
 
 
-
     // Optional - Included automatically by material, only add when you need
     // the icons but not the material library (e.g. when using Material3 or a
     // custom design system based on Foundation)
@@ -232,4 +259,26 @@ dependencies {
     // UI Tests
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+
+    // JUnit 5
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+    // Mockito Core & JUnit 5 Extension
+    testImplementation("io.mockk:mockk:1.13.5")
+    testImplementation("org.mockito:mockito-core:5.3.1")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.3.1")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
+    // Kotlin Coroutines Test
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    // AndroidX Test (untuk pengujian Android)
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    testImplementation("org.robolectric:robolectric:4.10")
+    implementation("com.jakewharton.timber:timber:5.0.1")
+
 }
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+

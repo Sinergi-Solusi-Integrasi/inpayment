@@ -20,4 +20,44 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 # Keep models used in the core module
+# === Keep data classes & shared models ===
+-keep class com.s2i.core.model.** { *; }
 -keep class com.s2i.core.model.transaction.Transaction { *; }
+
+# ProGuard rules for :core module
+
+# === Kotlin Serialization ===
+-keep class kotlinx.serialization.** { *; }
+-keepclassmembers class ** {
+    @kotlinx.serialization.Serializable *;
+}
+
+# === Gson annotations support ===
+-keepclassmembers class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+
+
+# === Jetpack Compose (runtime, livedata, etc.) ===
+-keep class androidx.compose.runtime.** { *; }
+-dontwarn androidx.compose.runtime.**
+
+# === Optional: If you use kotlinx.coroutines in shared logic ===
+-dontwarn kotlinx.coroutines.**
+
+# Untuk Koin agar tidak strip class module-nya
+-keepclassmembers class * {
+    @org.koin.core.annotation.* <methods>;
+}
+
+# Untuk ViewModel yang di-inject
+-keep class * extends androidx.lifecycle.ViewModel { *; }
+
+
+# Keep Kotlin Metadata
+-keepattributes *Annotation*
+-keepattributes InnerClasses
+-keepattributes EnclosingMethod
+-keepattributes KotlinMetadata
+
+-dontwarn java.lang.invoke.StringConcatFactory

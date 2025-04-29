@@ -1,7 +1,9 @@
 package com.s2i.inpayment.ui.viewmodel
 
 import android.graphics.Bitmap
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,6 +11,7 @@ import com.s2i.common.utils.convert.ImageCompressor
 import com.s2i.common.utils.convert.bitmapToBase64
 import com.s2i.common.utils.convert.bitmapToBase64WithFormat
 import com.s2i.common.utils.convert.compressBitmap
+import com.s2i.data.model.vehicles.LoansTokenVehiclesData
 import com.s2i.domain.entity.model.users.BlobImageModel
 import com.s2i.domain.entity.model.vehicle.ChangeVehiclesModel
 import com.s2i.domain.entity.model.vehicle.GetVehiclesModel
@@ -29,6 +32,8 @@ import com.s2i.domain.usecase.vehicles.ReturnLoansVehiclesUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.time.format.DateTimeFormatter
+import java.time.OffsetDateTime
 
 class VehiclesViewModel(
     private val registUseCase: RegistVehiclesUseCase,
@@ -81,6 +86,76 @@ class VehiclesViewModel(
 
     private val _vehicleUrisState = MutableStateFlow<List<String>>(emptyList()) // Tambahkan untuk menyimpan URI
     val vehicleUrisState: MutableStateFlow<List<String>> = _vehicleUrisState
+
+    private val _vehiclesTokenMap = mutableMapOf<String, String>()
+    // Keep track of token expiration times
+    private val tokenExpirationTimes = mutableMapOf<String, String>()
+    private var lastVehiclesId: String? = null
+    private fun saveTokenForVehicles(vehicleId: String, token: String, expiredAt: String?){
+        _vehiclesTokenMap[vehicleId] = token
+        if (expiredAt != null){
+            tokenExpirationTimes[vehicleId] = expiredAt
+        }
+        Log.d("VehiclesViewModel", "Token saved for vehicle $vehicleId: $token")
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun isTokenExpired(expiryTimeStr: String?): Boolean {
+        if (expiryTimeStr == null) return true
+
+        return try {
+            val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
+            val expiryTime = OffsetDateTime.parse(expiryTimeStr, formatter)
+            OffsetDateTime.now().isAfter(expiryTime)
+        } catch (e: Exception) {
+            true
+        }
+    }
+
+    // Check if token for a specific vehicle is expired
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun isTokenForVehicleExpired(vehicleId: String): Boolean {
+        val expiryTimeStr = tokenExpirationTimes[vehicleId] ?: return true
+        return isTokenExpired(expiryTimeStr)
+    }
+
+    fun getTokenForVehicles(vehicleId: String): String?{
+        return _vehiclesTokenMap[vehicleId]
+    }
+    // Get expiration time for a vehicle token
+    fun getTokenExpirationTime(vehicleId: String): String? {
+        return tokenExpirationTimes[vehicleId]
+    }
+
+    fun hasTokenForVehicles(vehicleId: String): Boolean{
+        return _vehiclesTokenMap.containsKey(vehicleId)
+    }
+
+    fun handleVehiclesChange(newVehicleId: String) {
+        if (lastVehiclesId != null && lastVehiclesId != newVehicleId) {
+            // We're switching to a different vehicle, clear the state for the new vehicle ID
+            // Notice we're NOT clearing the token here, just resetting the UI state
+            _lendVehiclesState.value = null
+            _error.value = null
+        }
+
+        // Update the last vehicle ID
+        lastVehiclesId = newVehicleId
+    }
+
+    fun clearTokenForVehicles(vehicleId: String) {
+        _vehiclesTokenMap.remove(vehicleId)
+        tokenExpirationTimes.remove(vehicleId)
+
+        // Reset lending state
+        _lendVehiclesState.value = null
+        _error.value = null
+    }
+
+    fun clearAllTokens(){
+        _vehiclesTokenMap.clear()
+        Log.d("VehiclesViewModel", "All tokens cleared")
+    }
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
@@ -226,7 +301,7 @@ class VehiclesViewModel(
 //                    )
 //                }
 
-                val compressedDocument = compressBitmap(documentBitmap, imageFormat, 70)
+                val compressedDocument = compressBitmap(documentBitmap, imageFormat, 75)
                 val (docBase64, docExt, docMimeType) = bitmapToBase64WithFormat(compressedDocument, imageFormat)
                 val documentImage = BlobImageModel(
                     data = docBase64,
@@ -236,7 +311,7 @@ class VehiclesViewModel(
 
                 // Kompresi gambar kendaraan
                 val vehicleImages = vehicleBitmaps.map { bitmap ->
-                    val compressedBitmap = compressBitmap(bitmap, imageFormat, 70)
+                    val compressedBitmap = compressBitmap(bitmap, imageFormat, 75)
                     val (base64, ext, mimeType) = bitmapToBase64WithFormat(compressedBitmap, imageFormat)
                     BlobImageModel(
                         data = base64,
@@ -293,6 +368,11 @@ class VehiclesViewModel(
                     expiredAt = expiredAt
                 )
                 Log.d("VehiclesViewModel", "Lend vehicles success: ${result.message}")
+                // Save token with vehiclesid if success
+                result.data?.token?.token?.let { token ->
+                    saveTokenForVehicles(vehicleId, token, expiredAt)
+                }
+
                 _lendVehiclesState.value = result
             } catch (e: Exception) {
                 Log.e("VehiclesViewModel", "Error lend vehicles: ${e.message}")
@@ -301,6 +381,11 @@ class VehiclesViewModel(
                 _loading.value = false
             }
         }
+    }
+
+    fun resetLendState() {
+        _lendVehiclesState.value = null
+        _error.value = null
     }
 
     // loans vehicles
@@ -433,6 +518,14 @@ class VehiclesViewModel(
                 _loading.value = false
             }
         }
+    }
+
+    fun setError(message: String) {
+        _error.value = message
+    }
+
+    fun clearError() {
+        _error.value = null
     }
 }
 

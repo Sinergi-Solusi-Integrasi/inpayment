@@ -4,6 +4,7 @@
     import com.s2i.data.local.auth.SessionManager
     import com.s2i.data.remote.client.ApiServices
     import com.s2i.domain.repository.auth.TokenRepository
+    import timber.log.Timber
 
     class TokenRepositoryImpl(
         private val apiServices: ApiServices,
@@ -13,7 +14,7 @@
         override suspend fun refreshAccessToken(): Result<Unit> {
             return try {
                 if (sessionManager.isLoggedOut) {
-                    Log.d("TokenRepository", "Logout already triggered. Skipping refresh.")
+                    Timber.d("TokenRepository: Logout already triggered. Skipping refresh.")
                     return Result.failure(Exception("User already logged out"))
                 }
 

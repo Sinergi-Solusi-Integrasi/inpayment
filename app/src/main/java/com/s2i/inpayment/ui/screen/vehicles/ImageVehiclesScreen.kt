@@ -160,16 +160,6 @@ fun ImageVehiclesScreen(
         images
     }
 
-//    LaunchedEffect(vehicleImages, vehicleDocUris) {
-//        if (vehicleImages != null && vehicleImages!!.isNotEmpty() && vehicleDocUris != null) {
-//            Log.d("ImageVehiclesScreen", "✅ Semua data gambar tersedia, membuka VehiclesInputSheet...")
-//            showBottomSheet = true
-//        } else {
-//            Log.e("ImageVehiclesScreen", "❌ Data gambar belum lengkap, tidak membuka VehiclesInputSheet")
-//            showBottomSheet = false
-//        }
-//    }
-
     // Pager State untuk navigasi gambar dengan swipe
     val pagerState = rememberPagerState(pageCount = {displayedImages.size})
 

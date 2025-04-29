@@ -32,9 +32,11 @@
 # Gson specific classes
 -dontwarn sun.misc.**
 #-keep class com.google.gson.stream.** { *; }
-
+-dontwarn kotlinx.**
+-dontwarn kotlin.Unit
 # Application classes that will be serialized/deserialized over Gson
--keep class com.google.gson.examples.android.model.** { <fields>; }
+-keep class com.s2i.data.model.** { <fields>; }
+
 
 # Prevent proguard from stripping interface information from TypeAdapter, TypeAdapterFactory,
 # JsonSerializer, JsonDeserializer instances (so they can be used in @JsonAdapter)
@@ -46,6 +48,27 @@
 # Prevent R8 from leaving Data object members always null
 -keepclassmembers,allowobfuscation class * {
 @com.google.gson.annotations.SerializedName <fields>;
+}
+
+-keepattributes InnerClasses, EnclosingMethod, Signature, SourceFile, LineNumberTable
+-keepattributes KotlinMetadata
+
+# Untuk Koin agar tidak strip class module-nya
+-keep class org.koin.core.module.Module
+-keepclassmembers class * {
+    @org.koin.core.annotation.* <methods>;
+}
+
+# Untuk ViewModel yang di-inject
+-keep class * extends androidx.lifecycle.ViewModel { *; }
+
+-keepclassmembers class * {
+    @org.koin.core.annotation.* *;
+}
+
+# Jangan obfuscate Retrofit API
+-keep interface * {
+    @retrofit2.http.* <methods>;
 }
 
 
@@ -61,6 +84,13 @@
 -keepclassmembers,allowshrinking,allowobfuscation interface * {
 @retrofit2.http.* <methods>;
 }
+
+#-keepclassmembers,allowshrinking,allowobfuscation interface * {
+#    @retrofit2.http.* <methods>;
+#}
+
+-if interface * { @retrofit2.http.* <methods>; }
+-keep,allowobfuscation interface <1>
 
 # Ignore annotation used for build tooling.
 -dontwarn org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement
@@ -84,21 +114,46 @@
 
 
 # Keep classes related to Retrofit services, repositories, and session management
+-keep class com.s2i.data.** { *; }
 -keep class com.s2i.data.local.auth.SessionManager { *; }
+-keep class com.s2i.data.remote.** { *; }
 -keep class com.s2i.data.remote.client.ApiServices { *; }
--keep class com.s2i.data.repository.auth.AuthRepositoryImpl { *; }
+-keep class com.s2i.data.remote.client.WalletServices { *; }
+-keep class com.s2i.data.repository.** { *; }
 
 # Keep Retrofit model classes
 -keep class com.s2i.data.model.auth.AuthData { *; }
 -keep class com.s2i.data.model.users.UsersData { *; }
 
-# Keep Retrofit annotations
--keepattributes *Annotation*
+# Model antar modul (domain - entity)
+-keep class com.s2i.domain.entity.model.** { *; }
+-dontwarn com.s2i.domain.entity.model.**
 
 # Keep Gson annotations
 -keep class com.google.gson.annotations.SerializedName { *; }
+
+-keepclassmembers,allowobfuscation class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+
+-keep class kotlinx.serialization.** { *; }
+-keepclassmembers class ** {
+    @kotlinx.serialization.Serializable *;
+}
+
+# Kotlin + Compose Metadata
+-keep class kotlin.Metadata { *; }
+-dontwarn kotlinx.coroutines.internal.MainDispatcherLoader
+# Hindari minify nama class di package data.model
+-keeppackagenames com.s2i.data.model.**
+-keeppackagenames com.s2i.data.remote.**
+
 
 # Suppress warnings for specific classes
 -dontwarn com.s2i.domain.entity.model.auth.AuthModel
 -dontwarn com.s2i.domain.entity.model.users.UsersModel
 -dontwarn java.lang.invoke.StringConcatFactory
+-dontwarn kotlinx.coroutines.internal.MainDispatcherLoader
+-dontwarn com.s2i.data.remote.client.WalletServices
+
+
