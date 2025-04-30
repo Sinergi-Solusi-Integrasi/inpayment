@@ -212,7 +212,7 @@ fun PaymentScreen(
                         containerColor = if (isValidAmount) MaterialTheme.colorScheme.primary else Color.LightGray
                     )
                 ) {
-                    Text("Lanjut")
+                    Text("Continue")
                 }
             }
         }

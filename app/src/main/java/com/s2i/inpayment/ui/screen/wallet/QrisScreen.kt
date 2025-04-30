@@ -67,6 +67,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.s2i.data.local.auth.SessionManager
+import com.s2i.domain.entity.model.wallet.TopupQris
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.ReusableBottomSheet
 import com.s2i.inpayment.ui.theme.BrightTeal20
@@ -79,6 +80,7 @@ import com.s2i.inpayment.ui.viewmodel.QrisViewModel
 import com.s2i.inpayment.utils.NotificationManagerUtil
 import com.s2i.inpayment.utils.helper.generateQRCode
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.io.OutputStream
@@ -96,6 +98,7 @@ fun QrisScreen(
 
     val context = LocalContext.current
     val orderQrisState by qrisViewModel.orderQrisState.collectAsState() // Observe orderQuery result
+    val topUpState by qrisViewModel.topupState.collectAsState()
     val sessionManager = SessionManager(context)
     val userId = sessionManager.getFromPreference(SessionManager.KEY_USER_ID).toString()
     var isValidAmount by remember { mutableStateOf(false) }
@@ -108,6 +111,7 @@ fun QrisScreen(
     // State untuk BottomSheet
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
+    var shouldStopPolling by remember { mutableStateOf(false) }
 
     BackHandler(enabled = true) {
         showBottomSheet = true
@@ -144,16 +148,17 @@ fun QrisScreen(
         }
     }
 
+    // Replace the LaunchedEffect block with this updated version:
     LaunchedEffect(trxId) {
         trxId?.let {
             var lastState: String? = null
-            while (true) {
+            while (!shouldStopPolling) { // Check the flag in each iteration
                 try {
                     qrisViewModel.orderQuery(it)
 
                     //periksa status api
                     val orderState = orderQrisState
-                    if (orderState !=null) {
+                    if (orderState != null) {
                         val currentStatus = orderState.rCode
                         Log.d("QrisScreen", "Order state: ${orderState.rCode}, message: ${orderState.message}")
 
@@ -170,7 +175,6 @@ fun QrisScreen(
                             lastState = currentStatus
                         }
 
-
                         // Jika pembayaran berhasil atau gagal, hentikan polling
                         if (currentStatus == "00") {
                             Log.d("QrisScreen", "Stopping polling: Pembayaran berhasil.")
@@ -181,6 +185,21 @@ fun QrisScreen(
                                 feeAmount = 0,
                                 paymentMethod = "QRIS"
                             )
+
+                            // Wait a moment for the topup response to be processed
+                            delay(500)
+
+                            // Get the transaction ID from the topup response
+                            val topupResponse = qrisViewModel.topupState.value
+                            val transactionId = topupResponse?.data?.transactionId
+
+                            Log.d("QrisScreen", "Topup response received: $topupResponse")
+                            Log.d("QrisScreen", "Transaction ID for navigation: $transactionId")
+
+                            // Navigate to success screen with the transaction ID
+                            navController.navigate("payment_success_screen/$transactionId/${amount ?: 0}") {
+                                popUpTo("qris_screen") { inclusive = true }
+                            }
                             break
                         }
                     }
@@ -190,6 +209,11 @@ fun QrisScreen(
 
                 // Tunggu 5 detik sebelum polling berikutnya
                 delay(5000L)
+            }
+
+            // Log if polling was stopped by user action
+            if (shouldStopPolling) {
+                Log.d("QrisScreen", "Polling stopped by user")
             }
         }
     }
@@ -406,6 +430,10 @@ fun QrisScreen(
                 Button(
                     onClick = {
                         coroutineScope.launch {
+                            // Set the flag to stop polling
+                            shouldStopPolling = true
+                            Log.d("QrisScreen", "User clicked Quit, signaling to stop polling")
+
                             sheetState.hide()
                             showBottomSheet = false
                             navController.navigate("home_screen") {
