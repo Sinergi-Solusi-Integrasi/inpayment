@@ -49,6 +49,7 @@ import com.s2i.inpayment.ui.screen.vehicles.VehiclesScreen
 import com.s2i.inpayment.ui.screen.wallet.DetailTransactionScreen
 import com.s2i.inpayment.ui.screen.wallet.PaymentMethodsScreen
 import com.s2i.inpayment.ui.screen.wallet.PaymentScreen
+import com.s2i.inpayment.ui.screen.wallet.PaymentSuccessScreen
 import com.s2i.inpayment.ui.screen.wallet.QrisScreen
 import com.s2i.inpayment.ui.screen.wallet.WalletHistoryScreen
 import com.s2i.inpayment.ui.viewmodel.AuthViewModel
@@ -98,25 +99,37 @@ fun AppNavigation(
         }
         composable(
             "qris_screen/{qrisCode}/{trxId}/{amount}",
-            arguments = listOf(navArgument(
-                "qrisCode") {type = NavType.StringType},
+            arguments = listOf(
+                navArgument(
+                    "qrisCode"
+                ) { type = NavType.StringType },
                 navArgument("trxId") { type = NavType.StringType },
                 navArgument("amount") { type = NavType.StringType }
             )
         ) { backStackEntry ->
             val qrisCode = backStackEntry.arguments?.getString("qrisCode")
             val trxId = backStackEntry.arguments?.getString("trxId")
-            val amount = backStackEntry.arguments?.getString("amount")?.toIntOrNull() // tanpa format desimal 00
+            val amount = backStackEntry.arguments?.getString("amount")
+                ?.toIntOrNull() // tanpa format desimal 00
             // Log untuk memastikan data diterima
             Log.d("Navigation", "Navigated to QRIS Screen")
             Log.d("Navigation", "qrisCode: $qrisCode")
             Log.d("Navigation", "trxId: $trxId")
             Log.d("Navigation", "amount: $amount")
-            QrisScreen(qrisState = qrisCode, trxId = trxId, amount = amount,  navController = navController)
+            QrisScreen(
+                qrisState = qrisCode,
+                trxId = trxId,
+                amount = amount,
+                navController = navController
+            )
 
         }
         composable("login_screen") {
-            LoginScreen(navController = navController, authViewModel = authViewModel, sessionManager = sessionManager)
+            LoginScreen(
+                navController = navController,
+                authViewModel = authViewModel,
+                sessionManager = sessionManager
+            )
         }
         composable(
             "register_screen/{detectedText}/{extractedName}?filePath={filePath}",
@@ -222,18 +235,24 @@ fun AppNavigation(
             IntroAddVehiclesScreen(navController = navController)
         }
         composable("image_vehicle_screen") {
-            ImageVehiclesScreen(navController = navController, vehiclesViewModel = vehiclesViewModel)
+            ImageVehiclesScreen(
+                navController = navController,
+                vehiclesViewModel = vehiclesViewModel
+            )
         }
 
         composable("doc_vehicle_screen") {
-            DocImageVehiclesScreen(navController = navController, vehiclesViewModel = vehiclesViewModel)
+            DocImageVehiclesScreen(
+                navController = navController,
+                vehiclesViewModel = vehiclesViewModel
+            )
         }
 
         composable("input_vehicles_screen") {
-                VehiclesInputSheet(
-                    navController = navController,
-                    vehiclesViewModel = vehiclesViewModel
-                )
+            VehiclesInputSheet(
+                navController = navController,
+                vehiclesViewModel = vehiclesViewModel
+            )
         }
 
 
@@ -246,7 +265,7 @@ fun AppNavigation(
         composable("history_screen") {
             WalletHistoryScreen(
                 navController = navController,
-                balanceViewModel =  balanceViewModel
+                balanceViewModel = balanceViewModel
             )
         }
         composable(
@@ -275,9 +294,31 @@ fun AppNavigation(
                 )
             }
         }
-    }
+        // Add this to your Navigation setup
 
-    // Observe tokenState for logout or token refresh
+// In your NavHost, add this route:
+        composable(
+            route = "payment_success_screen/{transactionId}/{amount}",
+            arguments = listOf(
+                navArgument("transactionId") {
+                    type = NavType.StringType
+                },
+                navArgument("amount") {
+                    type = NavType.IntType
+                    defaultValue = 0
+                }
+            )
+        ) { backStackEntry ->
+            val transactionId = backStackEntry.arguments?.getString("transactionId") ?: ""
+            val amount = backStackEntry.arguments?.getInt("amount") ?: 0
+            PaymentSuccessScreen(
+                navController = navController,
+                transactionId = transactionId,
+                amount = amount
+            )
+        }
+
+        // Observe tokenState for logout or token refresh
 //    LaunchedEffect(tokenState) {
 //        if (tokenState is TokenViewModel.TokenState.Expired) {
 //            navController.navigate("login_screen") {
@@ -285,4 +326,5 @@ fun AppNavigation(
 //            }
 //        }
 //    }
+    }
 }
