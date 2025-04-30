@@ -80,9 +80,11 @@ import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import com.s2i.inpayment.ui.viewmodel.QrisViewModel
 import com.s2i.inpayment.utils.NotificationManagerUtil
 import com.s2i.inpayment.utils.helper.generateQRCode
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
 import java.io.OutputStream
 
@@ -171,6 +173,7 @@ fun QrisScreen(
             var lastState: String? = null
             var retryCount = 0
             val maxRetries = 360
+            var topupProcessed = false
             while (retryCount < maxRetries) {
                 // Periksa apakah polling harus dihentikan
                 if (shouldStopPolling.value) {
@@ -200,30 +203,39 @@ fun QrisScreen(
                         }
 
                         // Jika pembayaran berhasil atau gagal, hentikan polling
-                        if (currentStatus == "00") {
+                        if (currentStatus == "00" && !topupProcessed) {
                             Log.d("QrisScreen", "Stopping polling: Pembayaran berhasil.")
-                            qrisViewModel.topup(
+                            val topupInitiazed = qrisViewModel.topup(
                                 userId = userId,
                                 referenceId = trxId,
                                 amount = amount?: 0,
                                 feeAmount = 0,
                                 paymentMethod = "QRIS"
                             )
+                            if (topupInitiazed){
+                                delay(1000)
                             // Wait a moment for the topup response to be processed
-                            delay(500)
+                                // Get transaction ID
+                                val transactionId = qrisViewModel.getTransactionId()
+                                Log.d("QrisScreen", "Got transaction ID for navigation: $transactionId")
 
-                            // Get the transaction ID from the topup response
-                            val topupResponse = qrisViewModel.topupState.value
-                            val transactionId = topupResponse?.data?.transactionId
+                                if (transactionId != null) {
+                                    // Mark as processed to exit the loop
+                                    topupProcessed = true
 
-                            Log.d("QrisScreen", "Topup response received: $topupResponse")
-                            Log.d("QrisScreen", "Transaction ID for navigation: $transactionId")
-
-                            // Navigate to success screen with the transaction ID
-                            navController.navigate("payment_success_screen/$transactionId/${amount ?: 0}") {
-                                popUpTo("qris_screen") { inclusive = true }
+                                    // Navigate to success screen
+                                        navController.navigate("payment_success_screen/$transactionId/${amount ?: 0}") {
+                                            popUpTo("qris_screen") { inclusive = true }
+                                        }
+                                } else {
+                                    Log.d("QrisScreen", "Transaction ID not available yet, will retry")
+                                    delay(2000) // Wait before retrying
+                                }
+                            } else {
+                                // Topup was already processed, exit the loop
+                                topupProcessed = true
+                                Log.d("QrisScreen", "Topup was already processed, exiting polling loop")
                             }
-                            break
                         } else if (currentStatus !="99") {
                             Log.d("QrisScreen", "Stopping polling: Pembayaran gagal.")
                             shouldStopPolling.value = true
@@ -240,10 +252,20 @@ fun QrisScreen(
                     delay(5000L)
                 }
             }
+
             if (retryCount >= maxRetries) {
                 Log.d("QrisScreen", "Max retries reached. Stopping polling.")
                 NotificationManagerUtil.showNotification(context, trxId = it, title = "Status Pembayaran", messageBody = "Waktu pembayaran habis")
             }
+        }
+    }
+
+    // Add this cleanup effect
+    DisposableEffect(Unit) {
+        onDispose {
+            // Clear any stored state to prevent issues in future navigation
+            qrisViewModel.clearTopUpState()
+            Log.d("QrisScreen", "DisposableEffect: Clearing topup state")
         }
     }
 

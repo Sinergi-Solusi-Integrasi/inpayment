@@ -35,6 +35,7 @@ class QrisViewModel(
     private val _loading = MutableStateFlow(false)
     val loading : MutableStateFlow<Boolean> = _loading
 
+    private val proceessedTransactions = mutableSetOf<String>()
 
     fun sendQris(
         mid:String,
@@ -94,7 +95,14 @@ class QrisViewModel(
         amount: Int,
         feeAmount: Int,
         paymentMethod: String
-    ) {
+    ): Boolean {
+        if (proceessedTransactions.contains(referenceId)){
+            Log.d("QrisViewModel", "Transaksi sudah diproses sebelumnya: $referenceId")
+            return false
+        }
+
+        proceessedTransactions.add(referenceId)
+
         viewModelScope.launch {
             _loading.value = true
             try {
@@ -110,10 +118,21 @@ class QrisViewModel(
                 Log.d("QrisViewModel", "Topup berhasil: $topupResult")
             } catch (e: Exception) {
                 _error.value = e.message
+                proceessedTransactions.remove(referenceId)
+                Log.e("QrisViewModel", "Topup gagal: ${e.message}")
             } finally {
                 _loading.value = false
             }
         }
+        return true
+    }
+
+    fun getTransactionId(): String? {
+        return _topupState.value?.data?.transactionId
+    }
+
+    fun clearTopUpState(){
+        _topupState.value = null
     }
 
 }
