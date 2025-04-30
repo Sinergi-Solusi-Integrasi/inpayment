@@ -46,6 +46,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -111,7 +112,10 @@ fun QrisScreen(
     // State untuk BottomSheet
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
-    var shouldStopPolling by remember { mutableStateOf(false) }
+    // Membuat state untuk menghentikan polling
+    val shouldStopPolling = remember { MutableStateFlow(false) }
+
+
 
     BackHandler(enabled = true) {
         showBottomSheet = true
@@ -147,18 +151,38 @@ fun QrisScreen(
             isStartupLoading = false
         }
     }
+    // Effect untuk membersihkan ketika composable di-dispose
+    DisposableEffect(Unit) {
+        onDispose {
+            // Pastikan polling berhenti ketika composable di-dispose
+            shouldStopPolling.value = true
+            Log.d("QrisScreen", "Composable disposed, stopping polling")
+        }
+    }
 
-    // Replace the LaunchedEffect block with this updated version:
+
     LaunchedEffect(trxId) {
         trxId?.let {
+            // Save qrisdata
+            if (qrisState != null && amount != null) {
+                NotificationManagerUtil.saveQrisData(context, it, qrisState, amount)
+                Log.d("QrisScreen", "Data QRIS disimpan: qrisCode=${qrisState}, trxId=${it}, amount=${amount}")
+            }
             var lastState: String? = null
-            while (!shouldStopPolling) { // Check the flag in each iteration
+            var retryCount = 0
+            val maxRetries = 360
+            while (retryCount < maxRetries) {
+                // Periksa apakah polling harus dihentikan
+                if (shouldStopPolling.value) {
+                    Log.d("QrisScreen", "Polling stopped per user request or max retries")
+                    break
+                }
                 try {
                     qrisViewModel.orderQuery(it)
 
                     //periksa status api
                     val orderState = orderQrisState
-                    if (orderState != null) {
+                    if (orderState !=null) {
                         val currentStatus = orderState.rCode
                         Log.d("QrisScreen", "Order state: ${orderState.rCode}, message: ${orderState.message}")
 
@@ -185,7 +209,6 @@ fun QrisScreen(
                                 feeAmount = 0,
                                 paymentMethod = "QRIS"
                             )
-
                             // Wait a moment for the topup response to be processed
                             delay(500)
 
@@ -201,19 +224,25 @@ fun QrisScreen(
                                 popUpTo("qris_screen") { inclusive = true }
                             }
                             break
+                        } else if (currentStatus !="99") {
+                            Log.d("QrisScreen", "Stopping polling: Pembayaran gagal.")
+                            shouldStopPolling.value = true
+                            break
                         }
                     }
+                    retryCount++
+                    val delay = if (retryCount > 20) 15000L else if (retryCount > 10) 10000L else 5000L
+                    delay(delay)
                 } catch (e: Exception) {
                     Log.e("QrisScreen", "Error during order query: ${e.message}")
+                    retryCount++
+                    // Tunggu 5 detik sebelum polling berikutnya
+                    delay(5000L)
                 }
-
-                // Tunggu 5 detik sebelum polling berikutnya
-                delay(5000L)
             }
-
-            // Log if polling was stopped by user action
-            if (shouldStopPolling) {
-                Log.d("QrisScreen", "Polling stopped by user")
+            if (retryCount >= maxRetries) {
+                Log.d("QrisScreen", "Max retries reached. Stopping polling.")
+                NotificationManagerUtil.showNotification(context, trxId = it, title = "Status Pembayaran", messageBody = "Waktu pembayaran habis")
             }
         }
     }
@@ -431,7 +460,7 @@ fun QrisScreen(
                     onClick = {
                         coroutineScope.launch {
                             // Set the flag to stop polling
-                            shouldStopPolling = true
+                            shouldStopPolling.value = true
                             Log.d("QrisScreen", "User clicked Quit, signaling to stop polling")
 
                             sheetState.hide()
