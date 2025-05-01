@@ -577,9 +577,10 @@ fun HomeScreen(
                                     ) {
                                         // Transactions list
                                         transactions.forEach { transaction ->
-                                            val dateTimeFormatted = Dates.formatTimeDifference(
-                                                startTime = Dates.parseIso8601(transaction.trxDate),
-                                                endTime = System.currentTimeMillis()
+                                            val dateTimeFormatted = Dates.formatDate(
+                                                Dates.parseIso8601(
+                                                    transaction.trxDate
+                                                )
                                             )
 
                                             TransactionItem(
