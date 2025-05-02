@@ -109,15 +109,12 @@ fun QrisScreen(
     var isStartupLoading by remember { mutableStateOf(true) }
     var isRefreshing by remember { mutableStateOf(false) }
 
-
     val coroutineScope = rememberCoroutineScope()
     // State untuk BottomSheet
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
     // Membuat state untuk menghentikan polling
     val shouldStopPolling = remember { MutableStateFlow(false) }
-
-
 
     BackHandler(enabled = true) {
         showBottomSheet = true
@@ -153,6 +150,7 @@ fun QrisScreen(
             isStartupLoading = false
         }
     }
+
     // Effect untuk membersihkan ketika composable di-dispose
     DisposableEffect(Unit) {
         onDispose {
@@ -161,7 +159,6 @@ fun QrisScreen(
             Log.d("QrisScreen", "Composable disposed, stopping polling")
         }
     }
-
 
     LaunchedEffect(trxId) {
         trxId?.let {
@@ -192,7 +189,7 @@ fun QrisScreen(
                         // Jika status berubah, tampilkan notifikasi
                         if(currentStatus != lastState) {
                             val statusMessage = when (orderState.rCode) {
-                                "00" -> "Pembayaran Berhasil"
+                                "00" -> "Pembayaran Sedang Diproses"
                                 "99" -> "Pembayaran Pending"
                                 else -> "Pembayaran Gagal: ${orderState.message}"
                             }
@@ -214,7 +211,7 @@ fun QrisScreen(
                             )
                             if (topupInitiazed){
                                 delay(1000)
-                            // Wait a moment for the topup response to be processed
+                                // Wait a moment for the topup response to be processed
                                 // Get transaction ID
                                 val transactionId = qrisViewModel.getTransactionId()
                                 Log.d("QrisScreen", "Got transaction ID for navigation: $transactionId")
@@ -224,9 +221,9 @@ fun QrisScreen(
                                     topupProcessed = true
 
                                     // Navigate to success screen
-                                        navController.navigate("payment_success_screen/$transactionId/${amount ?: 0}") {
-                                            popUpTo("qris_screen") { inclusive = true }
-                                        }
+                                    navController.navigate("payment_success_screen/$transactionId/${amount ?: 0}") {
+                                        popUpTo("qris_screen") { inclusive = true }
+                                    }
                                 } else {
                                     Log.d("QrisScreen", "Transaction ID not available yet, will retry")
                                     delay(2000) // Wait before retrying
@@ -311,38 +308,40 @@ fun QrisScreen(
             }
         },
         bottomBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(BrightTeal20)
-                    .padding(16.dp)
-                    .navigationBarsPadding()
-            ) {
-                Button(
-                    onClick = {
-                        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            android.Manifest.permission.READ_MEDIA_IMAGES
-                        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                            android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-                        } else {
-                            android.Manifest.permission.READ_EXTERNAL_STORAGE
-                        }
-
-                        if (ContextCompat.checkSelfPermission(
-                                context,
-                                permission
-                            ) != android.content.pm.PackageManager.PERMISSION_GRANTED
-                        ) {
-                            permissionLauncher.launch(permission)
-                        } else {
-                            saveQRCode(context, qrisState)
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
+            // Only show download button if orderQrisState is not "00"
+            if (orderQrisState?.rCode != "00") {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(BrightTeal20)
+                        .padding(16.dp)
+                        .navigationBarsPadding()
                 ) {
-                    Text("Download")
-                }
+                    Button(
+                        onClick = {
+                            val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                android.Manifest.permission.READ_MEDIA_IMAGES
+                            } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                            } else {
+                                android.Manifest.permission.READ_EXTERNAL_STORAGE
+                            }
 
+                            if (ContextCompat.checkSelfPermission(
+                                    context,
+                                    permission
+                                ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+                            ) {
+                                permissionLauncher.launch(permission)
+                            } else {
+                                saveQRCode(context, qrisState)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Download")
+                    }
+                }
             }
         }
     ) { innerPadding ->
@@ -367,96 +366,107 @@ fun QrisScreen(
                 } else {
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // QRIS Section
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color.White)
-                            .padding(16.dp)
-                    ) {
-                        Column(
+                    // Check if orderQrisState exists and has rCode = "00"
+                    if (orderQrisState?.rCode == "00") {
+                        // Show loading indicator when payment is being processed
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            LinearProgressIndicator()
+                        }
+                    } else {
+                        // For any other status (null, "99", or error status), show QRIS code
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color.White)
+                                .padding(16.dp)
                         ) {
-                            if (qrisState !=null) {
-                                // Template QRIS dengan barcode di tengah
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .aspectRatio(3/4f),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.template_qris),
-                                        contentDescription = "Template QRIS",
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                    // Generate QRCode from qrisstate
-                                    AndroidView(
-                                        factory = { context ->
-                                            ImageView(context).apply {
-                                                val qrisBitmap = generateQRCode(qrisState)
-                                                setImageBitmap(qrisBitmap)
-                                            }
-                                        },
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                if (qrisState !=null) {
+                                    // Template QRIS dengan barcode di tengah
+                                    Box(
                                         modifier = Modifier
-                                            .size(250.dp)
-                                            .padding(16.dp)
+                                            .fillMaxWidth()
+                                            .aspectRatio(3/4f),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Image(
+                                            painter = painterResource(id = R.drawable.template_qris),
+                                            contentDescription = "Template QRIS",
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                        // Generate QRCode from qrisstate
+                                        AndroidView(
+                                            factory = { context ->
+                                                ImageView(context).apply {
+                                                    val qrisBitmap = generateQRCode(qrisState)
+                                                    setImageBitmap(qrisBitmap)
+                                                }
+                                            },
+                                            modifier = Modifier
+                                                .size(250.dp)
+                                                .padding(16.dp)
 
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Text(
-                                    text = "Scan QR Code untuk melanjutkan Pembayaran",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    modifier = Modifier
-                                        .padding(horizontal = 16.dp),
-                                    textAlign = TextAlign.Center
-                                )
-
-                                // Display QRIS order status (optional)
-                                orderQrisState?.let { orderState ->
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    val statusColor = when (orderState.rCode) {
-                                        "00" -> GreenTeal40  // Success
-                                        "99" -> Color.Black // Pending
-                                        else -> Color.Red    // Error
-                                    }
-                                    Text(
-                                        text = when (orderState.rCode) {
-                                            "00" -> "Pembayaran Berhasil"
-                                            "99" -> "Pembayaran Pending"
-                                            else -> "Pembayaran Gagal: ${orderState.message}"
-                                        },
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        color = when (orderState.rCode){
-                                            "00" -> Success
-                                            "99" -> Pendding
-                                            else -> Gagal
-                                        },
-                                        textAlign = TextAlign.Center
-                                    )
-                                    orderState.trxId?.let { trxId ->
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(
-                                            text = "Transaction ID: $trxId",
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            textAlign = TextAlign.Center
                                         )
                                     }
-                                }
 
-                            } else {
-                                Text(
-                                    text = "QR Code Tidak Ditemukan",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = Color.Red
-                                )
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Text(
+                                        text = "Scan QR Code untuk melanjutkan Pembayaran",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        modifier = Modifier
+                                            .padding(horizontal = 16.dp),
+                                        textAlign = TextAlign.Center
+                                    )
+
+                                    // Display QRIS order status (optional)
+//                                    orderQrisState?.let { orderState ->
+//                                        Spacer(modifier = Modifier.height(16.dp))
+//                                        val statusColor = when (orderState.rCode) {
+//                                            "00" -> GreenTeal40  // Success
+//                                            "99" -> Color.Black // Pending
+//                                            else -> Color.Red    // Error
+//                                        }
+//                                        Text(
+//                                            text = when (orderState.rCode) {
+//                                                "00" -> "Pembayaran Sedang Diproses"
+//                                                "99" -> "Pembayaran Pending"
+//                                                else -> "Pembayaran Gagal: ${orderState.message}"
+//                                            },
+//                                            style = MaterialTheme.typography.bodyLarge,
+//                                            color = when (orderState.rCode){
+//                                                "00" -> Success
+//                                                "99" -> Pendding
+//                                                else -> Gagal
+//                                            },
+//                                            textAlign = TextAlign.Center
+//                                        )
+//                                        orderState.trxId?.let { trxId ->
+//                                            Spacer(modifier = Modifier.height(8.dp))
+//                                            Text(
+//                                                text = "Transaction ID: $trxId",
+//                                                style = MaterialTheme.typography.bodyLarge,
+//                                                textAlign = TextAlign.Center
+//                                            )
+//                                        }
+//                                    }
+
+                                } else {
+                                    Text(
+                                        text = "QR Code Tidak Ditemukan",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = Color.Red
+                                    )
+                                }
                             }
                         }
                     }
