@@ -195,7 +195,7 @@ fun PaymentSuccessScreen(
                 onClick = {
                     // Navigate to home screen
                     navController.navigate("detail_transaksi_screen/${transactionId}") {
-                        popUpTo("home_screen") { inclusive = true }
+                        popUpTo("home_screen") { inclusive = false }
                     }
                 },
                 modifier = Modifier
