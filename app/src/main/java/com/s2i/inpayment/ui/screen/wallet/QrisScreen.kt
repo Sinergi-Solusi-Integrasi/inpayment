@@ -480,7 +480,8 @@ fun QrisScreen(
 //                                        )
 //                                    }
 //                                }
-// Hanya menampilkan status saat pembayaran gagal
+
+                                // Hanya menampilkan status saat pembayaran gagal
                                 orderQrisState?.let { orderState ->
                                     if (orderState.rCode != "00" && orderState.rCode != "99") {
                                         Spacer(modifier = Modifier.height(16.dp))

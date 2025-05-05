@@ -3,15 +3,19 @@ package com.s2i.inpayment.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.s2i.inpayment.R
+import com.s2i.inpayment.ui.theme.BrightTeal20
 import com.s2i.inpayment.ui.theme.GreenTeal40
 
 @Composable
@@ -23,6 +27,7 @@ fun TransactionItem(
     isNegative: Boolean,
     dateTime: String,
     transactionId: String, // Tambahkan parameter transactionId
+    iconResource: Int = R.drawable.`in`, // Parameter icon tambahan
     onClick: (String) -> Unit, // Callback untuk navigasi
     modifier: Modifier = Modifier // Tambahkan parameter modifier di sini
 ) {
@@ -39,6 +44,18 @@ fun TransactionItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Icon di sebelah kiri
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+            ){
+                Icon(
+                    painter = painterResource(id = iconResource),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = Color.Unspecified // Menggunakan warna default dari ikon
+                )
+            }
             // Column for title and description
             Column(
                 modifier = Modifier.weight(1f)

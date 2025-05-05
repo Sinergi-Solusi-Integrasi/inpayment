@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.s2i.common.utils.convert.RupiahFormatter
 import com.s2i.common.utils.date.Dates
 import com.s2i.domain.entity.model.balance.HistoryBalanceModel
+import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.theme.BrightTeal20
 
 @Composable
@@ -50,8 +51,8 @@ fun HistoryCard(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .wrapContentHeight()
-                , // Limit height for the transaction history
+                .wrapContentHeight(),
+                 // Limit height for the transaction history
             elevation = CardDefaults.elevatedCardElevation(0.dp),
             shape = MaterialTheme.shapes.medium
         ){
@@ -79,6 +80,7 @@ fun HistoryCard(
                         isNegative = transaction.cashFlow == "MONEY_OUT",
                         dateTime = dateTimeFormatted,
                         transactionId = transaction.transactionId,
+                        iconResource =  if (transaction.cashFlow == "MONEY_OUT") R.drawable.out else R.drawable.`in`,
                         onClick = {
                             onTransactionClick(transaction.transactionId) // Panggil lambda dengan transactionId
                         }
