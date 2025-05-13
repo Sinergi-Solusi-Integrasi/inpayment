@@ -69,10 +69,12 @@ import com.s2i.inpayment.ui.components.permission.hasAllPermissions
 import com.s2i.inpayment.ui.screen.wallet.BalanceCard
 import com.s2i.inpayment.ui.theme.BrightTeal
 import com.s2i.inpayment.ui.theme.BrightTeal20
+import com.s2i.inpayment.ui.theme.Gagal
 import com.s2i.inpayment.ui.theme.GreenTeal40
 import com.s2i.inpayment.ui.theme.Red560
-import com.s2i.inpayment.ui.theme.backgroundGradientBrush
+import com.s2i.inpayment.ui.theme.appleCardGradient
 import com.s2i.inpayment.ui.theme.exComeGradient
+import com.s2i.inpayment.ui.theme.gradientBrush
 import com.s2i.inpayment.ui.theme.inComeGradient
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import com.s2i.inpayment.ui.viewmodel.HomeViewModel
@@ -154,16 +156,16 @@ fun HomeScreen(
     var isBalanceValid by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-            val deviceId = sessionManager.getFromPreference(SessionManager.KEY_DEVICE_ID)
-            if (!deviceId.isNullOrBlank()) {
-                Log.d("HomeScreen", "Device ID: $deviceId, proceeding to bind account.")
-                servicesViewModel.bindAccount(deviceId)
-            } else {
-                Log.e("HomeScreen", "Device ID not found after registration")
-            }
-            balanceViewModel.fetchBalance()
-            balanceViewModel.fetchTriLastTransaction()
-            balanceViewModel.fetchInComeExpenses()
+        val deviceId = sessionManager.getFromPreference(SessionManager.KEY_DEVICE_ID)
+        if (!deviceId.isNullOrBlank()) {
+            Log.d("HomeScreen", "Device ID: $deviceId, proceeding to bind account.")
+            servicesViewModel.bindAccount(deviceId)
+        } else {
+            Log.e("HomeScreen", "Device ID not found after registration")
+        }
+        balanceViewModel.fetchBalance()
+        balanceViewModel.fetchTriLastTransaction()
+        balanceViewModel.fetchInComeExpenses()
     }
 
     // Menangani hasil response BindingModel
@@ -181,427 +183,388 @@ fun HomeScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(brush = backgroundGradientBrush())
-                .windowInsetsPadding(WindowInsets.statusBars)
+                .background(brush = appleCardGradient())
+//                .windowInsetsPadding(WindowInsets.statusBars)
                 .pullRefresh(state = pullRefreshState)
         )
         {
+            Image(
+                painter = painterResource(id = R.drawable.union4),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(400.dp)
+                    .zIndex(0f)
+                    .align(Alignment.TopCenter),
+                contentScale = ContentScale.FillBounds,
+                alpha = 0.8f
+            )
+            Image(
+                painter = painterResource(id = R.drawable.ic_spider),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(400.dp)
+                    .zIndex(0f)
+                    .align(Alignment.TopCenter),
+                contentScale = ContentScale.FillBounds,
+                alpha = 0.8f
+            )
 
-                Image(
-                    painter = painterResource(id = R.drawable.ic_spider),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp)
-                        .zIndex(0f)
-                        .align(Alignment.TopCenter),
-                    contentScale = ContentScale.FillBounds,
-                    alpha = 0.8f
-                )
+            PullRefreshIndicator(
+                refreshing = isRefreshing,
+                state = pullRefreshState,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .zIndex(2f)
+            )
 
-                PullRefreshIndicator(
-                    refreshing = isRefreshing,
-                    state = pullRefreshState,
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .zIndex(2f)
-                )
+            // Main content column
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
+            ) {
+                // Show loading indicator when needed
+                if (isStartupLoading) {
+                    CustomLinearProgressIndicator(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                    )
+                }
 
-                // Main content column
+                // Header content
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
+                        .padding(horizontal = 16.dp)
                 ) {
-                    // Show loading indicator when needed
-                    if (isStartupLoading) {
-                        CustomLinearProgressIndicator(
+                    // Header with Logo, Notification, and Profile
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 32.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Logo on the left
+                        Image(
+                            painter = painterResource(id = R.drawable.logo),
+                            contentDescription = "Logo",
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
+                                .size(40.dp)
+                                .align(Alignment.CenterVertically)
                         )
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        // Notification and profile section
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            IconButton(onClick = { /* Handle notification click */ }) {
+                                Icon(
+                                    Icons.Filled.Notifications,
+                                    contentDescription = "Notifications",
+                                    tint = Color.White,
+                                    modifier = Modifier
+                                        .size(30.dp)
+
+                                )
+                            }
+
+                            // Profile picture
+//
+                            Icon(
+                                imageVector = Icons.Filled.AccountCircle,
+                                contentDescription = "Profile",
+                                tint = Color.White,
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clickable {
+                                        navController.navigate("profile_screen") {
+                                            launchSingleTop = true
+                                        }
+                                    }
+                            )
+                        }
                     }
 
-                    // Header section with the football field background
-
-                        // Header content
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
+                    // Balance Card positioned to overlap with background
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    ) {
+                        // Use your existing BalanceCard component
+                        BalanceCard(
+                            navController,
+                            balanceState,
+                            isBalanceValid
                         ) {
-                            // Header with Logo, Notification, and Profile
+                            isBalanceValid = !isBalanceValid
+                        }
+
+                        // Bridge/Tower icon watermark at bottom right of card
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_road),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(16.dp)
+                                .size(80.dp)
+                                .alpha(0.8f)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+//                        .background(BrightTeal20)
+                        .windowInsetsPadding(WindowInsets.safeDrawing)
+                        .weight(1f) // Take remaining space
+                ) {
+                    // Scrollable content container
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        // Income and Expense section
+                        item {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                                    .padding(vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                // Logo on the left
-                                Image(
-                                    painter = painterResource(id = R.drawable.logo),
-                                    contentDescription = "Logo",
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .align(Alignment.CenterVertically)
-                                )
-
-                                Spacer(modifier = Modifier.weight(1f))
-
-                                // Notification and profile section
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    IconButton(onClick = { /* Handle notification click */ }) {
-                                        Icon(
-                                            Icons.Filled.Notifications,
-                                            contentDescription = "Notifications",
-                                            tint = Color.White,
-                                            modifier = Modifier
-                                                .size(30.dp)
-
-                                        )
-                                    }
-
-                                    // Profile picture
-//
-                                        Icon(
-                                            imageVector = Icons.Filled.AccountCircle,
-                                            contentDescription = "Profile",
-                                            tint = Color.White,
-                                            modifier = Modifier
-                                                .size(32.dp)
-                                                .clickable{
-                                                navController.navigate("profile_screen") {
-                                                    launchSingleTop = true
-                                                }
-                                            }
-                                        )
-                                }
-                            }
-
-                            // Balance Card positioned to overlap with background
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                            ) {
-                                // Use your existing BalanceCard component
-                                BalanceCard(
-                                    navController,
-                                    balanceState,
-                                    isBalanceValid
-                                ) {
-                                    isBalanceValid = !isBalanceValid
-                                }
-
-                                // Bridge/Tower icon watermark at bottom right of card
-                                Image(
-                                    painter = painterResource(id = R.drawable.ic_road),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .align(Alignment.BottomEnd)
-                                        .padding(16.dp)
-                                        .size(80.dp)
-                                        .alpha(0.8f)
-                                )
-                            }
-                        }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Spacer(modifier = Modifier.height(8.dp))
-                    // Scrollable content (transaction history and income/expense cards)
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(BrightTeal20)
-                            .windowInsetsPadding(WindowInsets.safeDrawing)
-                            .weight(1f) // Take remaining space
-                    ) {
-                        // Scrollable content container
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 16.dp)
-                        ) {
-                            // Income and Expense section
-                            item {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 8.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    // Income Card
-                                    Card(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .padding(end = 8.dp),
-                                        elevation = CardDefaults.elevatedCardElevation(4.dp),
-                                        shape = MaterialTheme.shapes.medium
-                                    ) {
-                                        Column(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .background(
-                                                    brush = inComeGradient(
-                                                        IntSize(
-                                                            1080,
-                                                            1920
-                                                        )
-                                                    )
-                                                )
-                                                .padding(16.dp),
-                                            horizontalAlignment = Alignment.Start
-                                        ) {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Text(
-                                                    text = "Pemasukan",
-                                                    style = MaterialTheme.typography.titleSmall
-                                                )
-
-                                                // Triangle Up Icon for Income
-//                                                Icon(
-//                                                    painter = painterResource(id = R.drawable.ic_triangle_up),
-//                                                    contentDescription = "Income Indicator",
-//                                                    tint = GreenTeal40,
-//                                                    modifier = Modifier.size(16.dp)
-//                                                )
-                                                // You can also use Canvas to draw a triangle if you don't have a resource:
-
-                                                Canvas(modifier = Modifier.size(16.dp)) {
-                                                    val path = Path().apply {
-                                                        moveTo(size.width / 2f, 0f)
-                                                        lineTo(size.width, size.height)
-                                                        lineTo(0f, size.height)
-                                                        close()
-                                                    }
-                                                    drawPath(
-                                                        path = path,
-                                                        color = BrightTeal,
-                                                        style = Fill
-                                                    )
-                                                }
-
-                                            }
-                                            Text(
-                                                text = incomeExpense?.data?.incomeTrx?.amount?.let {
-                                                    RupiahFormatter.formatToRupiah(
-                                                        it
-                                                    )
-                                                } ?: "Loading...",
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                color = GreenTeal40
-                                            )
-                                            Spacer(modifier = Modifier.height(8.dp))
-                                            Text(
-                                                text = incomeExpense?.data?.incomeTrx?.title?.ifEmpty { "" }
-                                                    ?: " ",
-                                                style = MaterialTheme.typography.bodySmall
-                                            )
-                                        }
-                                    }
-
-                                    // Expense Card
-                                    Card(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .padding(start = 8.dp),
-                                        elevation = CardDefaults.elevatedCardElevation(4.dp),
-                                        shape = MaterialTheme.shapes.medium
-                                    ) {
-                                        Column(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .background(
-                                                    brush = exComeGradient(
-                                                        IntSize(
-                                                            1080,
-                                                            1920
-                                                        )
-                                                    )
-                                                )
-                                                .padding(16.dp),
-                                            horizontalAlignment = Alignment.Start
-                                        ) {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Text(
-                                                    text = "Pengeluaran",
-                                                    style = MaterialTheme.typography.titleSmall
-                                                )
-
-                                                // Triangle Down Icon for Expense
-//                                                Icon(
-//                                                    painter = painterResource(id = R.drawable.ic_triangle_down),
-//                                                    contentDescription = "Expense Indicator",
-//                                                    tint = Color.Red,
-//                                                    modifier = Modifier.size(16.dp)
-//                                                )
-                                                // Canvas alternative if resource isn't available:
-
-                                                Canvas(modifier = Modifier.size(16.dp)) {
-                                                    val path = Path().apply {
-                                                        moveTo(0f, 0f)
-                                                        lineTo(size.width, 0f)
-                                                        lineTo(size.width / 2f, size.height)
-                                                        close()
-                                                    }
-                                                    drawPath(
-                                                        path = path,
-                                                        color = Red560,
-                                                        style = Fill
-                                                    )
-                                                }
-
-                                            }
-
-                                            Text(
-                                                text = incomeExpense?.data?.expenseTrx?.amount?.let {
-                                                    "-" + RupiahFormatter.formatToRupiah(
-                                                        it
-                                                    )
-                                                } ?: "Loading...",
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                color = Color.Red
-                                            )
-                                            Spacer(modifier = Modifier.height(8.dp))
-                                            Text(
-                                                text = incomeExpense?.data?.expenseTrx?.title
-                                                    ?: " ",
-                                                style = MaterialTheme.typography.bodySmall
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Transaction History Title
-                            item {
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    // Left line
-                                    HorizontalDivider(
-                                        modifier = Modifier
-                                            .weight(1f),
-                                        thickness = 1.dp,
-                                        color = Color.LightGray
-                                    )
-                                    Spacer(modifier = Modifier.width(2.dp))
-                                    Text(
-                                        text = "Riwayat Transaksi",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        modifier = Modifier.padding(vertical = 8.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(2.dp))
-                                    // Left line
-                                    HorizontalDivider(
-                                        modifier = Modifier
-                                            .weight(1f),
-                                        thickness = 1.dp,
-                                        color = Color.LightGray
-                                    )
-                                }
-                            }
-
-                            // Transaction History Card
-                            item {
+                                // Income Card
                                 Card(
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 8.dp),
+                                        .weight(1f)
+                                        .padding(end = 8.dp),
                                     elevation = CardDefaults.elevatedCardElevation(4.dp),
                                     shape = MaterialTheme.shapes.medium
                                 ) {
                                     Column(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .background(Color.White)
-                                            .padding(16.dp)
-                                    ) {
-                                        // Transactions list
-                                        transactions.forEach { transaction ->
-                                            val dateTimeFormatted = Dates.formatDate(
-                                                Dates.parseIso8601(
-                                                    transaction.trxDate
+                                            .background(
+                                                brush = inComeGradient(
+                                                    IntSize(
+                                                        1080,
+                                                        1920
+                                                    )
                                                 )
                                             )
-
-                                            TransactionItem(
-                                                title = transaction.title.ifEmpty { " " },
-                                                description = when (transaction.paymentMethod) {
-                                                    "WALLET_CASH" -> "Bablas Saldo"
-                                                    "BANK_TRANSFER" -> "Bank Transfer"
-                                                    else -> transaction.paymentMethod
-                                                },
-                                                amount = if (transaction.cashFlow == "MONEY_OUT")
-                                                    "-${RupiahFormatter.formatToRupiah(transaction.amount)}"
-                                                else
-                                                    "+${RupiahFormatter.formatToRupiah(transaction.amount)}",
-                                                isNegative = transaction.cashFlow == "MONEY_OUT",
-                                                dateTime = dateTimeFormatted,
-                                                transactionId = transaction.transactionId,
-                                                onClick = { transactionId ->
-                                                    navController.navigate("detail_transaksi_screen/$transactionId")
-                                                }
+                                            .padding(16.dp),
+                                        horizontalAlignment = Alignment.Start
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = "Pemasukan",
+                                                style = MaterialTheme.typography.titleSmall
                                             )
-
-                                            if (transaction != transactions.last()) {
-                                                Spacer(modifier = Modifier.height(8.dp))
+                                            Canvas(modifier = Modifier.size(16.dp)) {
+                                                val path = Path().apply {
+                                                    moveTo(size.width / 2f, 0f)
+                                                    lineTo(size.width, size.height)
+                                                    lineTo(0f, size.height)
+                                                    close()
+                                                }
+                                                drawPath(
+                                                    path = path,
+                                                    color = BrightTeal,
+                                                    style = Fill
+                                                )
                                             }
                                         }
-
-                                        // "See More" button
-//                                    TextButton(
-//                                        onClick = {
-//                                            navController.navigate("history_screen") {
-//                                                launchSingleTop = true
-//                                            }
-//                                        },
-//                                        modifier = Modifier
-//                                            .align(Alignment.CenterHorizontally)
-//                                            .padding(top = 12.dp)
-//                                            .height(40.dp)
-//                                    ) {
-//                                        Text(
-//                                            text = "Lihat Riwayat",
-//                                            style = MaterialTheme.typography.bodyLarge,
-//                                            color = GreenTeal40
-//                                        )
-//                                    }
+                                        Text(
+                                            text = incomeExpense?.data?.incomeTrx?.amount?.let {
+                                                RupiahFormatter.formatToRupiah(
+                                                    it
+                                                )
+                                            } ?: "Loading...",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = GreenTeal40
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = incomeExpense?.data?.incomeTrx?.title?.ifEmpty { "" }
+                                                ?: " ",
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
                                     }
                                 }
 
-                                // Add some bottom padding for better scrolling experience
-                                Spacer(modifier = Modifier.height(24.dp))
+                                // Expense Card
+                                Card(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(start = 8.dp),
+                                    elevation = CardDefaults.elevatedCardElevation(4.dp),
+                                    shape = MaterialTheme.shapes.medium
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(
+                                                brush = exComeGradient(
+                                                    IntSize(
+                                                        1080,
+                                                        1920
+                                                    )
+                                                )
+                                            )
+                                            .padding(16.dp),
+                                        horizontalAlignment = Alignment.Start
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = "Pengeluaran",
+                                                style = MaterialTheme.typography.titleSmall
+                                            )
+
+                                            Canvas(modifier = Modifier.size(16.dp)) {
+                                                val path = Path().apply {
+                                                    moveTo(0f, 0f)
+                                                    lineTo(size.width, 0f)
+                                                    lineTo(size.width / 2f, size.height)
+                                                    close()
+                                                }
+                                                drawPath(
+                                                    path = path,
+                                                    color = Red560,
+                                                    style = Fill
+                                                )
+                                            }
+
+                                        }
+
+                                        Text(
+                                            text = incomeExpense?.data?.expenseTrx?.amount?.let {
+                                                "-" + RupiahFormatter.formatToRupiah(
+                                                    it
+                                                )
+                                            } ?: "Loading...",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = Color.Red
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = incomeExpense?.data?.expenseTrx?.title
+                                                ?: " ",
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                    }
+                                }
                             }
+                        }
+
+                        // Transaction History Title
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // Left line
+                                HorizontalDivider(
+                                    modifier = Modifier
+                                        .weight(1f),
+                                    thickness = 1.dp,
+                                    color = Color.LightGray
+                                )
+                                Spacer(modifier = Modifier.width(2.dp))
+                                Text(
+                                    text = "Riwayat Transaksi",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                                Spacer(modifier = Modifier.width(2.dp))
+                                // Left line
+                                HorizontalDivider(
+                                    modifier = Modifier
+                                        .weight(1f),
+                                    thickness = 1.dp,
+                                    color = Color.LightGray
+                                )
+                            }
+                        }
+
+                        // Transaction History Card
+                        item {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                elevation = CardDefaults.elevatedCardElevation(4.dp),
+                                shape = MaterialTheme.shapes.medium
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(Color.White)
+                                        .padding(16.dp)
+                                ) {
+                                    // Transactions list
+                                    transactions.forEach { transaction ->
+                                        val dateTimeFormatted = Dates.formatDate(
+                                            Dates.parseIso8601(
+                                                transaction.trxDate
+                                            )
+                                        )
+
+                                        TransactionItem(
+                                            title = transaction.title.ifEmpty { " " },
+                                            description = when (transaction.paymentMethod) {
+                                                "WALLET_CASH" -> "Bablas Saldo"
+                                                "BANK_TRANSFER" -> "Bank Transfer"
+                                                else -> transaction.paymentMethod
+                                            },
+                                            amount = if (transaction.cashFlow == "MONEY_OUT")
+                                                "-${RupiahFormatter.formatToRupiah(transaction.amount)}"
+                                            else
+                                                "+${RupiahFormatter.formatToRupiah(transaction.amount)}",
+                                            isNegative = transaction.cashFlow == "MONEY_OUT",
+                                            dateTime = dateTimeFormatted,
+                                            transactionId = transaction.transactionId,
+                                            onClick = { transactionId ->
+                                                navController.navigate("detail_transaksi_screen/$transactionId")
+                                            }
+                                        )
+
+                                        if (transaction != transactions.last()) {
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Add some bottom padding for better scrolling experience
+                            Spacer(modifier = Modifier.height(24.dp))
                         }
                     }
                 }
             }
+        }
     } else {
         navController.navigate("login_screen") {
             popUpTo("home_screen") { inclusive = true }
         }
     }
 }
-
-
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewHomeScreen(){
-//    HomeScreen(HomeViewModel(), sessionManager = sessionsManager)
-//}
