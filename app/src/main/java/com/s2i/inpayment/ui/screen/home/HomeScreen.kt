@@ -201,13 +201,14 @@ fun HomeScreen(
 
 
     if (sessionManager.isUserLogin()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(brush = backgroundGradientBrush())
-                    .windowInsetsPadding(WindowInsets.statusBars)
-                    .pullRefresh(state = pullRefreshState)
-            ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(brush = backgroundGradientBrush())
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .pullRefresh(state = pullRefreshState)
+        )
+        {
 
                 Image(
                     painter = painterResource(id = R.drawable.ic_spider),
@@ -325,31 +326,10 @@ fun HomeScreen(
                                         .align(Alignment.BottomEnd)
                                         .padding(16.dp)
                                         .size(80.dp)
-//                                        .alpha(0.8f)
+                                        .alpha(0.8f)
                                 )
                             }
                         }
-
-
-                    // Water drop effect below balance card
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 2.dp),
-                        contentAlignment = Alignment.TopCenter
-                    ) {
-                        // Create water drop shape using a rotated rounded rectangle
-                        Box(
-                            modifier = Modifier
-                                .size(20.dp)
-                                .rotate(45f)
-                                .offset(y = (-10).dp)
-                                .background(
-                                    color = BrightTeal,
-                                    shape = RoundedCornerShape(2.dp)
-                                )
-                        )
-                    }
 
                     Spacer(modifier = Modifier.height(8.dp))
 

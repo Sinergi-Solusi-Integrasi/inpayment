@@ -33,10 +33,14 @@ fun triColorGradientBrush(): Brush {
 /**
  * Creates a linear gradient brush for the background with custom start and end points
  */
-fun backgroundGradientBrush(start: Offset = Offset(0f, 0f), end: Offset = Offset(0f, 1000f)): Brush {
+fun backgroundGradientBrush(
+    start: Offset = Offset(0f, 0f),
+    end: Offset = Offset(1000f, 1000f)
+): Brush {
     return Brush.linearGradient(
         colors = listOf(
             DarkGreen,
+            DarkGreen.copy(alpha = 0.9f),
             MediumTeal,
             BrightTeal
         ),

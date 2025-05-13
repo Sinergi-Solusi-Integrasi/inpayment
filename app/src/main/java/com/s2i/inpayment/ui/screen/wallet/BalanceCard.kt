@@ -16,12 +16,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -50,146 +52,142 @@ fun BalanceCard(
     balanceState: BalanceModel?,
     isBalanceVisible: Boolean,
     onToggleVisibility: () -> Unit
-){
+) {
     val context = LocalContext.current
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(180.dp) // Adjust height as needed
-            .padding(8.dp), // Padding around the card
+            .height(200.dp)
+            .padding(horizontal = 2.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(20.dp), // Sudut membulat seperti kartu
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(brush = triGradientBrussh()) // Apply the gradient brush here
+                .background(brush = triGradientBrussh()) // Gradient elegan
         ) {
             Column(
                 modifier = Modifier
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.Center
+                    .fillMaxSize()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
+                // Baris atas: "Saldo" + Akun
                 Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth(),
-
-                ){
-
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
                         text = "Saldo",
                         style = MaterialTheme.typography.titleMedium,
                         color = Color.White
                     )
-                    // Account number with copy icon
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "Account: ${balanceState?.accountNumber ?: "1712332322"}",
-                            style = MaterialTheme.typography.titleSmall,
+                            text = "Account: ${balanceState?.accountNumber ?: " "}",
+                            style = MaterialTheme.typography.labelSmall,
                             color = Color.White.copy(alpha = 0.7f)
                         )
-
                         Spacer(modifier = Modifier.width(4.dp))
-
-                        // Copy icon button
                         Icon(
                             imageVector = Icons.Default.ContentCopy,
-                            contentDescription = "Copy Account Number",
+                            contentDescription = "Copy Account",
                             tint = Color.White.copy(alpha = 0.7f),
                             modifier = Modifier
                                 .size(16.dp)
                                 .clickable {
-                                    val clipboardManager =
-                                        context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                     val clip = ClipData.newPlainText(
                                         "Account Number",
-                                        balanceState?.accountNumber ?: "1712332322"
+                                        balanceState?.accountNumber ?: ""
                                     )
-                                    clipboardManager.setPrimaryClip(clip)
+                                    clipboard.setPrimaryClip(clip)
                                 }
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(5.dp))
+
+                // Saldo + toggle visibility
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (isBalanceVisible) balanceState?.let { RupiahFormatter.formatToRupiah(it.balance) } ?: "Loading..." else "••• ••• •••", // Update balance value
-                        style = MaterialTheme.typography.headlineLarge.copy(
-                            fontSize = 30.sp,  // Setting a specific size to match the design
-                            fontWeight = FontWeight.SemiBold
+                        text = if (isBalanceVisible)
+                            balanceState?.let { RupiahFormatter.formatToRupiah(it.balance) } ?: "Loading..."
+                        else "••• ••• •••",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold
                         ),
                         color = Color.White
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    IconButton(onClick = onToggleVisibility,  modifier = Modifier.size(32.dp)) {
+                    IconButton(onClick = onToggleVisibility, modifier = Modifier.size(32.dp)) {
                         Icon(
-                            imageVector = if(isBalanceVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                            contentDescription = if (isBalanceVisible) "Hide Balance" else "Show Balance",
+                            imageVector = if (isBalanceVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            contentDescription = null,
                             tint = Color.White.copy(alpha = 0.7f),
                             modifier = Modifier.size(20.dp)
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+
+                // Tombol bawah: Top Up dan Riwayat
                 Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Top-Up Button
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_topup), // Replace with top-up icon
-                            contentDescription = "Top Up",
-                            modifier = Modifier
-                                .clickable {
-                                    navController.navigate("payment_methods_screen") {
-                                        launchSingleTop = true
-                                    }
-                                },
-                            tint = Color.White
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            "Top Up",
-                            color = Color.White,
-                            modifier = Modifier
-                                .clickable {
-                                    navController.navigate("payment_methods_screen") {
-                                        launchSingleTop = true
-                                    }
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_topup),
+                        contentDescription = "Top Up",
+                        modifier = Modifier
+                            .clickable {
+                                navController.navigate("payment_methods_screen") {
+                                    launchSingleTop = true
                                 }
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        //riwayat
-                        Icon(
-                            Icons.Default.Receipt, // Replace with history icon
-                            contentDescription = "Riwayat",
-                            modifier = Modifier
-                                .clickable {
-                                    navController.navigate("history_screen") {
-                                        launchSingleTop = true
-                                    }
+                            }
+                            .size(18.dp),
+                        tint = Color.White
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Top Up",
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.clickable {
+                            navController.navigate("payment_methods_screen") {
+                                launchSingleTop = true
+                            }
+                        }
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Icon(
+                        imageVector = Icons.Default.Receipt,
+                        contentDescription = "Riwayat",
+                        modifier = Modifier
+                            .clickable {
+                                navController.navigate("history_screen") {
+                                    launchSingleTop = true
                                 }
-                                .size(16.dp)
-                            ,
-                            tint = Color.White
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            "Riwayat",
-                            color = Color.White,
-                            modifier = Modifier
-                                .clickable {
-                                    navController.navigate("history_screen") {
-                                        launchSingleTop = true
-                                    }
-                                }
-                        )
-                    }
+                            }
+                            .size(18.dp),
+                        tint = Color.White
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Riwayat",
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.clickable {
+                            navController.navigate("history_screen") {
+                                launchSingleTop = true
+                            }
+                        }
+                    )
                 }
             }
         }
