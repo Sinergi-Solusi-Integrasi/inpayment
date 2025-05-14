@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -68,13 +67,10 @@ import com.s2i.inpayment.ui.components.custome.CustomLinearProgressIndicator
 import com.s2i.inpayment.ui.components.permission.hasAllPermissions
 import com.s2i.inpayment.ui.screen.wallet.BalanceCard
 import com.s2i.inpayment.ui.theme.BrightTeal
-import com.s2i.inpayment.ui.theme.BrightTeal20
-import com.s2i.inpayment.ui.theme.Gagal
 import com.s2i.inpayment.ui.theme.GreenTeal40
 import com.s2i.inpayment.ui.theme.Red560
 import com.s2i.inpayment.ui.theme.appleCardGradient
 import com.s2i.inpayment.ui.theme.exComeGradient
-import com.s2i.inpayment.ui.theme.gradientBrush
 import com.s2i.inpayment.ui.theme.inComeGradient
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import com.s2i.inpayment.ui.viewmodel.HomeViewModel
