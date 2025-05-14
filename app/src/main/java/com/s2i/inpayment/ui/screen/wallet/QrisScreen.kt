@@ -1,5 +1,6 @@
 package com.s2i.inpayment.ui.screen.wallet
 
+import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
@@ -18,6 +19,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -36,6 +38,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -135,6 +138,7 @@ fun PaymentProcessingDialog(isVisible: Boolean) {
     }
 }
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun QrisScreen(
@@ -372,11 +376,18 @@ fun QrisScreen(
                             saveQRCode(context, qrisState)
                         }
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
                 ) {
-                    Text("Download")
+                    Text(
+                        text = "Download",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
                 }
-
             }
         }
     ) { innerPadding ->
@@ -390,7 +401,7 @@ fun QrisScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 32.dp, vertical = 24.dp)
+                    .padding(horizontal = 24.dp, vertical = 16.dp)
             ) {
                 if (isStartupLoading) {
                     LinearProgressIndicator(
@@ -399,114 +410,120 @@ fun QrisScreen(
                             .padding(vertical = 8.dp)
                     )
                 } else {
-                    Spacer(modifier = Modifier.height(24.dp))
-
+                    // QR Code Content - Bagian yang sudah diperbarui untuk responsivitas
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color.White)
-                            .padding(16.dp)
+                            .padding(vertical = 16.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.White),
+                        contentAlignment = Alignment.Center
                     ) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            if (qrisState !=null) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .aspectRatio(3/4f),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.template_qris),
-                                        contentDescription = "Template QRIS",
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                    AndroidView(
-                                        factory = { context ->
-                                            ImageView(context).apply {
-                                                val qrisBitmap = generateQRCode(qrisState)
-                                                setImageBitmap(qrisBitmap)
-                                            }
-                                        },
+                            // QR Code container yang responsif
+                            BoxWithConstraints(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                // Hitung ukuran yang sesuai berdasarkan lebar layar
+                                val qrCodeSize = minOf(maxWidth * 0.85f, 320.dp)
+
+                                if (qrisState != null) {
+                                    Box(
                                         modifier = Modifier
-                                            .size(250.dp)
-                                            .padding(16.dp)
+                                            .size(qrCodeSize)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(Color.White),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        // Template background
+                                        Image(
+                                            painter = painterResource(id = R.drawable.template_qris),
+                                            contentDescription = "Template QRIS",
+                                            modifier = Modifier.fillMaxSize()
+                                        )
 
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Text(
-                                    text = "Scan QR Code untuk melanjutkan Pembayaran",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    modifier = Modifier
-                                        .padding(horizontal = 16.dp),
-                                    textAlign = TextAlign.Center
-                                )
-
-//                                orderQrisState?.let { orderState ->
-//                                    Spacer(modifier = Modifier.height(16.dp))
-//                                    val statusColor = when (orderState.rCode) {
-//                                        "00" -> GreenTeal40
-//                                        "99" -> Color.Black
-//                                        else -> Color.Red
-//                                    }
-//                                    Text(
-//                                        text = when (orderState.rCode) {
-//                                            "00" -> "Pembayaran Berhasil"
-//                                            "99" -> "Pembayaran Pending"
-//                                            else -> "Pembayaran Gagal: ${orderState.message}"
-//                                        },
-//                                        style = MaterialTheme.typography.bodyLarge,
-//                                        color = when (orderState.rCode){
-//                                            "00" -> Success
-//                                            "99" -> Pendding
-//                                            else -> Gagal
-//                                        },
-//                                        textAlign = TextAlign.Center
-//                                    )
-//                                    orderState.trxId?.let { trxId ->
-//                                        Spacer(modifier = Modifier.height(8.dp))
-//                                        Text(
-//                                            text = "Transaction ID: $trxId",
-//                                            style = MaterialTheme.typography.bodyLarge,
-//                                            textAlign = TextAlign.Center
-//                                        )
-//                                    }
-//                                }
-
-                                // Hanya menampilkan status saat pembayaran gagal
-                                orderQrisState?.let { orderState ->
-                                    if (orderState.rCode != "00" && orderState.rCode != "99") {
-                                        Spacer(modifier = Modifier.height(16.dp))
+                                        // QR Code
+                                        AndroidView(
+                                            factory = { context ->
+                                                ImageView(context).apply {
+                                                    val qrisBitmap = generateQRCode(qrisState)
+                                                    setImageBitmap(qrisBitmap)
+                                                    scaleType = ImageView.ScaleType.FIT_CENTER
+                                                }
+                                            },
+                                            modifier = Modifier
+                                                .size(qrCodeSize * 0.7f)
+                                                .clip(RoundedCornerShape(8.dp))
+                                        )
+                                    }
+                                } else {
+                                    // Tampilkan placeholder atau error ketika QR code null
+                                    Box(
+                                        modifier = Modifier
+                                            .size(qrCodeSize)
+                                            .background(Color.LightGray),
+                                        contentAlignment = Alignment.Center
+                                    ) {
                                         Text(
-                                            text = "Pembayaran Gagal: ${orderState.message}",
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            color = Gagal,
+                                            text = "QR Code tidak tersedia",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = Color.Red,
                                             textAlign = TextAlign.Center
                                         )
-                                        orderState.trxId?.let { trxId ->
-                                            Spacer(modifier = Modifier.height(8.dp))
-                                            Text(
-                                                text = "Transaction ID: $trxId",
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                textAlign = TextAlign.Center
-                                            )
-                                        }
                                     }
                                 }
-                            } else {
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            // Teks instruksi
+                            Text(
+                                text = "Scan QR Code untuk melanjutkan Pembayaran",
+                                style = MaterialTheme.typography.bodyLarge,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 8.dp)
+                            )
+
+                            // Informasi pembayaran
+                            if (amount != null) {
+                                Spacer(modifier = Modifier.height(16.dp))
                                 Text(
-                                    text = "QR Code Tidak Ditemukan",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = Color.Red
+                                    text = "Nominal: Rp $amount",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center
                                 )
+                            }
+
+                            trxId?.let {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "ID Transaksi: $it",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.Gray,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+
+                            // Hanya menampilkan pesan error saat pembayaran gagal
+                            orderQrisState?.let { orderState ->
+                                if (orderState.rCode != "00" && orderState.rCode != "99") {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Text(
+                                        text = "Pembayaran Gagal: ${orderState.message}",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = Gagal,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
                             }
                         }
                     }
@@ -560,7 +577,8 @@ private fun saveQRCode(context: Context, qrisState: String?) {
     val qrCodeBitmap = generateQRCode(qrisState)
     val templateBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.template_qris)
 
-    val qrCodeSize = (templateBitmap.width * 0.9).toInt()
+    // Ukuran QR yang lebih optimal: 70% dari template
+    val qrCodeSize = (templateBitmap.width * 0.7).toInt()
     val scaledQRCodeBitmap = Bitmap.createScaledBitmap(qrCodeBitmap, qrCodeSize, qrCodeSize, true)
 
     val combinedBitmap = Bitmap.createBitmap(
@@ -572,8 +590,9 @@ private fun saveQRCode(context: Context, qrisState: String?) {
     val canvas = Canvas(combinedBitmap)
     canvas.drawBitmap(templateBitmap, 0f, 0f, null)
 
+    // Posisikan QR sedikit lebih ke atas dari tengah
     val left = (templateBitmap.width - scaledQRCodeBitmap.width) / 2f
-    val top = (templateBitmap.height - scaledQRCodeBitmap.height) / 2f
+    val top = (templateBitmap.height - scaledQRCodeBitmap.height) / 2.2f
     canvas.drawBitmap(scaledQRCodeBitmap, left, top, null)
 
     val contentValues = ContentValues().apply {

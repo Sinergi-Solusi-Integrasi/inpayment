@@ -3,6 +3,7 @@ package com.s2i.inpayment.ui.screen.kyc
 import android.Manifest
 import android.os.Build
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,6 +49,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.KYCOptions
 import com.s2i.inpayment.ui.components.ReusableBottomSheet
+import com.s2i.inpayment.ui.theme.BrightTeal20
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
@@ -57,20 +59,25 @@ fun KYCIntroScreen(
 ) {
     val context = LocalContext.current
     val cameraPermissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
-    val storagePermissionState = rememberPermissionState(permission = Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    val storagePermissionState =
+        rememberPermissionState(permission = Manifest.permission.WRITE_EXTERNAL_STORAGE)
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showBottomSheet by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
     // Check permissions
-    LaunchedEffect(cameraPermissionState.status.isGranted, storagePermissionState.status.isGranted) {
-        showBottomSheet = !cameraPermissionState.status.isGranted && storagePermissionState.status.isGranted
+    LaunchedEffect(
+        cameraPermissionState.status.isGranted,
+        storagePermissionState.status.isGranted
+    ) {
+        showBottomSheet =
+            !cameraPermissionState.status.isGranted && storagePermissionState.status.isGranted
     }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .background(BrightTeal20)
     ) {
 
         Column(
