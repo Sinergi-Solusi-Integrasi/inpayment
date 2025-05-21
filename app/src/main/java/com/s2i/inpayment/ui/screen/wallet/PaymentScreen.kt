@@ -39,6 +39,7 @@ import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.NetworkContent
 import com.s2i.inpayment.ui.components.navigation.rememberSingleClickHandler
 import com.s2i.inpayment.ui.theme.BrightTeal20
+import com.s2i.inpayment.ui.theme.DarkGreen
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import com.s2i.inpayment.ui.viewmodel.QrisViewModel
 import com.s2i.inpayment.utils.helper.generateCurrentTime
@@ -130,11 +131,22 @@ fun PaymentScreen(
 
     Scaffold(
         topBar = {
-            // Custom TopAppBar with perfect visual balance
-            Box(modifier = Modifier
-                .fillMaxWidth()) {
-                TopAppBar(
-                    title = { /* Title intentionally left empty */ },
+            // First, add a Box with DarkGreen background that covers the status bar
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(DarkGreen)
+                    .statusBarsPadding()
+            ) {
+                // Then add the TopAppBar
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            text = "Payment Top Up",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    },
                     navigationIcon = {
                         IconButton(
                             onClick = {
@@ -148,30 +160,17 @@ fun PaymentScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.ArrowBack,
-                                contentDescription = "Back",
-                                tint = Color.Black
+                                contentDescription = "Back"
                             )
                         }
                     },
-                    // Add an empty action to balance the layout
-                    actions = {
-                        // Empty spacer with same size as back button for visual balance
-                        Spacer(modifier = Modifier.width(48.dp))
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = BrightTeal20  // Header putih
-                    )
-                )
-
-                // Centered title overlay
-                Text(
-                    text = "Payment Top Up",
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    fontSize = 18.sp,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(top = 25.dp)
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = DarkGreen,
+                        titleContentColor = Color.White,
+                        navigationIconContentColor = Color.White
+                    ),
+                    // Make TopAppBar ignore window insets since we're handling it with the Box
+                    windowInsets = WindowInsets(0)
                 )
             }
         },
@@ -238,7 +237,7 @@ fun PaymentScreen(
                 } else {
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    if(!isInternetStable) {
+                    if (!isInternetStable) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
