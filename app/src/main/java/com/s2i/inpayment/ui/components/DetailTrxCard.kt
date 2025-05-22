@@ -10,14 +10,13 @@ import android.graphics.Canvas
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
-import android.provider.Settings
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,28 +29,26 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Colors
-import androidx.compose.material.OutlinedButton
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,49 +58,39 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
+import androidx.core.graphics.createBitmap
 import coil3.ImageLoader
 import coil3.compose.rememberAsyncImagePainter
-import coil3.compose.rememberConstraintsSizeResolver
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
 import com.s2i.common.utils.convert.RupiahFormatter
 import com.s2i.common.utils.date.Dates
 import com.s2i.domain.entity.model.balance.HistoryBalanceModel
-import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
+import com.s2i.domain.entity.model.users.ProfileModel
+import com.s2i.inpayment.ui.theme.Success
 import kotlinx.coroutines.launch
 import org.koin.compose.getKoin
-import org.koin.compose.viewmodel.koinViewModel
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.UUID
-import androidx.core.graphics.createBitmap
-import com.s2i.domain.entity.model.users.ProfileModel
-import com.s2i.inpayment.ui.screen.profile.ProfileScreen
-import com.s2i.inpayment.ui.theme.GreenTeal21
-import com.s2i.inpayment.ui.theme.Success
-import com.s2i.inpayment.ui.viewmodel.UsersViewModel
+import com.s2i.inpayment.R
+import com.s2i.inpayment.ui.theme.DarkGreen
+
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -128,7 +115,10 @@ fun DetailTrxCard(
 
 // Ambil plate number dari usersState dan tollPayment
     usersState?.selectVehicle?.let { vehicle ->
-        Log.d("ProfileCard", "Vehicle data: brand=${vehicle.brand}, model=${vehicle.model}, plateNumber=${vehicle.plateNumber}")
+        Log.d(
+            "ProfileCard",
+            "Vehicle data: brand=${vehicle.brand}, model=${vehicle.model}, plateNumber=${vehicle.plateNumber}"
+        )
         plateNumber = vehicle.plateNumber ?: "-"
     }
 
@@ -139,7 +129,7 @@ fun DetailTrxCard(
             Log.d("DetailTrxCard", "Using plate number from transaction: $tollPlateNumber")
             plateNumber = tollPlateNumber
         }
-        detail.tollPayment?.receiptNumber?.let {tollReceiptNumber ->
+        detail.tollPayment?.receiptNumber?.let { tollReceiptNumber ->
             receiptNumber = tollReceiptNumber
         }
 
@@ -159,206 +149,302 @@ fun DetailTrxCard(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             // Card untuk Detail Transaksi
-            // Ganti bagian Card untuk Detail Transaksi dengan design ini:
-
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(MaterialTheme.colorScheme.onPrimary),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                colors = CardDefaults.cardColors(Color.White),
             ) {
-                Column(
+                Box(
                     modifier = Modifier
-                        .padding(24.dp)
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .fillMaxWidth()
+                        .background(Color.Transparent)
+                        .wrapContentHeight()
                 ) {
-                    // Header Section
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (detail.status.lowercase() == "failed")
-                                MaterialTheme.colorScheme.errorContainer
-                            else
-                                MaterialTheme.colorScheme.primaryContainer
-                        )
+                    Image(
+                        painter = painterResource(id = R.drawable.matermark2),
+                        contentDescription = "matermark",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .matchParentSize()
+                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp)
                     ) {
+                        // Transaction Status
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            val isFailed = detail.status.lowercase() == "failed"
+                            val statusText = when {
+                                isFailed -> "TRANSAKSI GAGAL"
+                                detail.title.lowercase().contains("top up") -> "Top Up Successful"
+                                else -> "Toll Payment Successful"
+                            }
+
+                            val statusColor = if (isFailed) Color.Red else Color(0xFF2E7D32)
+
+                            Column(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                if (!isFailed) {
+                                    // Lingkaran dengan ikon ceklis di tengah
+                                    Box(
+                                        modifier = Modifier
+                                            .size(100.dp)
+                                            .background(
+                                                color = statusColor.copy(alpha = 0.15f),
+                                                shape = CircleShape
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ceklis),
+                                            contentDescription = "Berhasil",
+                                            tint = statusColor,
+                                            modifier = Modifier.size(70.dp)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                }
+
+                                Text(
+                                    text = statusText,
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = statusColor,
+                                )
+                            }
+
+                        }
+
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        // Amount Section
                         Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(20.dp),
+                            modifier = Modifier.fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            // Status Icon
-                            val iconImageVector = if (detail.status.lowercase() == "failed") Icons.Default.Close else Icons.Default.CheckCircle
-                            val iconColor = if (detail.status.lowercase() == "failed") MaterialTheme.colorScheme.error else Success
-                            val statusMessage = if (detail.status.lowercase() == "failed"){
-                                "Transaction Failed"
-                            } else {
-                                if(detail.title.lowercase().contains("top up")){
-                                    "Top Up Successful"
-                                } else {
-                                    "Toll Payment Successful"
-                                }
-                            }
-
-                            Icon(
-                                imageVector = iconImageVector,
-                                contentDescription = statusMessage,
-                                tint = iconColor,
-                                modifier = Modifier.size(48.dp)
-                            )
-
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            // Status Message
-                            Text(
-                                text = statusMessage,
-                                style = MaterialTheme.typography.titleMedium,
-                                color = iconColor,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            // Amount
                             Text(
                                 text = RupiahFormatter.formatToRupiah(detail.amount),
-                                style = MaterialTheme.typography.headlineSmall,
+                                style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                                color = Color(0xFF4CAF50)
                             )
                         }
-                    }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
 
-                    // Transaction Details
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(20.dp)
-                        ) {
-                            Text(
-                                text = "Transaction Details",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(bottom = 16.dp)
-                            )
+                        // Transaction Details Section
+                        Text(
+                            text = "TRANSAKSI DETAIL",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = DarkGreen,
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        )
 
-                            if (detail.title.lowercase() != "top up") {
-                                TransactionDetailRow("Gerbang Tol", detail.title)
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                TransactionDetailRow(
-                                    "Payment Method",
-                                    when (detail.paymentMethod) {
-                                        "WALLET_CASH" -> "Saldo Bablas"
-                                        else -> detail.paymentMethod
-                                    }
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                TransactionDetailRow("Plate Number", plateNumber)
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                TransactionDetailRow("Receipt Number", receiptNumber)
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
-
-                            if (detail.title.lowercase() == "top up") {
-                                TransactionDetailRow("Issuer Name", detail.topUp?.issuerName ?: "-")
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                TransactionDetailRow("Issuer PAN", detail.topUp?.issuerPan ?: "-")
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                TransactionDetailRow("Customer PAN", detail.topUp?.customerPan ?: "-")
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                TransactionDetailRow("Fee Amount", RupiahFormatter.formatToRupiah(detail.fee))
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
-
-                            TransactionDetailRow("Time", formattedTime)
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            TransactionDetailRow("Date", formattedDate)
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            TransactionDetailRowWithCopy(
-                                label = "Transaction ID",
-                                value = detail.transactionId,
-                                onCopy = {
-                                    coroutineScope.launch {
-                                        snackbarHostState.showSnackbar("Transaction ID has been copied")
-                                    }
+                        // Details - Simple Row Implementation
+                        if (detail.title.lowercase() != "top up") {
+                            TransactionDetailRow("Lokasi Gerbang Tol", detail.title)
+                            TransactionDetailRow(
+                                "Metode Pembayaran",
+                                when (detail.paymentMethod) {
+                                    "WALLET_CASH" -> "Saldo Bablas"
+                                    else -> detail.paymentMethod
                                 }
                             )
+                            TransactionDetailRow("Nomor Kendaraan", plateNumber)
+                            TransactionDetailRow("Nomor Struk", receiptNumber)
+                        } else {
+                            TransactionDetailRow("Jenis Transaksi", "Top Up Saldo Bablas")
+                            detail.topUp?.let { topUp ->
+                                TransactionDetailRow("Nama Penerbit", topUp.issuerName ?: "-")
+                                TransactionDetailRow("PAN Penerbit", topUp.issuerPan ?: "-")
+                                TransactionDetailRow("PAN Pelanggan", topUp.customerPan ?: "-")
+                                TransactionDetailRow(
+                                    "Biaya Administrasi",
+                                    RupiahFormatter.formatToRupiah(detail.fee)
+                                )
+                            }
                         }
-                    }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                        TransactionDetailRow("Tanggal Transaksi", formattedDate)
+                        TransactionDetailRow("Waktu Transaksi", formattedTime)
 
-                    // Total Payment Card
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.tertiaryContainer)
-                    ) {
+                        // Transaction ID dengan copy button
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(20.dp),
+                                .padding(vertical = 6.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Total Payment",
+                                text = "ID Transaksi",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.Black
+                            )
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = detail.transactionId.take(20) + if (detail.transactionId.length > 20) "..." else "",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = DarkGreen,
+                                    modifier = Modifier.padding(end = 4.dp)
+                                )
+                                IconButton(
+                                    onClick = {
+                                        coroutineScope.launch {
+                                            snackbarHostState.showSnackbar("ID Transaksi berhasil disalin")
+                                        }
+                                    },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.ContentCopy,
+                                        contentDescription = "Copy Transaction ID",
+                                        tint = DarkGreen,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Total Section
+                        HorizontalDivider(color = Color.Gray.copy(alpha = 0.5f))
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "TOTAL PAYMENT",
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
                             )
                             Text(
                                 text = RupiahFormatter.formatToRupiah(detail.amount),
-                                style = MaterialTheme.typography.titleMedium,
+                                style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                                color = DarkGreen
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        // Vehicle Image Section
+                        if (!excludeImage && detail.title.lowercase() != "top up") {
+                            detail.tollPayment?.vehicleCaptures?.firstOrNull()?.let { imageUrl ->
+                                HorizontalDivider(color = Color.Gray.copy(alpha = 0.3f))
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                Text(
+                                    text = "DOKUMENTASI KENDARAAN",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF4CAF50),
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+
+                                OutlinedButton(
+                                    onClick = {
+                                        selectedImageUri = imageUrl
+                                        showPreview = true
+                                    },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        contentColor = Color(0xFF4CAF50)
+                                    ),
+                                    border = BorderStroke(1.dp, Color(0xFF4CAF50))
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.PhotoCamera,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "LIHAT FOTO KENDARAAN",
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
+                        }
+
+                        // Footer
+                        HorizontalDivider(color = Color.Gray.copy(alpha = 0.3f))
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Struk ini merupakan bukti pembayaran yang sah",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.Gray,
+                                textAlign = TextAlign.Center
+                            )
+                            Text(
+                                text = "Harap simpan sebagai bukti transaksi",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.Gray,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Powered by BABLAS - Electronic Toll Payment System",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.Gray,
+                                fontWeight = FontWeight.Medium,
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
+                }
+            }
 
-                    // Vehicle Image Button
-                    if(!excludeImage) {
-                        detail.tollPayment?.vehicleCaptures?.firstOrNull()?.let { imageUrl ->
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            OutlinedButton(
-                                onClick = {
-                                    selectedImageUri = imageUrl
-                                    showPreview = true
-                                },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Image,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("View Vehicle Image")
-                            }
-                        }
-                    }
+            // Simple Detail Row Implementation - Add this as a separate composable function
+            @Composable
+            fun SimpleDetailRow(label: String, value: String) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Black,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = ": $value",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1565C0),
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.weight(1.5f)
+                    )
                 }
             }
 
@@ -366,7 +452,10 @@ fun DetailTrxCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             // SnackbarHost untuk menampilkan snackbar
-            SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.CenterHorizontally))
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
         }
     } ?: run {
         // Tampilkan jika datanya null
@@ -407,7 +496,10 @@ fun saveBitmapToFile(context: Context, bitmap: Bitmap): Uri? {
         val contentValues = ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
             put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-            put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/INPayment")
+            put(
+                MediaStore.Images.Media.RELATIVE_PATH,
+                Environment.DIRECTORY_PICTURES + "/INPayment"
+            )
             put(MediaStore.Images.Media.IS_PENDING, 1) // Tandai sedang disimpan
         }
 
@@ -441,7 +533,8 @@ fun saveBitmapToFile(context: Context, bitmap: Bitmap): Uri? {
             return null // Harus meminta izin dulu
         }
 
-        val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+        val picturesDir =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
         val saveDir = File(picturesDir, "INPayment")
         if (!saveDir.exists()) saveDir.mkdirs()
 
@@ -452,7 +545,12 @@ fun saveBitmapToFile(context: Context, bitmap: Bitmap): Uri? {
             outputStream.flush()
             outputStream.close()
 
-            MediaScannerConnection.scanFile(context, arrayOf(file.absolutePath), arrayOf("image/png"), null)
+            MediaScannerConnection.scanFile(
+                context,
+                arrayOf(file.absolutePath),
+                arrayOf("image/png"),
+                null
+            )
 
             Uri.fromFile(file)
         } catch (e: Exception) {
@@ -509,9 +607,9 @@ fun TransactionDetailRowWithCopy(label: String, value: String, onCopy: () -> Uni
         }
 
         Text(
-            text = if (value.length > 20){
+            text = if (value.length > 20) {
                 value.substring(0, 20) + "\n" + value.substring(20)
-            }else{
+            } else {
                 value
             },
             style = MaterialTheme.typography.bodyMedium,
