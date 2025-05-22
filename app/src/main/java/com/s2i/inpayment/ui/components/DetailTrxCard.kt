@@ -28,15 +28,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Colors
+import androidx.compose.material.OutlinedButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -156,12 +159,15 @@ fun DetailTrxCard(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             // Card untuk Detail Transaksi
+            // Ganti bagian Card untuk Detail Transaksi dengan design ini:
+
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                shape = MaterialTheme.shapes.large,
-                colors = CardDefaults.cardColors(MaterialTheme.colorScheme.onPrimary)
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(MaterialTheme.colorScheme.onPrimary),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
                 Column(
                     modifier = Modifier
@@ -169,185 +175,189 @@ fun DetailTrxCard(
                         .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Ikon Sukses
-                    val iconImageVector = if (detail.status.lowercase() == "failed") Icons.Default.Close else Icons.Default.CheckCircle
-                    val iconColor = if (detail.status.lowercase() == "failed") MaterialTheme.colorScheme.error else Success
-                    val statusMessage = if (detail.status.lowercase() == "failed"){
-                        "Transaction Failed"
-                    }else{
-                        if(detail.title.lowercase().contains("top up")){
-                            "Top Up Successful"
-                        }else{
-                            "Toll Payment Successful"
-                        }
-                    }
-
-                    Icon(
-                        imageVector = iconImageVector,
-                        contentDescription = statusMessage,
-                        tint = iconColor,
-                        modifier = Modifier
-                            .size(64.dp)
-                            .padding(bottom = 16.dp)
-                    )
-
-                    // Pesan Sukses
-                    Text(
-                        text = statusMessage,
-                        style = MaterialTheme.typography.titleLarge,
-                        color = iconColor,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-
-                    // Jumlah Transaksi
-                    Text(
-                        text = RupiahFormatter.formatToRupiah(detail.amount),
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(bottom = 24.dp)
-                    )
-
-                    // Detail Transaksi
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 16.dp)
+                    // Header Section
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (detail.status.lowercase() == "failed")
+                                MaterialTheme.colorScheme.errorContainer
+                            else
+                                MaterialTheme.colorScheme.primaryContainer
+                        )
                     ) {
-                        if (detail.title.lowercase() != "top up") {
-                            TransactionDetailRow(
-                                label = "Gerbang Toll",
-                                value = "${detail.title}"
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-                        if (detail.title.lowercase() != "top up") {
-                            TransactionDetailRow(
-                                "Payment Method", when (detail.paymentMethod) {
-                                    "WALLET_CASH" -> "Saldo Bablas"
-                                    else -> detail.paymentMethod
-                                }
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-                        // Gunakan plate number yang sudah disimpan
-                        if (detail.title.lowercase() != "top up") {
-                            TransactionDetailRow(
-                                label = "Plate Number",
-                                value = plateNumber
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        if (detail.title.lowercase() != "top up") {
-                            TransactionDetailRow(
-                                label = "Receipt Number",
-                                value = receiptNumber
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        if (detail.title.lowercase() == "top up") {
-                            TransactionDetailRow(
-                                label = "Issuer Name",
-                                value = detail.topUp?.issuerName ?: "-"
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        if (detail.title.lowercase() == "top up") {
-                            TransactionDetailRow(
-                                label = "Issuer PAN",
-                                value = detail.topUp?.issuerPan ?: "-"
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        if (detail.title.lowercase() == "top up") {
-                            TransactionDetailRow(
-                                label = "Customer PAN",
-                                value = detail.topUp?.customerPan ?: "-"
-                            )
-                        }
-                        TransactionDetailRow("Time", formattedTime)
-                        Log.d("DetailTrxCard", "Formatted Time: $formattedTime")
-                        Spacer(modifier = Modifier.height(8.dp))
-                        TransactionDetailRow("Date", formattedDate)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        TransactionDetailRowWithCopy(
-                            label = "Transaction ID",
-                            value = detail.transactionId,
-                            onCopy = {
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar("Transaction ID has been copied")
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            // Status Icon
+                            val iconImageVector = if (detail.status.lowercase() == "failed") Icons.Default.Close else Icons.Default.CheckCircle
+                            val iconColor = if (detail.status.lowercase() == "failed") MaterialTheme.colorScheme.error else Success
+                            val statusMessage = if (detail.status.lowercase() == "failed"){
+                                "Transaction Failed"
+                            } else {
+                                if(detail.title.lowercase().contains("top up")){
+                                    "Top Up Successful"
+                                } else {
+                                    "Toll Payment Successful"
                                 }
                             }
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        if(detail.title.lowercase() == "top up") {
-                            TransactionDetailRow(
-                                label = "Fee Amount",
-                                value = RupiahFormatter.formatToRupiah(detail.fee)
+
+                            Icon(
+                                imageVector = iconImageVector,
+                                contentDescription = statusMessage,
+                                tint = iconColor,
+                                modifier = Modifier.size(48.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            // Status Message
+                            Text(
+                                text = statusMessage,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = iconColor,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // Amount
+                            Text(
+                                text = RupiahFormatter.formatToRupiah(detail.amount),
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        TransactionDetailRow("Amount", RupiahFormatter.formatToRupiah(detail.amount))
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Total Payment
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "Total",
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = RupiahFormatter.formatToRupiah(detail.amount),
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
 
+                    // Transaction Details
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp)
+                        ) {
+                            Text(
+                                text = "Transaction Details",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+
+                            if (detail.title.lowercase() != "top up") {
+                                TransactionDetailRow("Gerbang Tol", detail.title)
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                TransactionDetailRow(
+                                    "Payment Method",
+                                    when (detail.paymentMethod) {
+                                        "WALLET_CASH" -> "Saldo Bablas"
+                                        else -> detail.paymentMethod
+                                    }
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                TransactionDetailRow("Plate Number", plateNumber)
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                TransactionDetailRow("Receipt Number", receiptNumber)
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+
+                            if (detail.title.lowercase() == "top up") {
+                                TransactionDetailRow("Issuer Name", detail.topUp?.issuerName ?: "-")
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                TransactionDetailRow("Issuer PAN", detail.topUp?.issuerPan ?: "-")
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                TransactionDetailRow("Customer PAN", detail.topUp?.customerPan ?: "-")
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                TransactionDetailRow("Fee Amount", RupiahFormatter.formatToRupiah(detail.fee))
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+
+                            TransactionDetailRow("Time", formattedTime)
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            TransactionDetailRow("Date", formattedDate)
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            TransactionDetailRowWithCopy(
+                                label = "Transaction ID",
+                                value = detail.transactionId,
+                                onCopy = {
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar("Transaction ID has been copied")
+                                    }
+                                }
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Total Payment Card
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.tertiaryContainer)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Total Payment",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = RupiahFormatter.formatToRupiah(detail.amount),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+
+                    // Vehicle Image Button
                     if(!excludeImage) {
                         detail.tollPayment?.vehicleCaptures?.firstOrNull()?.let { imageUrl ->
-                            Log.d("ImageDebug", "URL: $imageUrl")
-                            if (!showImage) {
-                                Button(
-                                    onClick = {
-                                        selectedImageUri = imageUrl
-                                        showPreview = true
-                                    },
-                                    modifier = Modifier.padding(top = 8.dp)
-                                ) {
-                                    Text(text = "Lihat Gambar")
-                                }
-                            } else {
-                                val sizeResolver = rememberConstraintsSizeResolver()
-                                val painter = rememberAsyncImagePainter(
-                                    model = ImageRequest.Builder(LocalContext.current)
-                                        .data(imageUrl)
-                                        .diskCachePolicy(CachePolicy.ENABLED)
-                                        .crossfade(true)
-                                        .build(),
-                                    imageLoader = imageLoader,
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            OutlinedButton(
+                                onClick = {
+                                    selectedImageUri = imageUrl
+                                    showPreview = true
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Image,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
                                 )
-                                Image(
-                                    painter = painter,
-                                    contentDescription = "Vehicle Image",
-                                    modifier = Modifier
-                                        .size(56.dp)
-                                        .clip(RoundedCornerShape(10))
-                                        .background(Color.Gray)
-                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("View Vehicle Image")
                             }
-                        } ?: Log.e("ImageDebug", "Image URL is null or empty")
+                        }
                     }
                 }
             }

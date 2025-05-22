@@ -22,15 +22,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
@@ -39,6 +36,7 @@ import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -47,7 +45,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -74,23 +71,19 @@ import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.s2i.data.local.auth.SessionManager
-import com.s2i.domain.entity.model.wallet.TopupQris
 import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.ReusableBottomSheet
 import com.s2i.inpayment.ui.theme.BrightTeal20
+import com.s2i.inpayment.ui.theme.DarkGreen
 import com.s2i.inpayment.ui.theme.Gagal
 import com.s2i.inpayment.ui.theme.GreenTeal40
-import com.s2i.inpayment.ui.theme.Pendding
-import com.s2i.inpayment.ui.theme.Success
 import com.s2i.inpayment.ui.viewmodel.BalanceViewModel
 import com.s2i.inpayment.ui.viewmodel.QrisViewModel
 import com.s2i.inpayment.utils.NotificationManagerUtil
 import com.s2i.inpayment.utils.helper.generateQRCode
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
 import java.io.OutputStream
 
@@ -189,7 +182,8 @@ fun QrisScreen(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (!isGranted) {
-            Toast.makeText(context, "Izin diperlukan untuk menyimpan QRIS", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Izin diperlukan untuk menyimpan QRIS", Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
@@ -212,7 +206,10 @@ fun QrisScreen(
         trxId?.let {
             if (qrisState != null && amount != null) {
                 NotificationManagerUtil.saveQrisData(context, it, qrisState, amount)
-                Log.d("QrisScreen", "Data QRIS disimpan: qrisCode=${qrisState}, trxId=${it}, amount=${amount}")
+                Log.d(
+                    "QrisScreen",
+                    "Data QRIS disimpan: qrisCode=${qrisState}, trxId=${it}, amount=${amount}"
+                )
             }
             var lastState: String? = null
             var retryCount = 0
@@ -227,18 +224,26 @@ fun QrisScreen(
                     qrisViewModel.orderQuery(it)
 
                     val orderState = orderQrisState
-                    if (orderState !=null) {
+                    if (orderState != null) {
                         val currentStatus = orderState.rCode
-                        Log.d("QrisScreen", "Order state: ${orderState.rCode}, message: ${orderState.message}")
+                        Log.d(
+                            "QrisScreen",
+                            "Order state: ${orderState.rCode}, message: ${orderState.message}"
+                        )
 
-                        if(currentStatus != lastState) {
+                        if (currentStatus != lastState) {
                             val statusMessage = when (orderState.rCode) {
                                 "00" -> "Pembayaran Berhasil"
                                 "99" -> "Pembayaran Pending"
                                 else -> "Pembayaran Gagal: ${orderState.message}"
                             }
 
-                            NotificationManagerUtil.showNotification(context, trxId = it, title = "Status Pembayaran", messageBody = statusMessage)
+                            NotificationManagerUtil.showNotification(
+                                context,
+                                trxId = it,
+                                title = "Status Pembayaran",
+                                messageBody = statusMessage
+                            )
                             lastState = currentStatus
                         }
 
@@ -250,14 +255,17 @@ fun QrisScreen(
                             val topupInitiazed = qrisViewModel.topup(
                                 userId = userId,
                                 referenceId = trxId,
-                                amount = amount?: 0,
+                                amount = amount ?: 0,
                                 feeAmount = 0,
                                 paymentMethod = "QRIS"
                             )
-                            if (topupInitiazed){
+                            if (topupInitiazed) {
                                 delay(1000)
                                 val transactionId = qrisViewModel.getTransactionId()
-                                Log.d("QrisScreen", "Got transaction ID for navigation: $transactionId")
+                                Log.d(
+                                    "QrisScreen",
+                                    "Got transaction ID for navigation: $transactionId"
+                                )
 
                                 if (transactionId != null) {
                                     topupProcessed = true
@@ -270,22 +278,29 @@ fun QrisScreen(
                                         popUpTo("qris_screen") { inclusive = true }
                                     }
                                 } else {
-                                    Log.d("QrisScreen", "Transaction ID not available yet, will retry")
+                                    Log.d(
+                                        "QrisScreen",
+                                        "Transaction ID not available yet, will retry"
+                                    )
                                     delay(2000)
                                 }
                             } else {
                                 topupProcessed = true
                                 isProcessingPayment = false
-                                Log.d("QrisScreen", "Topup was already processed, exiting polling loop")
+                                Log.d(
+                                    "QrisScreen",
+                                    "Topup was already processed, exiting polling loop"
+                                )
                             }
-                        } else if (currentStatus !="99") {
+                        } else if (currentStatus != "99") {
                             Log.d("QrisScreen", "Stopping polling: Pembayaran gagal.")
                             shouldStopPolling.value = true
                             break
                         }
                     }
                     retryCount++
-                    val delay = if (retryCount > 20) 15000L else if (retryCount > 10) 10000L else 5000L
+                    val delay =
+                        if (retryCount > 20) 15000L else if (retryCount > 10) 10000L else 5000L
                     delay(delay)
                 } catch (e: Exception) {
                     Log.e("QrisScreen", "Error during order query: ${e.message}")
@@ -296,7 +311,12 @@ fun QrisScreen(
 
             if (retryCount >= maxRetries) {
                 Log.d("QrisScreen", "Max retries reached. Stopping polling.")
-                NotificationManagerUtil.showNotification(context, trxId = it, title = "Status Pembayaran", messageBody = "Waktu pembayaran habis")
+                NotificationManagerUtil.showNotification(
+                    context,
+                    trxId = it,
+                    title = "Status Pembayaran",
+                    messageBody = "Waktu pembayaran habis"
+                )
             }
         }
     }
@@ -314,8 +334,14 @@ fun QrisScreen(
     Scaffold(
         topBar = {
             Box(modifier = Modifier.fillMaxWidth()) {
-                TopAppBar(
-                    title = { /* Title intentionally left empty */ },
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            text = "Payment QRIS",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    },
                     navigationIcon = {
                         IconButton(
                             onClick = {
@@ -324,27 +350,15 @@ fun QrisScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.ArrowBack,
-                                contentDescription = "Back",
-                                tint = Color.Black
+                                contentDescription = "Back"
                             )
                         }
                     },
-                    actions = {
-                        Spacer(modifier = Modifier.width(48.dp))
-                    },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = BrightTeal20
+                        containerColor = DarkGreen,
+                        titleContentColor = Color.White,
+                        navigationIconContentColor = Color.White
                     )
-                )
-
-                Text(
-                    text = "Payment QRIS",
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    fontSize = 18.sp,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(top = 25.dp)
                 )
             }
         },
@@ -358,13 +372,14 @@ fun QrisScreen(
             ) {
                 Button(
                     onClick = {
-                        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            android.Manifest.permission.READ_MEDIA_IMAGES
-                        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                            android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-                        } else {
-                            android.Manifest.permission.READ_EXTERNAL_STORAGE
-                        }
+                        val permission =
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                android.Manifest.permission.READ_MEDIA_IMAGES
+                            } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                            } else {
+                                android.Manifest.permission.READ_EXTERNAL_STORAGE
+                            }
 
                         if (ContextCompat.checkSelfPermission(
                                 context,
@@ -377,15 +392,13 @@ fun QrisScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
                     Text(
                         text = "Download",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(vertical = 4.dp)
+                        style = MaterialTheme.typography.bodyLarge
                     )
                 }
             }
@@ -532,7 +545,7 @@ fun QrisScreen(
         }
     }
 
-    if(showBottomSheet){
+    if (showBottomSheet) {
         ReusableBottomSheet(
             message = "Apakah Anda yakin ingin membatalkan pembayaran ini?",
             sheetState = sheetState,
