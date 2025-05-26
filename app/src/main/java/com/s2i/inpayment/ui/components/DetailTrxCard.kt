@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -133,15 +134,10 @@ fun DetailTrxCard(
             receiptNumber = tollReceiptNumber
         }
 
-//        val formattedTime = Dates.formatTimeDifference(
-//            startTime = Dates.parseIso8601(detail.trxDate),
-//            endTime = System.currentTimeMillis()
-//        )
         val formattedTime = Dates.formatTimeFromIso8601(detail.trxDate)
         val formattedDate = SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(
             Date(Dates.parseIso8601(detail.trxDate))
         )
-//        val shortenedTransactionId = detail.transactionId.take(10) + "..."
 
         Column(
             modifier = Modifier
@@ -166,6 +162,7 @@ fun DetailTrxCard(
                         contentDescription = "matermark",
                         modifier = Modifier
                             .fillMaxWidth()
+                            .fillMaxHeight()
                             .matchParentSize()
                     )
                     Column(
@@ -180,7 +177,7 @@ fun DetailTrxCard(
                         ) {
                             val isFailed = detail.status.lowercase() == "failed"
                             val statusText = when {
-                                isFailed -> "TRANSAKSI GAGAL"
+                                isFailed -> "TRANSACTION FAILED"
                                 detail.title.lowercase().contains("top up") -> "Top Up Successful"
                                 else -> "Toll Payment Successful"
                             }
@@ -204,7 +201,7 @@ fun DetailTrxCard(
                                     ) {
                                         Icon(
                                             painter = painterResource(id = R.drawable.ceklis),
-                                            contentDescription = "Berhasil",
+                                            contentDescription = "Success",
                                             tint = statusColor,
                                             modifier = Modifier.size(70.dp)
                                         )
@@ -242,7 +239,7 @@ fun DetailTrxCard(
 
                         // Transaction Details Section
                         Text(
-                            text = "TRANSAKSI DETAIL",
+                            text = "TRANSACTION DETAILS",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = DarkGreen,
@@ -251,31 +248,31 @@ fun DetailTrxCard(
 
                         // Details - Simple Row Implementation
                         if (detail.title.lowercase() != "top up") {
-                            TransactionDetailRow("Lokasi Gerbang Tol", detail.title)
+                            TransactionDetailRow("Toll Gate Location", detail.title)
                             TransactionDetailRow(
-                                "Metode Pembayaran",
+                                "Payment Method",
                                 when (detail.paymentMethod) {
-                                    "WALLET_CASH" -> "Saldo Bablas"
+                                    "WALLET_CASH" -> "Bablas Balance"
                                     else -> detail.paymentMethod
                                 }
                             )
-                            TransactionDetailRow("Nomor Kendaraan", plateNumber)
-                            TransactionDetailRow("Nomor Struk", receiptNumber)
+                            TransactionDetailRow("Vehicle Number", plateNumber)
+                            TransactionDetailRow("Receipt Number", receiptNumber)
                         } else {
-                            TransactionDetailRow("Jenis Transaksi", "Top Up Saldo Bablas")
+                            TransactionDetailRow("Transaction Type", "Top Up Bablas Balance")
                             detail.topUp?.let { topUp ->
-                                TransactionDetailRow("Nama Penerbit", topUp.issuerName ?: "-")
-                                TransactionDetailRow("PAN Penerbit", topUp.issuerPan ?: "-")
-                                TransactionDetailRow("PAN Pelanggan", topUp.customerPan ?: "-")
+                                TransactionDetailRow("Issuer Name", topUp.issuerName ?: "-")
+                                TransactionDetailRow("Issuer PAN", topUp.issuerPan ?: "-")
+                                TransactionDetailRow("Customer PAN", topUp.customerPan ?: "-")
                                 TransactionDetailRow(
-                                    "Biaya Administrasi",
+                                    "Administration Fee",
                                     RupiahFormatter.formatToRupiah(detail.fee)
                                 )
                             }
                         }
 
-                        TransactionDetailRow("Tanggal Transaksi", formattedDate)
-                        TransactionDetailRow("Waktu Transaksi", formattedTime)
+                        TransactionDetailRow("Transaction Date", formattedDate)
+                        TransactionDetailRow("Transaction Time", formattedTime)
 
                         // Transaction ID dengan copy button
                         Row(
@@ -286,7 +283,7 @@ fun DetailTrxCard(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "ID Transaksi",
+                                text = "Transaction ID",
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Medium,
                                 color = Color.Black
@@ -296,7 +293,16 @@ fun DetailTrxCard(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = detail.transactionId.take(20) + if (detail.transactionId.length > 20) "..." else "",
+                                    text = buildString {
+                                        val id = detail.transactionId
+                                        var startIndex = 0
+                                        while (startIndex < id.length) {
+                                            val endIndex = minOf(startIndex + 20, id.length)
+                                            append(id.substring(startIndex, endIndex))
+                                            if (endIndex < id.length) append("\n")
+                                            startIndex = endIndex
+                                        }
+                                    },
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = DarkGreen,
@@ -305,7 +311,7 @@ fun DetailTrxCard(
                                 IconButton(
                                     onClick = {
                                         coroutineScope.launch {
-                                            snackbarHostState.showSnackbar("ID Transaksi berhasil disalin")
+                                            snackbarHostState.showSnackbar("Transaction ID copied successfully")
                                         }
                                     },
                                     modifier = Modifier.size(24.dp)
@@ -354,7 +360,7 @@ fun DetailTrxCard(
                                 Spacer(modifier = Modifier.height(16.dp))
 
                                 Text(
-                                    text = "DOKUMENTASI KENDARAAN",
+                                    text = "VEHICLE DOCUMENTATION",
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF4CAF50),
@@ -379,7 +385,7 @@ fun DetailTrxCard(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = "LIHAT FOTO KENDARAAN",
+                                        text = "VIEW VEHICLE PHOTO",
                                         fontWeight = FontWeight.Medium
                                     )
                                 }
@@ -397,13 +403,13 @@ fun DetailTrxCard(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "Struk ini merupakan bukti pembayaran yang sah",
+                                text = "This receipt is a valid proof of payment",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color.Gray,
                                 textAlign = TextAlign.Center
                             )
                             Text(
-                                text = "Harap simpan sebagai bukti transaksi",
+                                text = "Please save as transaction proof",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color.Gray,
                                 textAlign = TextAlign.Center
@@ -420,34 +426,6 @@ fun DetailTrxCard(
                     }
                 }
             }
-
-            // Simple Detail Row Implementation - Add this as a separate composable function
-            @Composable
-            fun SimpleDetailRow(label: String, value: String) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = Color.Black,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        text = ": $value",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1565C0),
-                        textAlign = TextAlign.End,
-                        modifier = Modifier.weight(1.5f)
-                    )
-                }
-            }
-
 
             Spacer(modifier = Modifier.height(16.dp))
 

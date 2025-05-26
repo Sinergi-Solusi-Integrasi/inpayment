@@ -180,7 +180,6 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(brush = appleCardGradient())
-//                .windowInsetsPadding(WindowInsets.statusBars)
                 .pullRefresh(state = pullRefreshState)
         )
         {
@@ -236,7 +235,7 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
                 ) {
-                    // Header with Logo, Notification, and Profile
+                    // Header with Logo on the left and Notifications + Profile on the right
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -244,34 +243,26 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Logo on the left
+                        // Logo
                         Image(
                             painter = painterResource(id = R.drawable.logo),
                             contentDescription = "Logo",
-                            modifier = Modifier
-                                .size(40.dp)
-                                .align(Alignment.CenterVertically)
+                            modifier = Modifier.size(40.dp)
                         )
 
-                        Spacer(modifier = Modifier.weight(1f))
-
-                        // Notification and profile section
+                        // Right side: Notification and Profile icons side by side
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             IconButton(onClick = { /* Handle notification click */ }) {
                                 Icon(
-                                    Icons.Filled.Notifications,
+                                    imageVector = Icons.Filled.Notifications,
                                     contentDescription = "Notifications",
                                     tint = Color.White,
-                                    modifier = Modifier
-                                        .size(30.dp)
-
+                                    modifier = Modifier.size(30.dp)
                                 )
                             }
 
-                            // Profile picture
-//
                             Icon(
                                 imageVector = Icons.Filled.AccountCircle,
                                 contentDescription = "Profile",
@@ -289,10 +280,8 @@ fun HomeScreen(
 
                     // Balance Card positioned to overlap with background
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        // Use your existing BalanceCard component
                         BalanceCard(
                             navController,
                             balanceState,
@@ -301,7 +290,7 @@ fun HomeScreen(
                             isBalanceValid = !isBalanceValid
                         }
 
-                        // Bridge/Tower icon watermark at bottom right of card
+                        // Bridge/Tower icon watermark at bottom right
                         Image(
                             painter = painterResource(id = R.drawable.ic_road),
                             contentDescription = null,
@@ -313,6 +302,7 @@ fun HomeScreen(
                         )
                     }
                 }
+
 
                 Spacer(modifier = Modifier.height(32.dp))
                 Spacer(modifier = Modifier.height(32.dp))
@@ -343,7 +333,7 @@ fun HomeScreen(
                                     modifier = Modifier
                                         .weight(1f)
                                         .padding(end = 8.dp),
-                                    elevation = CardDefaults.elevatedCardElevation(4.dp),
+                                    elevation = CardDefaults.elevatedCardElevation(1.dp),
                                     shape = MaterialTheme.shapes.medium
                                 ) {
                                     Column(
@@ -366,7 +356,7 @@ fun HomeScreen(
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             Text(
-                                                text = "Pemasukan",
+                                                text = "Income",
                                                 style = MaterialTheme.typography.titleSmall
                                             )
                                             Canvas(modifier = Modifier.size(16.dp)) {
@@ -406,7 +396,7 @@ fun HomeScreen(
                                     modifier = Modifier
                                         .weight(1f)
                                         .padding(start = 8.dp),
-                                    elevation = CardDefaults.elevatedCardElevation(4.dp),
+                                    elevation = CardDefaults.elevatedCardElevation(1.dp),
                                     shape = MaterialTheme.shapes.medium
                                 ) {
                                     Column(
@@ -429,7 +419,7 @@ fun HomeScreen(
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             Text(
-                                                text = "Pengeluaran",
+                                                text = "Expense",
                                                 style = MaterialTheme.typography.titleSmall
                                             )
 
@@ -487,7 +477,7 @@ fun HomeScreen(
                                 )
                                 Spacer(modifier = Modifier.width(2.dp))
                                 Text(
-                                    text = "Riwayat Transaksi",
+                                    text = "Transaction history",
                                     style = MaterialTheme.typography.titleMedium,
                                     modifier = Modifier.padding(vertical = 8.dp)
                                 )
@@ -508,7 +498,7 @@ fun HomeScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 8.dp),
-                                elevation = CardDefaults.elevatedCardElevation(4.dp),
+                                elevation = CardDefaults.elevatedCardElevation(1.dp),
                                 shape = MaterialTheme.shapes.medium
                             ) {
                                 Column(

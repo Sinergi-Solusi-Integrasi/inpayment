@@ -41,9 +41,6 @@ import androidx.navigation.NavController
 import com.s2i.common.utils.convert.RupiahFormatter
 import com.s2i.domain.entity.model.balance.BalanceModel
 import com.s2i.inpayment.R
-import com.s2i.inpayment.ui.theme.DarkTeal40
-import com.s2i.inpayment.ui.theme.backgroundsGradientBrush
-import com.s2i.inpayment.ui.theme.triColorGradientBrushs
 import com.s2i.inpayment.ui.theme.triGradientBrussh
 
 @Composable
@@ -150,7 +147,7 @@ fun BalanceCard(
                                     launchSingleTop = true
                                 }
                             }
-                            .size(18.dp),
+                            .size(20.dp),
                         tint = Color.White
                     )
                     Spacer(modifier = Modifier.width(6.dp))
@@ -167,19 +164,19 @@ fun BalanceCard(
                     Spacer(modifier = Modifier.width(16.dp))
                     Icon(
                         imageVector = Icons.Default.Receipt,
-                        contentDescription = "Riwayat",
+                        contentDescription = "History",
                         modifier = Modifier
                             .clickable {
                                 navController.navigate("history_screen") {
                                     launchSingleTop = true
                                 }
                             }
-                            .size(18.dp),
+                            .size(20.dp),
                         tint = Color.White
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "Riwayat",
+                        text = "History",
                         color = Color.White,
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.clickable {

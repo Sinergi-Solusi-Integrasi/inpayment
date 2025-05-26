@@ -29,7 +29,6 @@ import androidx.compose.material.icons.filled.CarRental
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.DirectionsCarFilled
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -69,11 +68,9 @@ import com.s2i.inpayment.R
 import com.s2i.inpayment.ui.components.shimmer.profile.ProfileCardShimmer
 import com.s2i.inpayment.ui.theme.BrightTeal20
 import com.s2i.inpayment.ui.theme.DarkGreen
-import com.s2i.inpayment.ui.theme.DarkTeal21
 import com.s2i.inpayment.ui.theme.DarkTeal40
 import com.s2i.inpayment.ui.theme.Gagal
 import com.s2i.inpayment.ui.theme.Gagal1
-import com.s2i.inpayment.ui.theme.Red500
 import com.s2i.inpayment.ui.viewmodel.AuthViewModel
 import com.s2i.inpayment.ui.viewmodel.UsersViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -130,7 +127,12 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Profile") },
+                title = {
+                    Text(
+                        text = "Profile",
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = {
                         /* Handle back navigation */
@@ -375,7 +377,7 @@ fun ProfileCard(
                                         )
                                         clipboardManager.setPrimaryClip(clip)
                                     },
-                                tint = Color(0xFF007AFF)
+                                tint = Color.Gray
                             )
                         }
                     }

@@ -64,7 +64,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun WalletHistoryScreen(
     balanceViewModel: BalanceViewModel = koinViewModel(),
     navController: NavController
-){
+) {
     val groupedTransaction by balanceViewModel.historyTransaction.collectAsState()
     val canClick = rememberSingleClickHandler()
     var isStartupLoading by remember { mutableStateOf(true) }
@@ -98,7 +98,7 @@ fun WalletHistoryScreen(
     val showLoading = isStartupLoading || loading || isRefreshing
 
     // Fetch history only once when the screen first opens
-    LaunchedEffect(Unit){
+    LaunchedEffect(Unit) {
         if (loading && isStartupLoading) {
             isStartupLoading = true
         } else if (!loading) {
@@ -116,7 +116,7 @@ fun WalletHistoryScreen(
         CenterAlignedTopAppBar(
             title = {
                 Text(
-                    text = "Riwayat",
+                    text = "History",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontSize = MaterialTheme.typography.titleLarge.fontSize
                     ),
@@ -145,7 +145,6 @@ fun WalletHistoryScreen(
                 navigationIconContentColor = Color.White
             )
         )
-
         // Content in a Box with pull refresh
         Box(
             modifier = Modifier
@@ -156,7 +155,7 @@ fun WalletHistoryScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-            ){
+            ) {
                 // Progress indicator when loading
                 if (showLoading) {
                     CustomLinearProgressIndicator(
@@ -174,7 +173,7 @@ fun WalletHistoryScreen(
                         .fillMaxSize()
                         .padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
-                ){
+                ) {
                     if (showLoading) {
                         // Show shimmer when loading or refreshing
                         repeat(3) {

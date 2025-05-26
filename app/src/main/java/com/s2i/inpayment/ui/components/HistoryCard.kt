@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -39,12 +38,6 @@ fun HistoryCard(
             .fillMaxSize()
             .padding(vertical = 4.dp)
     ) {
-//        Text(
-//            text = dateLabel,
-//            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-//            color = MaterialTheme.colorScheme.onTertiary,
-//            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
-//        )
 
         Spacer(modifier = Modifier.width(8.dp))
 

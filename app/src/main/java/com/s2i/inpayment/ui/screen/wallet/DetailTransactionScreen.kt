@@ -159,8 +159,7 @@ fun DetailTransactionScreen(
                     title = {
                         Text(
                             text = "Transaction Detail",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
+                            fontWeight = FontWeight.Bold
                         )
                     },
                     navigationIcon = {

@@ -9,13 +9,13 @@ sealed class Onboard(
     val desc: String,
 ) {
     data object FirstPages : Onboard(
-        image = R.drawable.vector_car,
+        image = R.drawable.gate1,
         title = "Selamat Datang",
         desc =  "di inpayment"
     )
 
     data object SecondPages : Onboard(
-        image = R.drawable.vector_car,
+        image = R.drawable.gate2,
         title = "Fast in, Fast Go",
         desc =  "rasakan sensasi cepatnya"
     )

@@ -99,7 +99,7 @@ fun TransactionItem(
         // Divider between items
         HorizontalDivider(
             modifier = Modifier.padding(vertical = 2.dp),
-            thickness = 0.1.dp,
+            thickness = 1.dp,
             color = Color.LightGray
         )
     }
